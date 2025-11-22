@@ -1,0 +1,31 @@
+{
+  "name": "budgeting-app-nuxt",
+  "version": "1.0.0",
+  "description": "A simple budgeting application built with Nuxt 3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@headlessui/vue": "^1.7.23",
+    "@heroicons/vue": "^2.2.0",
+    "@prisma/client": "^6.19.0",
+    "@vueuse/core": "^14.0.0",
+    "nuxt": "^3.13.0",
+    "vue": "latest",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@nuxtjs/color-mode": "^4.0.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "prisma": "^6.19.0",
+    "tsx": "^4.20.6",
+    "typescript": "latest"
+  }
+}
