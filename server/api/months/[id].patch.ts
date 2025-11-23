@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
       ...month,
       income: centsToRands(month.income),
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) throw error
 
     console.error('Error updating month:', error)

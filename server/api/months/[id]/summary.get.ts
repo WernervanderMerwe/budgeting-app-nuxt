@@ -104,7 +104,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
       totalMoneyLeft: centsToRands(totalMoneyLeft),
       categorySpending,
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) throw error
 
     console.error('Error calculating summary:', error)

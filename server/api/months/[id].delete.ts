@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) throw error
 
     console.error('Error deleting month:', error)

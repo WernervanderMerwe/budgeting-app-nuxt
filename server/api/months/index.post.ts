@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'Invalid input data',
-        data: error.errors,
+        data: error.issues,
       })
     }
 
