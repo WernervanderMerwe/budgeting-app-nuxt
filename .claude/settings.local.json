@@ -8,7 +8,16 @@
       "Bash(mkdir:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(npx prisma db seed:*)",
-      "Bash(tsx prisma/seed.ts:*)"
+      "Bash(tsx prisma/seed.ts:*)",
+      "Bash(npx nuxi typecheck:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx prisma generate)",
+      "WebSearch",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__playwright__browser_navigate",
+      "Bash(npm outdated:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

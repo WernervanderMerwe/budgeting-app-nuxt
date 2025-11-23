@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
   ],
 
-  css: ['~/assets/css/main.css'],
+  css: [],
 
   typescript: {
     strict: true,

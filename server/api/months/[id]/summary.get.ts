@@ -1,3 +1,4 @@
+import type { FixedPayment, BudgetCategory, Transaction } from '@prisma/client'
 import prisma from '~/server/utils/db'
 import { centsToRands } from '~/server/utils/currency'
 
@@ -56,19 +57,19 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
 
     // Calculate fixed payments total
     const fixedPaymentsTotal = month.fixedPayments.reduce(
-      (sum, fp) => sum + fp.amount,
+      (sum: number, fp: FixedPayment) => sum + fp.amount,
       0
     )
 
     // Calculate budget allocations total
     const budgetAllocationsTotal = month.categories.reduce(
-      (sum, cat) => sum + cat.allocatedAmount,
+      (sum: number, cat: BudgetCategory) => sum + cat.allocatedAmount,
       0
     )
 
     // Calculate category spending
-    const categorySpending: CategorySpending[] = month.categories.map(cat => {
-      const spent = cat.transactions.reduce((sum, txn) => sum + txn.amount, 0)
+    const categorySpending: CategorySpending[] = month.categories.map((cat: BudgetCategory & { transactions: Transaction[] }) => {
+      const spent = cat.transactions.reduce((sum: number, txn: Transaction) => sum + txn.amount, 0)
       const remaining = cat.allocatedAmount - spent
 
       return {
@@ -83,7 +84,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
 
     // Calculate totals
     const totalActualSpending = month.categories.reduce(
-      (sum, cat) => sum + cat.transactions.reduce((txnSum, txn) => txnSum + txn.amount, 0),
+      (sum: number, cat: BudgetCategory & { transactions: Transaction[] }) => sum + cat.transactions.reduce((txnSum: number, txn: Transaction) => txnSum + txn.amount, 0),
       0
     )
 

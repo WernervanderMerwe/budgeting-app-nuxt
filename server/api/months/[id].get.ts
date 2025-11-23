@@ -1,3 +1,4 @@
+import type { FixedPayment, BudgetCategory, Transaction } from '@prisma/client'
 import prisma from '~/server/utils/db'
 import { centsToRands } from '~/server/utils/currency'
 
@@ -40,14 +41,14 @@ export default defineEventHandler(async (event) => {
     return {
       ...month,
       income: centsToRands(month.income),
-      fixedPayments: month.fixedPayments.map(fp => ({
+      fixedPayments: month.fixedPayments.map((fp: FixedPayment) => ({
         ...fp,
         amount: centsToRands(fp.amount),
       })),
-      categories: month.categories.map(cat => ({
+      categories: month.categories.map((cat: BudgetCategory & { transactions: Transaction[] }) => ({
         ...cat,
         allocatedAmount: centsToRands(cat.allocatedAmount),
-        transactions: cat.transactions.map(txn => ({
+        transactions: cat.transactions.map((txn: Transaction) => ({
           ...txn,
           amount: centsToRands(txn.amount),
         })),

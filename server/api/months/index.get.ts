@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // Convert cents to rands for frontend
-    return months.map(month => ({
+    return months.map((month) => ({
       ...month,
       income: centsToRands(month.income),
     }))

@@ -57,12 +57,12 @@ export interface Transaction {
 // ============================================================================
 
 export interface MonthWithRelations extends Month {
-  fixedPayments: FixedPayment[]
-  categories: BudgetCategoryWithTransactions[]
+  fixedPayments: readonly FixedPayment[]
+  categories: readonly BudgetCategoryWithTransactions[]
 }
 
 export interface BudgetCategoryWithTransactions extends BudgetCategory {
-  transactions: Transaction[]
+  transactions: readonly Transaction[]
 }
 
 // ============================================================================
