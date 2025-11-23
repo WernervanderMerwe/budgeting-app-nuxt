@@ -2,6 +2,7 @@ import prisma from '~/server/utils/db'
 import { randsToCents } from '~/server/utils/currency'
 import { monthSchema } from '~/server/utils/validation'
 import { z } from 'zod'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -10,12 +11,16 @@ export default defineEventHandler(async (event) => {
     // Validate input
     const validatedData = monthSchema.parse(body)
 
+    const now = dayjs().unix()
+
     // Create month
     const month = await prisma.month.create({
       data: {
         monthName: validatedData.monthName,
         year: validatedData.year,
         income: randsToCents(validatedData.income),
+        createdAt: now,
+        updatedAt: now,
       },
     })
 

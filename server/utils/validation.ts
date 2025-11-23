@@ -24,5 +24,5 @@ export const transactionSchema = z.object({
   categoryId: z.number().int().positive(),
   amount: z.number().nonnegative(),
   description: z.string().optional(),
-  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  transactionDate: z.number().int().positive().optional(), // Unix timestamp in seconds
 })

@@ -1,12 +1,15 @@
 import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
 
-    const updateData: any = {}
+    const updateData: any = {
+      updatedAt: dayjs().unix(),
+    }
     if (body.name !== undefined) updateData.name = body.name
     if (body.allocatedAmount !== undefined) {
       updateData.allocatedAmount = randsToCents(body.allocatedAmount)

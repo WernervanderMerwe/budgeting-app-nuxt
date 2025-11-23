@@ -1,11 +1,14 @@
 import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { fixedPaymentSchema } from '~/server/utils/validation'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
     const validatedData = fixedPaymentSchema.parse(body)
+
+    const now = dayjs().unix()
 
     const fixedPayment = await prisma.fixedPayment.create({
       data: {
@@ -13,6 +16,8 @@ export default defineEventHandler(async (event) => {
         name: validatedData.name,
         amount: randsToCents(validatedData.amount),
         orderIndex: validatedData.orderIndex || 0,
+        createdAt: now,
+        updatedAt: now,
       },
     })
 

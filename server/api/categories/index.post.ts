@@ -1,11 +1,14 @@
 import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { categorySchema } from '~/server/utils/validation'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
     const validatedData = categorySchema.parse(body)
+
+    const now = dayjs().unix()
 
     const category = await prisma.budgetCategory.create({
       data: {
@@ -13,6 +16,8 @@ export default defineEventHandler(async (event) => {
         name: validatedData.name,
         allocatedAmount: randsToCents(validatedData.allocatedAmount),
         orderIndex: validatedData.orderIndex || 0,
+        createdAt: now,
+        updatedAt: now,
       },
     })
 

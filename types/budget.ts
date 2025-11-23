@@ -1,4 +1,5 @@
 // TypeScript types for the budgeting application
+// All timestamps are Unix timestamps in seconds (numbers)
 
 // ============================================================================
 // Database Models (matching Prisma schema)
@@ -8,8 +9,8 @@ export interface User {
   id: number
   email: string
   name: string | null
-  createdAt: Date
-  updatedAt: Date
+  createdAt: number // Unix timestamp in seconds
+  updatedAt: number // Unix timestamp in seconds
 }
 
 export interface Month {
@@ -19,8 +20,8 @@ export interface Month {
   month: number
   income: number // stored in cents
   userId: number | null
-  createdAt: Date
-  updatedAt: Date
+  createdAt: number // Unix timestamp in seconds
+  updatedAt: number // Unix timestamp in seconds
 }
 
 export interface FixedPayment {
@@ -28,8 +29,8 @@ export interface FixedPayment {
   name: string
   amount: number // stored in cents
   monthId: number
-  createdAt: Date
-  updatedAt: Date
+  createdAt: number // Unix timestamp in seconds
+  updatedAt: number // Unix timestamp in seconds
 }
 
 export interface BudgetCategory {
@@ -37,17 +38,18 @@ export interface BudgetCategory {
   name: string
   budgetedAmount: number // stored in cents
   monthId: number
-  createdAt: Date
-  updatedAt: Date
+  createdAt: number // Unix timestamp in seconds
+  updatedAt: number // Unix timestamp in seconds
 }
 
 export interface Transaction {
   id: number
   description: string
   amount: number // stored in cents
+  transactionDate?: number // Unix timestamp in seconds
   categoryId: number
-  createdAt: Date
-  updatedAt: Date
+  createdAt: number // Unix timestamp in seconds
+  updatedAt: number // Unix timestamp in seconds
 }
 
 // ============================================================================
@@ -107,12 +109,14 @@ export interface UpdateBudgetCategoryDTO {
 export interface CreateTransactionDTO {
   description: string
   amount: number // in cents
+  transactionDate?: number // Unix timestamp in seconds
   categoryId: number
 }
 
 export interface UpdateTransactionDTO {
   description?: string
   amount?: number // in cents
+  transactionDate?: number // Unix timestamp in seconds
 }
 
 // ============================================================================

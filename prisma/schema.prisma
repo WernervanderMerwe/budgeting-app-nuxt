@@ -12,25 +12,25 @@ datasource db {
 
 // Authentication-ready: User model for future multi-user support
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int    @id @default(autoincrement())
+  email     String @unique
   name      String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt Int    @map("created_at") // Unix timestamp in seconds
+  updatedAt Int    @map("updated_at") // Unix timestamp in seconds
 
-  months    Month[]
+  months Month[]
 
   @@map("users")
 }
 
 model Month {
-  id        Int      @id @default(autoincrement())
-  userId    Int?     @map("user_id") // Nullable for now, required later with auth
-  monthName String   @map("month_name")
+  id        Int    @id @default(autoincrement())
+  userId    Int?   @map("user_id") // Nullable for now, required later with auth
+  monthName String @map("month_name")
   year      Int
-  income    Int      @default(0) // Stored in cents
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  income    Int    @default(0) // Stored in cents
+  createdAt Int    @map("created_at") // Unix timestamp in seconds
+  updatedAt Int    @map("updated_at") // Unix timestamp in seconds
 
   user          User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   fixedPayments FixedPayment[]
@@ -41,27 +41,27 @@ model Month {
 }
 
 model FixedPayment {
-  id         Int      @id @default(autoincrement())
-  monthId    Int      @map("month_id")
+  id         Int    @id @default(autoincrement())
+  monthId    Int    @map("month_id")
   name       String
-  amount     Int      // Stored in cents
-  orderIndex Int      @default(0) @map("order_index")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  amount     Int    // Stored in cents
+  orderIndex Int    @default(0) @map("order_index")
+  createdAt  Int    @map("created_at") // Unix timestamp in seconds
+  updatedAt  Int    @map("updated_at") // Unix timestamp in seconds
 
-  month      Month    @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  month Month @relation(fields: [monthId], references: [id], onDelete: Cascade)
 
   @@map("fixed_payments")
 }
 
 model BudgetCategory {
-  id              Int      @id @default(autoincrement())
-  monthId         Int      @map("month_id")
+  id              Int    @id @default(autoincrement())
+  monthId         Int    @map("month_id")
   name            String
-  allocatedAmount Int      @default(0) @map("allocated_amount") // Stored in cents
-  orderIndex      Int      @default(0) @map("order_index")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  allocatedAmount Int    @default(0) @map("allocated_amount") // Stored in cents
+  orderIndex      Int    @default(0) @map("order_index")
+  createdAt       Int    @map("created_at") // Unix timestamp in seconds
+  updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
 
   month        Month         @relation(fields: [monthId], references: [id], onDelete: Cascade)
   transactions Transaction[]
@@ -70,15 +70,15 @@ model BudgetCategory {
 }
 
 model Transaction {
-  id              Int      @id @default(autoincrement())
-  categoryId      Int      @map("category_id")
-  amount          Int      // Stored in cents
+  id              Int    @id @default(autoincrement())
+  categoryId      Int    @map("category_id")
+  amount          Int    // Stored in cents
   description     String?
-  transactionDate String?  @map("transaction_date") // ISO 8601 format
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  transactionDate Int?   @map("transaction_date") // Unix timestamp in seconds
+  createdAt       Int    @map("created_at") // Unix timestamp in seconds
+  updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
 
-  category        BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@map("transactions")
 }
