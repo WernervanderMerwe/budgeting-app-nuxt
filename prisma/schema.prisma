@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Authentication-ready: User model for future multi-user support
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  months    Month[]
+
+  @@map("users")
+}
+
+model Month {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id") // Nullable for now, required later with auth
+  monthName String   @map("month_name")
+  year      Int
+  income    Int      @default(0) // Stored in cents
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user          User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fixedPayments FixedPayment[]
+  categories    BudgetCategory[]
+
+  @@unique([userId, monthName, year])
+  @@map("months")
+}
+
+model FixedPayment {
+  id         Int      @id @default(autoincrement())
+  monthId    Int      @map("month_id")
+  name       String
+  amount     Int      // Stored in cents
+  orderIndex Int      @default(0) @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  month      Month    @relation(fields: [monthId], references: [id], onDelete: Cascade)
+
+  @@map("fixed_payments")
+}
+
+model BudgetCategory {
+  id              Int      @id @default(autoincrement())
+  monthId         Int      @map("month_id")
+  name            String
+  allocatedAmount Int      @default(0) @map("allocated_amount") // Stored in cents
+  orderIndex      Int      @default(0) @map("order_index")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  month        Month         @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("budget_categories")
+}
+
+model Transaction {
+  id              Int      @id @default(autoincrement())
+  categoryId      Int      @map("category_id")
+  amount          Int      // Stored in cents
+  description     String?
+  transactionDate String?  @map("transaction_date") // ISO 8601 format
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  category        BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
