@@ -5,6 +5,16 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Start seeding...')
 
+  // Check if data already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: 'test@example.com' },
+  })
+
+  if (existingUser) {
+    console.log('Database already seeded. Skipping...')
+    return
+  }
+
   // Create test user (for future auth)
   const user = await prisma.user.create({
     data: {

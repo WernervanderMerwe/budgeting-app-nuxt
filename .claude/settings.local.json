@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npx nuxi@latest init . -y)",
       "Bash(npm install)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma db seed:*)",
+      "Bash(tsx prisma/seed.ts:*)"
     ],
     "deny": [],
     "ask": []

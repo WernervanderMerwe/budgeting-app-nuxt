@@ -1,0 +1,116 @@
+import prisma from '~/server/utils/db'
+import { centsToRands } from '~/server/utils/currency'
+
+interface CategorySpending {
+  categoryId: number
+  categoryName: string
+  allocated: number
+  spent: number
+  remaining: number
+  overBudget: number
+}
+
+interface MonthSummary {
+  monthId: number
+  monthName: string
+  year: number
+  income: number
+  fixedPaymentsTotal: number
+  afterFixedPayments: number
+  budgetAllocationsTotal: number
+  afterBudgetAllocations: number
+  totalActualSpending: number
+  totalMoneyLeft: number
+  categorySpending: CategorySpending[]
+}
+
+export default defineEventHandler(async (event): Promise<MonthSummary> => {
+  try {
+    const id = parseInt(getRouterParam(event, 'id')!)
+
+    if (isNaN(id)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Invalid month ID',
+      })
+    }
+
+    const month = await prisma.month.findUnique({
+      where: { id },
+      include: {
+        fixedPayments: true,
+        categories: {
+          include: {
+            transactions: true,
+          },
+        },
+      },
+    })
+
+    if (!month) {
+      throw createError({
+        statusCode: 404,
+        message: 'Month not found',
+      })
+    }
+
+    // Calculate fixed payments total
+    const fixedPaymentsTotal = month.fixedPayments.reduce(
+      (sum, fp) => sum + fp.amount,
+      0
+    )
+
+    // Calculate budget allocations total
+    const budgetAllocationsTotal = month.categories.reduce(
+      (sum, cat) => sum + cat.allocatedAmount,
+      0
+    )
+
+    // Calculate category spending
+    const categorySpending: CategorySpending[] = month.categories.map(cat => {
+      const spent = cat.transactions.reduce((sum, txn) => sum + txn.amount, 0)
+      const remaining = cat.allocatedAmount - spent
+
+      return {
+        categoryId: cat.id,
+        categoryName: cat.name,
+        allocated: centsToRands(cat.allocatedAmount),
+        spent: centsToRands(spent),
+        remaining: centsToRands(remaining > 0 ? remaining : 0),
+        overBudget: centsToRands(remaining < 0 ? Math.abs(remaining) : 0),
+      }
+    })
+
+    // Calculate totals
+    const totalActualSpending = month.categories.reduce(
+      (sum, cat) => sum + cat.transactions.reduce((txnSum, txn) => txnSum + txn.amount, 0),
+      0
+    )
+
+    const afterFixedPayments = month.income - fixedPaymentsTotal
+    const afterBudgetAllocations = afterFixedPayments - budgetAllocationsTotal
+    const totalMoneyLeft = month.income - fixedPaymentsTotal - totalActualSpending
+
+    return {
+      monthId: month.id,
+      monthName: month.monthName,
+      year: month.year,
+      income: centsToRands(month.income),
+      fixedPaymentsTotal: centsToRands(fixedPaymentsTotal),
+      afterFixedPayments: centsToRands(afterFixedPayments),
+      budgetAllocationsTotal: centsToRands(budgetAllocationsTotal),
+      afterBudgetAllocations: centsToRands(afterBudgetAllocations),
+      totalActualSpending: centsToRands(totalActualSpending),
+      totalMoneyLeft: centsToRands(totalMoneyLeft),
+      categorySpending,
+    }
+  } catch (error) {
+    if (error.statusCode) throw error
+
+    console.error('Error calculating summary:', error)
+    throw createError({
+      statusCode: 500,
+      message: 'Failed to calculate summary',
+    })
+  }
+})
