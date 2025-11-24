@@ -21,7 +21,11 @@
       "Bash(nvm version:*)",
       "Bash(nvm list)",
       "Bash(nvm current)",
-      "Bash(nvm use:*)"
+      "Bash(nvm use:*)",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "Bash(npx tsx prisma/seed.ts)"
     ],
     "deny": [],
     "ask": []

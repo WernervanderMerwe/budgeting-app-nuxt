@@ -13,7 +13,7 @@
       <div class="flex items-center justify-between py-2">
         <span class="text-gray-700 dark:text-gray-300 font-medium">Monthly Income</span>
         <span class="text-lg font-bold text-green-600 dark:text-green-400">
-          {{ formatCurrency(summary.income) }}
+          {{ formatCurrency(centsToRands(summary.income)) }}
         </span>
       </div>
 
@@ -23,7 +23,7 @@
       <div class="flex items-center justify-between py-2">
         <span class="text-gray-700 dark:text-gray-300">Fixed Payments</span>
         <span class="text-gray-900 dark:text-white font-semibold">
-          -{{ formatCurrency(summary.totalFixedPayments) }}
+          -{{ formatCurrency(centsToRands(summary.totalFixedPayments)) }}
         </span>
       </div>
 
@@ -31,7 +31,7 @@
       <div class="flex items-center justify-between py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 -mx-3">
         <span class="text-blue-700 dark:text-blue-300 font-medium">Available After Fixed</span>
         <span class="text-lg font-bold text-blue-600 dark:text-blue-400">
-          {{ formatCurrency(summary.availableAfterFixed) }}
+          {{ formatCurrency(centsToRands(summary.availableAfterFixed)) }}
         </span>
       </div>
 
@@ -41,15 +41,25 @@
       <div class="flex items-center justify-between py-2">
         <span class="text-gray-700 dark:text-gray-300">Total Budgeted</span>
         <span class="text-gray-900 dark:text-white font-semibold">
-          {{ formatCurrency(summary.totalBudgeted) }}
+          -{{ formatCurrency(centsToRands(summary.totalBudgeted)) }}
         </span>
       </div>
+
+      <!-- Available after budgets -->
+      <div class="flex items-center justify-between py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 -mx-3">
+        <span class="text-purple-700 dark:text-purple-300 font-medium">Available After Budgets</span>
+        <span class="text-lg font-bold text-purple-600 dark:text-purple-400">
+          {{ formatCurrency(centsToRands(summary.availableAfterBudgets)) }}
+        </span>
+      </div>
+
+      <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
       <!-- Spent -->
       <div class="flex items-center justify-between py-2">
         <span class="text-gray-700 dark:text-gray-300">Total Spent</span>
         <span class="text-gray-900 dark:text-white font-semibold">
-          -{{ formatCurrency(summary.totalSpent) }}
+          -{{ formatCurrency(centsToRands(summary.totalSpent)) }}
         </span>
       </div>
 
@@ -66,7 +76,7 @@
               : 'text-red-600 dark:text-red-400'
           ]"
         >
-          {{ formatCurrency(summary.totalRemaining) }}
+          {{ formatCurrency(centsToRands(summary.totalRemaining)) }}
         </span>
       </div>
 
@@ -84,7 +94,7 @@
             <span class="text-gray-700 dark:text-gray-300">{{ category.categoryName }}</span>
             <div class="flex items-center space-x-2">
               <span class="text-gray-600 dark:text-gray-400 text-xs">
-                {{ formatCurrency(category.spent) }} / {{ formatCurrency(category.budgeted) }}
+                {{ formatCurrency(centsToRands(category.spent)) }} / {{ formatCurrency(centsToRands(category.allocated)) }}
               </span>
               <span
                 :class="[
@@ -94,7 +104,7 @@
                     : 'text-red-600 dark:text-red-400'
                 ]"
               >
-                {{ formatCurrency(Math.abs(category.remaining)) }}
+                {{ formatCurrency(centsToRands(Math.abs(category.remaining))) }}
               </span>
             </div>
           </li>
@@ -109,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatCurrency } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 
 const { summary, isLoadingSummary, budgetError, fetchSummary } = useBudget()
 const { selectedMonthId } = useMonths()

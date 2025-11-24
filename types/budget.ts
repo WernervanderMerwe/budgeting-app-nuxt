@@ -36,7 +36,7 @@ export interface FixedPayment {
 export interface BudgetCategory {
   id: number
   name: string
-  budgetedAmount: number // stored in cents
+  allocatedAmount: number // stored in cents
   monthId: number
   createdAt: number // Unix timestamp in seconds
   updatedAt: number // Unix timestamp in seconds
@@ -97,13 +97,13 @@ export interface UpdateFixedPaymentDTO {
 
 export interface CreateBudgetCategoryDTO {
   name: string
-  budgetedAmount: number // in cents
+  allocatedAmount: number // in cents
   monthId: number
 }
 
 export interface UpdateBudgetCategoryDTO {
   name?: string
-  budgetedAmount?: number // in cents
+  allocatedAmount?: number // in cents
 }
 
 export interface CreateTransactionDTO {
@@ -126,7 +126,7 @@ export interface UpdateTransactionDTO {
 export interface CategorySummary {
   categoryId: number
   categoryName: string
-  budgeted: number // in cents
+  allocated: number // in cents
   spent: number // in cents
   remaining: number // in cents
 }
@@ -136,9 +136,10 @@ export interface MonthSummary {
   monthName: string
   income: number // in cents
   totalFixedPayments: number // in cents
-  totalBudgeted: number // in cents
-  totalSpent: number // in cents
   availableAfterFixed: number // in cents (income - fixed payments)
+  totalBudgeted: number // in cents
+  availableAfterBudgets: number // in cents (income - fixed payments - budgets)
+  totalSpent: number // in cents
   totalRemaining: number // in cents (income - fixed - spent)
   categories: CategorySummary[]
 }

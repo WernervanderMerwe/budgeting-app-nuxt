@@ -33,8 +33,9 @@ async function main() {
   const month = await prisma.month.create({
     data: {
       userId: user.id,
-      monthName: 'January',
+      name: 'January',
       year: 2025,
+      month: 1,
       income: 3000000, // R30,000 in cents
       createdAt: now,
       updatedAt: now,

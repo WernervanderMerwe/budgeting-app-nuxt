@@ -1,6 +1,4 @@
-import type { FixedPayment, BudgetCategory, Transaction } from '@prisma/client'
 import prisma from '~/server/utils/db'
-import { centsToRands } from '~/server/utils/currency'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -37,23 +35,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Convert all monetary values from cents to rands
-    return {
-      ...month,
-      income: centsToRands(month.income),
-      fixedPayments: month.fixedPayments.map((fp: FixedPayment) => ({
-        ...fp,
-        amount: centsToRands(fp.amount),
-      })),
-      categories: month.categories.map((cat: BudgetCategory & { transactions: Transaction[] }) => ({
-        ...cat,
-        allocatedAmount: centsToRands(cat.allocatedAmount),
-        transactions: cat.transactions.map((txn: Transaction) => ({
-          ...txn,
-          amount: centsToRands(txn.amount),
-        })),
-      })),
-    }
+    // Return as-is (values in cents)
+    return month
   } catch (error: any) {
     if (error.statusCode) throw error
 

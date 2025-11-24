@@ -1,6 +1,5 @@
 import type { FixedPayment, BudgetCategory, Transaction } from '@prisma/client'
 import prisma from '~/server/utils/db'
-import { centsToRands } from '~/server/utils/currency'
 
 interface CategorySpending {
   categoryId: number
@@ -14,15 +13,14 @@ interface CategorySpending {
 interface MonthSummary {
   monthId: number
   monthName: string
-  year: number
   income: number
-  fixedPaymentsTotal: number
-  afterFixedPayments: number
-  budgetAllocationsTotal: number
-  afterBudgetAllocations: number
-  totalActualSpending: number
-  totalMoneyLeft: number
-  categorySpending: CategorySpending[]
+  totalFixedPayments: number
+  availableAfterFixed: number
+  totalBudgeted: number
+  availableAfterBudgets: number
+  totalSpent: number
+  totalRemaining: number
+  categories: CategorySpending[]
 }
 
 export default defineEventHandler(async (event): Promise<MonthSummary> => {
@@ -75,10 +73,10 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
       return {
         categoryId: cat.id,
         categoryName: cat.name,
-        allocated: centsToRands(cat.allocatedAmount),
-        spent: centsToRands(spent),
-        remaining: centsToRands(remaining > 0 ? remaining : 0),
-        overBudget: centsToRands(remaining < 0 ? Math.abs(remaining) : 0),
+        allocated: cat.allocatedAmount,
+        spent: spent,
+        remaining: remaining > 0 ? remaining : 0,
+        overBudget: remaining < 0 ? Math.abs(remaining) : 0,
       }
     })
 
@@ -94,16 +92,15 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
 
     return {
       monthId: month.id,
-      monthName: month.monthName,
-      year: month.year,
-      income: centsToRands(month.income),
-      fixedPaymentsTotal: centsToRands(fixedPaymentsTotal),
-      afterFixedPayments: centsToRands(afterFixedPayments),
-      budgetAllocationsTotal: centsToRands(budgetAllocationsTotal),
-      afterBudgetAllocations: centsToRands(afterBudgetAllocations),
-      totalActualSpending: centsToRands(totalActualSpending),
-      totalMoneyLeft: centsToRands(totalMoneyLeft),
-      categorySpending,
+      monthName: month.name,
+      income: month.income,
+      totalFixedPayments: fixedPaymentsTotal,
+      availableAfterFixed: afterFixedPayments,
+      totalBudgeted: budgetAllocationsTotal,
+      availableAfterBudgets: afterBudgetAllocations,
+      totalSpent: totalActualSpending,
+      totalRemaining: totalMoneyLeft,
+      categories: categorySpending,
     }
   } catch (error: any) {
     if (error.statusCode) throw error

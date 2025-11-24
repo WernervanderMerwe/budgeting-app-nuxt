@@ -26,8 +26,9 @@ model User {
 model Month {
   id        Int    @id @default(autoincrement())
   userId    Int?   @map("user_id") // Nullable for now, required later with auth
-  monthName String @map("month_name")
+  name      String @map("month_name")
   year      Int
+  month     Int    @default(1) // Month number 1-12
   income    Int    @default(0) // Stored in cents
   createdAt Int    @map("created_at") // Unix timestamp in seconds
   updatedAt Int    @map("updated_at") // Unix timestamp in seconds
@@ -36,7 +37,7 @@ model Month {
   fixedPayments FixedPayment[]
   categories    BudgetCategory[]
 
-  @@unique([userId, monthName, year])
+  @@unique([userId, name, year])
   @@map("months")
 }
 

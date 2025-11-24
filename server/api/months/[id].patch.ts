@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import { randsToCents, centsToRands } from '~/server/utils/currency'
+import { randsToCents } from '~/server/utils/currency'
 import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
@@ -18,8 +18,9 @@ export default defineEventHandler(async (event) => {
       updatedAt: dayjs().unix(),
     }
 
-    if (body.monthName !== undefined) updateData.monthName = body.monthName
+    if (body.name !== undefined) updateData.name = body.name
     if (body.year !== undefined) updateData.year = body.year
+    if (body.month !== undefined) updateData.month = body.month
     if (body.income !== undefined) updateData.income = randsToCents(body.income)
 
     const month = await prisma.month.update({
@@ -27,10 +28,7 @@ export default defineEventHandler(async (event) => {
       data: updateData,
     })
 
-    return {
-      ...month,
-      income: centsToRands(month.income),
-    }
+    return month
   } catch (error: any) {
     if (error.statusCode) throw error
 

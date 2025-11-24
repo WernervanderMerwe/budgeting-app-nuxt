@@ -63,7 +63,7 @@
                 Budgeted Amount (R)
               </label>
               <input
-                v-model.number="newCategory.budgetedAmount"
+                v-model.number="newCategory.allocatedAmount"
                 type="number"
                 min="0"
                 step="0.01"
@@ -149,7 +149,7 @@ const isAddingCategory = ref(false)
 
 const newCategory = ref({
   name: '',
-  budgetedAmount: 0,
+  allocatedAmount: 0,
 })
 
 const handleAddCategory = async () => {
@@ -160,7 +160,7 @@ const handleAddCategory = async () => {
     await createCategory({
       monthId: currentMonth.value.id,
       name: newCategory.value.name,
-      budgetedAmount: randsToCents(newCategory.value.budgetedAmount),
+      allocatedAmount: randsToCents(newCategory.value.allocatedAmount),
     })
     cancelAddCategory()
   } catch (error) {
@@ -172,6 +172,6 @@ const handleAddCategory = async () => {
 
 const cancelAddCategory = () => {
   showAddCategoryForm.value = false
-  newCategory.value = { name: '', budgetedAmount: 0 }
+  newCategory.value = { name: '', allocatedAmount: 0 }
 }
 </script>

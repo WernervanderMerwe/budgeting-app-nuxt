@@ -1,27 +1,24 @@
 import prisma from '~/server/utils/db'
-import { centsToRands } from '~/server/utils/currency'
 
 export default defineEventHandler(async (event) => {
   try {
     const months = await prisma.month.findMany({
       orderBy: [
         { year: 'desc' },
-        { monthName: 'desc' },
+        { month: 'desc' },
       ],
       select: {
         id: true,
-        monthName: true,
+        name: true,
         year: true,
+        month: true,
         income: true,
         createdAt: true,
       },
     })
 
-    // Convert cents to rands for frontend
-    return months.map((month) => ({
-      ...month,
-      income: centsToRands(month.income),
-    }))
+    // Return as-is (values in cents)
+    return months
   } catch (error) {
     console.error('Error fetching months:', error)
     throw createError({

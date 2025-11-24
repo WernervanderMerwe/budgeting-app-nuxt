@@ -11,7 +11,7 @@
             required
           />
           <input
-            v-model.number="editedCategory.budgetedAmount"
+            v-model.number="editedCategory.allocatedAmount"
             type="number"
             min="0"
             step="0.01"
@@ -111,10 +111,10 @@ const { updateCategory, deleteCategory } = useBudget()
 const editingCategory = ref(false)
 const editedCategory = ref({
   name: '',
-  budgetedAmount: 0,
+  allocatedAmount: 0,
 })
 
-const budgeted = computed(() => centsToRands(props.category.budgetedAmount))
+const budgeted = computed(() => centsToRands(props.category.allocatedAmount))
 
 const spent = computed(() => {
   const total = props.category.transactions.reduce((sum, txn) => sum + txn.amount, 0)
@@ -133,20 +133,20 @@ const startEditCategory = () => {
   editingCategory.value = true
   editedCategory.value = {
     name: props.category.name,
-    budgetedAmount: centsToRands(props.category.budgetedAmount),
+    allocatedAmount: centsToRands(props.category.allocatedAmount),
   }
 }
 
 const cancelEditCategory = () => {
   editingCategory.value = false
-  editedCategory.value = { name: '', budgetedAmount: 0 }
+  editedCategory.value = { name: '', allocatedAmount: 0 }
 }
 
 const handleUpdateCategory = async () => {
   try {
     await updateCategory(props.category.id, {
       name: editedCategory.value.name,
-      budgetedAmount: randsToCents(editedCategory.value.budgetedAmount),
+      allocatedAmount: randsToCents(editedCategory.value.allocatedAmount),
     })
     cancelEditCategory()
   } catch (error) {

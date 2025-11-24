@@ -16,8 +16,9 @@ export default defineEventHandler(async (event) => {
     // Create month
     const month = await prisma.month.create({
       data: {
-        monthName: validatedData.monthName,
+        name: validatedData.name,
         year: validatedData.year,
+        month: validatedData.month,
         income: randsToCents(validatedData.income),
         createdAt: now,
         updatedAt: now,
