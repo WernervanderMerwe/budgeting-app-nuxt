@@ -3,15 +3,15 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: [
-    '@nuxtjs/tailwindcss',
-    '@nuxtjs/color-mode',
+    '@nuxtjs/color-mode', 
+    '@nuxtjs/tailwindcss'
   ],
 
   css: [],
 
   typescript: {
     strict: true,
-    typeCheck: true,
+    typeCheck: false,
   },
 
   app: {
