@@ -73,8 +73,9 @@ export interface CreateMonthDTO {
   name: string
   year: number
   month: number
-  income: number // in cents
+  income: number // in rands (API converts to cents)
   userId?: number | null
+  copyFromMonthId?: number // Optional: copy fixed payments and categories from this month
 }
 
 export interface UpdateMonthDTO {

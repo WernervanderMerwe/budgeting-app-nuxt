@@ -137,6 +137,24 @@
                   required
                 />
               </div>
+
+              <!-- Copy from Previous Month -->
+              <div v-if="selectedMonthId" class="flex items-start space-x-2">
+                <input
+                  id="copyFromPrevious"
+                  v-model="copyFromPrevious"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <div class="flex-1">
+                  <label for="copyFromPrevious" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                    Copy payments and budgets from current month
+                  </label>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    This will copy your fixed payments and budget categories (without transactions) to the new month
+                  </p>
+                </div>
+              </div>
             </div>
 
             <!-- Actions -->
@@ -165,7 +183,6 @@
 
 <script setup lang="ts">
 import { getCurrentYear, getCurrentMonth } from '~/utils/date'
-import { randsToCents } from '~/utils/currency'
 
 const {
   sortedMonths,
@@ -180,6 +197,7 @@ const {
 
 const showCreateModal = ref(false)
 const isCreating = ref(false)
+const copyFromPrevious = ref(false)
 
 const newMonth = ref({
   name: '',
@@ -195,7 +213,8 @@ const handleCreateMonth = async () => {
       name: newMonth.value.name,
       year: newMonth.value.year,
       month: newMonth.value.month,
-      income: randsToCents(newMonth.value.income),
+      income: newMonth.value.income,
+      copyFromMonthId: copyFromPrevious.value ? selectedMonthId.value : undefined,
     })
 
     showCreateModal.value = false
@@ -207,6 +226,7 @@ const handleCreateMonth = async () => {
       month: getCurrentMonth(),
       income: 0,
     }
+    copyFromPrevious.value = false
 
     // Select the newly created month
     await selectMonth(created.id)

@@ -22,7 +22,7 @@ export const useMonths = () => {
       name: month.name,
       year: month.year,
       month: month.month,
-      displayName: `${month.name} ${month.year}`
+      displayName: month.name
     }))
   })
 

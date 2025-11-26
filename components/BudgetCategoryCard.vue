@@ -1,51 +1,74 @@
 <template>
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-    <!-- Category Header -->
-    <div class="flex items-center justify-between mb-4">
-      <template v-if="editingCategory">
-        <form @submit.prevent="handleUpdateCategory" class="flex-1 flex items-center space-x-2">
-          <input
-            v-model="editedCategory.name"
-            type="text"
-            class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-            required
-          />
-          <input
-            v-model.number="editedCategory.allocatedAmount"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Budget"
-            class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-            required
-          />
-          <button
-            type="submit"
-            class="text-green-600 dark:text-green-400 hover:text-green-700 p-1"
-            title="Save"
+  <div
+    class="rounded-lg shadow border border-gray-200 dark:border-gray-700"
+    :class="remaining >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'"
+  >
+    <!-- Category Header - Collapsible -->
+    <div
+      class="p-4 cursor-pointer hover:opacity-90 transition-opacity"
+      @click="toggleExpanded"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2 flex-1">
+          <!-- Chevron Icon -->
+          <svg
+            class="w-5 h-5 transition-transform"
+            :class="{ 'transform rotate-90': isExpanded }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+
+          <template v-if="editingCategory">
+            <form @submit.prevent="handleUpdateCategory" @click.stop class="flex-1 flex items-center space-x-2">
+              <input
+                v-model="editedCategory.name"
+                type="text"
+                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                required
+              />
+              <input
+                v-model.number="editedCategory.allocatedAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Budget"
+                class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                required
+              />
+              <button
+                type="submit"
+                class="text-green-600 dark:text-green-400 hover:text-green-700 p-1"
+                title="Save"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                @click="cancelEditCategory"
+                class="text-gray-600 dark:text-gray-400 hover:text-gray-700 p-1"
+                title="Cancel"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </form>
+          </template>
+          <template v-else>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ category.name }}
+            </h3>
+          </template>
+        </div>
+
+        <div class="flex items-center space-x-2" @click.stop>
           <button
-            type="button"
-            @click="cancelEditCategory"
-            class="text-gray-600 dark:text-gray-400 hover:text-gray-700 p-1"
-            title="Cancel"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </form>
-      </template>
-      <template v-else>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ category.name }}
-        </h3>
-        <div class="flex items-center space-x-2">
-          <button
+            v-if="!editingCategory"
             @click="startEditCategory"
             class="text-blue-600 dark:text-blue-400 hover:text-blue-700 p-1"
             title="Edit category"
@@ -55,6 +78,7 @@
             </svg>
           </button>
           <button
+            v-if="!editingCategory"
             @click="handleDeleteCategory"
             class="text-red-600 dark:text-red-400 hover:text-red-700 p-1"
             title="Delete category"
@@ -64,41 +88,50 @@
             </svg>
           </button>
         </div>
-      </template>
-    </div>
-
-    <!-- Budget Progress -->
-    <div class="mb-4">
-      <div class="flex items-center justify-between text-sm mb-2">
-        <span class="text-gray-600 dark:text-gray-400">
-          {{ formatCurrency(spent) }} of {{ formatCurrency(budgeted) }}
-        </span>
-        <span :class="remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" class="font-medium">
-          {{ remaining >= 0 ? formatCurrency(remaining) : formatCurrency(Math.abs(remaining)) }} {{ remaining >= 0 ? 'left' : 'over' }}
-        </span>
       </div>
-      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-        <div
-          :class="[
-            'h-2 rounded-full transition-all',
-            remaining >= 0 ? 'bg-green-500' : 'bg-red-500'
-          ]"
-          :style="{ width: progressPercentage + '%' }"
-        ></div>
+
+      <!-- Summary - Always Visible -->
+      <div class="mt-2 flex justify-between text-sm text-gray-700 dark:text-gray-300">
+        <span>Budget: {{ formatCurrency(budgeted) }}</span>
+        <span>Spent: {{ formatCurrency(spent) }}</span>
       </div>
     </div>
 
-    <!-- Transactions -->
-    <TransactionList
-      :category-id="category.id"
-      :transactions="category.transactions"
-    />
+    <!-- Expandable Content -->
+    <div v-if="isExpanded" class="p-4 pt-0">
+      <!-- Budget Progress -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between text-sm mb-2">
+          <span class="text-gray-600 dark:text-gray-400">
+            {{ formatCurrency(spent) }} of {{ formatCurrency(budgeted) }}
+          </span>
+          <span :class="remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" class="font-medium">
+            {{ remaining >= 0 ? formatCurrency(remaining) : formatCurrency(Math.abs(remaining)) }} {{ remaining >= 0 ? 'left' : 'over' }}
+          </span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div
+            :class="[
+              'h-2 rounded-full transition-all',
+              remaining >= 0 ? 'bg-green-500' : 'bg-red-500'
+            ]"
+            :style="{ width: progressPercentage + '%' }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Transactions -->
+      <TransactionList
+        :category-id="category.id"
+        :transactions="category.transactions"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { BudgetCategoryWithTransactions } from '~/types/budget'
-import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 
 interface Props {
   category: BudgetCategoryWithTransactions
@@ -108,11 +141,18 @@ const props = defineProps<Props>()
 
 const { updateCategory, deleteCategory } = useBudget()
 
+const isExpanded = ref(true) // Start expanded by default
 const editingCategory = ref(false)
 const editedCategory = ref({
   name: '',
   allocatedAmount: 0,
 })
+
+const toggleExpanded = () => {
+  if (!editingCategory.value) {
+    isExpanded.value = !isExpanded.value
+  }
+}
 
 const budgeted = computed(() => centsToRands(props.category.allocatedAmount))
 
@@ -146,7 +186,7 @@ const handleUpdateCategory = async () => {
   try {
     await updateCategory(props.category.id, {
       name: editedCategory.value.name,
-      allocatedAmount: randsToCents(editedCategory.value.allocatedAmount),
+      allocatedAmount: editedCategory.value.allocatedAmount,
     })
     cancelEditCategory()
   } catch (error) {

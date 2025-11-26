@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import type { Month } from '~/types/budget'
-import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 
 interface Props {
   month: Month
@@ -86,7 +86,7 @@ const handleSave = async () => {
   isSaving.value = true
   try {
     await updateMonth(props.month.id, {
-      income: randsToCents(editedIncome.value),
+      income: editedIncome.value,
     })
     isEditing.value = false
   } catch (error) {

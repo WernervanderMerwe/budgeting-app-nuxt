@@ -5,6 +5,7 @@ export const monthSchema = z.object({
   year: z.number().int().min(2000).max(2100),
   month: z.number().int().min(1).max(12),
   income: z.number().nonnegative(),
+  copyFromMonthId: z.number().int().positive().optional(),
 })
 
 export const fixedPaymentSchema = z.object({

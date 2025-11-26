@@ -25,6 +25,47 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    // If copyFromMonthId is provided, copy fixed payments and categories
+    if (validatedData.copyFromMonthId) {
+      // Copy fixed payments
+      const sourceFixedPayments = await prisma.fixedPayment.findMany({
+        where: { monthId: validatedData.copyFromMonthId },
+        orderBy: { orderIndex: 'asc' },
+      })
+
+      for (const payment of sourceFixedPayments) {
+        await prisma.fixedPayment.create({
+          data: {
+            monthId: month.id,
+            name: payment.name,
+            amount: payment.amount,
+            orderIndex: payment.orderIndex,
+            createdAt: now,
+            updatedAt: now,
+          },
+        })
+      }
+
+      // Copy budget categories (without transactions)
+      const sourceCategories = await prisma.budgetCategory.findMany({
+        where: { monthId: validatedData.copyFromMonthId },
+        orderBy: { orderIndex: 'asc' },
+      })
+
+      for (const category of sourceCategories) {
+        await prisma.budgetCategory.create({
+          data: {
+            monthId: month.id,
+            name: category.name,
+            allocatedAmount: category.allocatedAmount,
+            orderIndex: category.orderIndex,
+            createdAt: now,
+            updatedAt: now,
+          },
+        })
+      }
+    }
+
     return {
       ...month,
       income: validatedData.income,

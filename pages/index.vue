@@ -45,8 +45,8 @@
         <!-- Add Category Form -->
         <form v-else @submit.prevent="handleAddCategory" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <h3 class="font-semibold text-gray-900 dark:text-white mb-3">New Budget Category</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
+          <div class="flex gap-3 mb-4">
+            <div class="flex-1">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Category Name
               </label>
@@ -58,9 +58,9 @@
                 required
               />
             </div>
-            <div>
+            <div class="w-40">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Budgeted Amount (R)
+                Amount (R)
               </label>
               <input
                 v-model.number="newCategory.allocatedAmount"
@@ -134,15 +134,32 @@
     <div v-else class="flex items-center justify-center min-h-[60vh]">
       <LoadingSpinner size="lg" />
     </div>
+
+    <!-- Total Money Left - Fixed Bottom Right -->
+    <div
+      v-if="currentMonth"
+      class="fixed bottom-6 right-6 z-50"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 min-w-[200px]">
+        <div class="text-center">
+          <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            Total Money Left
+          </h3>
+          <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+            {{ totalMoneyLeft }}
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { getMonthName } from '~/utils/date'
-import { randsToCents } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 
 const { currentMonth, selectedMonthId, hasMonths } = useMonths()
-const { createCategory } = useBudget()
+const { createCategory, summary } = useBudget()
 
 const showAddCategoryForm = ref(false)
 const isAddingCategory = ref(false)
@@ -150,6 +167,12 @@ const isAddingCategory = ref(false)
 const newCategory = ref({
   name: '',
   allocatedAmount: 0,
+})
+
+// Calculate total money left (income - fixed payments - actual spending)
+const totalMoneyLeft = computed(() => {
+  if (!summary.value) return formatCurrency(0)
+  return formatCurrency(summary.value.totalRemaining)
 })
 
 const handleAddCategory = async () => {
@@ -160,7 +183,7 @@ const handleAddCategory = async () => {
     await createCategory({
       monthId: currentMonth.value.id,
       name: newCategory.value.name,
-      allocatedAmount: randsToCents(newCategory.value.allocatedAmount),
+      allocatedAmount: newCategory.value.allocatedAmount,
     })
     cancelAddCategory()
   } catch (error) {
