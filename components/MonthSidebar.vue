@@ -27,35 +27,45 @@
         <p class="text-gray-500 dark:text-gray-500 text-xs">Create your first month to get started</p>
       </div>
 
-      <ul v-else class="space-y-1">
-        <li v-for="month in sortedMonths" :key="month.id">
-          <button
-            @click="selectMonth(month.id)"
-            :class="[
-              'w-full text-left px-3 py-2 rounded-lg transition-colors',
-              selectedMonthId === month.id
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            ]"
-          >
-            <div class="flex items-center justify-between">
-              <span>{{ month.displayName }}</span>
-              <svg
-                v-if="selectedMonthId === month.id"
-                class="w-4 h-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+      <div v-else class="space-y-4">
+        <div v-for="year in years" :key="year">
+          <!-- Year Header -->
+          <div class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            {{ year }}
+          </div>
+
+          <!-- Months for this year -->
+          <ul class="space-y-1">
+            <li v-for="month in monthsByYear[year]" :key="month.id">
+              <button
+                @click="selectMonth(month.id)"
+                :class="[
+                  'w-full text-left px-3 py-2 rounded-lg transition-colors',
+                  selectedMonthId === month.id
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ]"
               >
-                <path
-                  fill-rule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          </button>
-        </li>
-      </ul>
+                <div class="flex items-center justify-between">
+                  <span>{{ month.displayName }}</span>
+                  <svg
+                    v-if="selectedMonthId === month.id"
+                    class="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- Create Month Modal -->
@@ -211,6 +221,8 @@ import { centsToRands } from '~/utils/currency'
 
 const {
   sortedMonths,
+  monthsByYear,
+  years,
   selectedMonthId,
   currentMonth,
   isLoadingMonths,

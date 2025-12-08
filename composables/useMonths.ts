@@ -28,12 +28,31 @@ export const useMonths = () => {
 
   const sortedMonths = computed<MonthListItem[]>(() => {
     return [...monthsList.value].sort((a, b) => {
-      // Sort by year descending, then by month descending
+      // Sort by year ascending, then by month ascending
       if (a.year !== b.year) {
-        return b.year - a.year
+        return a.year - b.year
       }
-      return b.month - a.month
+      return a.month - b.month
     })
+  })
+
+  // Group months by year for display
+  const monthsByYear = computed<Record<number, MonthListItem[]>>(() => {
+    const grouped: Record<number, MonthListItem[]> = {}
+    sortedMonths.value.forEach(month => {
+      if (!grouped[month.year]) {
+        grouped[month.year] = []
+      }
+      grouped[month.year].push(month)
+    })
+    return grouped
+  })
+
+  // Get sorted years (ascending)
+  const years = computed<number[]>(() => {
+    return Object.keys(monthsByYear.value)
+      .map(Number)
+      .sort((a, b) => a - b)
   })
 
   const hasMonths = computed(() => months.value.length > 0)
@@ -211,6 +230,8 @@ export const useMonths = () => {
     // Computed
     monthsList,
     sortedMonths,
+    monthsByYear,
+    years,
     hasMonths,
 
     // Methods
