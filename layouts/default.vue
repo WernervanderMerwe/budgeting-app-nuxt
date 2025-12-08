@@ -15,6 +15,9 @@
         </div>
       </main>
     </div>
+
+    <!-- Global Confirm Dialog -->
+    <ConfirmDialog />
   </div>
 </template>
 

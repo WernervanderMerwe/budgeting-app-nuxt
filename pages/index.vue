@@ -67,7 +67,7 @@
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="0.00"
+                placeholder="e.g., 5000.00"
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -114,9 +114,15 @@
             />
           </div>
 
-          <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 border border-gray-200 dark:border-gray-700 text-center">
-            <p class="text-gray-500 dark:text-gray-400">
-              No budget categories yet. Add one to start tracking your expenses.
+          <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 border border-gray-200 dark:border-gray-700 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p class="text-gray-600 dark:text-gray-300 font-medium mb-2">
+              No budget categories yet
+            </p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">
+              Create your first budget category to start tracking expenses
             </p>
           </div>
         </div>
@@ -135,22 +141,6 @@
       <LoadingSpinner size="lg" />
     </div>
 
-    <!-- Total Money Left - Fixed Bottom Right -->
-    <div
-      v-if="currentMonth"
-      class="fixed bottom-6 right-6 z-50"
-    >
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 min-w-[200px]">
-        <div class="text-center">
-          <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-            Total Money Left
-          </h3>
-          <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-            {{ totalMoneyLeft }}
-          </p>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -169,11 +159,6 @@ const newCategory = ref({
   allocatedAmount: 0,
 })
 
-// Calculate total money left (income - fixed payments - actual spending)
-const totalMoneyLeft = computed(() => {
-  if (!summary.value) return formatCurrency(0)
-  return formatCurrency(summary.value.totalRemaining)
-})
 
 const handleAddCategory = async () => {
   if (!currentMonth.value) return

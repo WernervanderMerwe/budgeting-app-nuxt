@@ -34,7 +34,7 @@
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Budget"
+                placeholder="e.g., 5000.00"
                 class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 required
               />
@@ -140,6 +140,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const { updateCategory, deleteCategory } = useBudget()
+const { openDialog } = useConfirmDialog()
 
 const isExpanded = ref(true) // Start expanded by default
 const editingCategory = ref(false)
@@ -195,12 +196,18 @@ const handleUpdateCategory = async () => {
 }
 
 const handleDeleteCategory = async () => {
-  if (confirm(`Are you sure you want to delete "${props.category.name}" and all its transactions?`)) {
-    try {
-      await deleteCategory(props.category.id)
-    } catch (error) {
-      console.error('Failed to delete category:', error)
-    }
-  }
+  openDialog({
+    title: 'Delete Budget Category',
+    message: `Are you sure you want to delete "${props.category.name}" and all its transactions?`,
+    confirmText: 'Delete',
+    confirmColor: 'red',
+    onConfirm: async () => {
+      try {
+        await deleteCategory(props.category.id)
+      } catch (error) {
+        console.error('Failed to delete category:', error)
+      }
+    },
+  })
 }
 </script>

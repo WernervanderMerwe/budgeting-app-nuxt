@@ -18,7 +18,7 @@
         <input
           v-model="newTransaction.description"
           type="text"
-          placeholder="Description"
+          placeholder="e.g., Woolworths, Pick n Pay"
           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
@@ -27,8 +27,16 @@
           type="number"
           min="0"
           step="0.01"
-          placeholder="Amount (R)"
+          placeholder="e.g., 250.00"
           class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+        />
+      </div>
+      <div class="mb-2">
+        <input
+          v-model="newTransaction.date"
+          type="date"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
       </div>
@@ -50,8 +58,12 @@
     </form>
 
     <!-- Transactions List -->
-    <div v-if="transactions.length === 0 && !showAddForm" class="text-center py-4 text-gray-500 dark:text-gray-400 text-xs">
-      No transactions yet
+    <div v-if="transactions.length === 0 && !showAddForm" class="text-center py-6">
+      <svg class="w-10 h-10 mx-auto text-gray-400 dark:text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <p class="text-gray-500 dark:text-gray-400 text-xs">No transactions yet</p>
+      <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">Click "Add Transaction" to record your first expense</p>
     </div>
 
     <ul v-else class="space-y-2 mt-3">
@@ -98,41 +110,49 @@
         </template>
 
         <!-- Edit Mode -->
-        <form v-else @submit.prevent="handleUpdate(transaction.id)" class="flex-1 flex items-center space-x-2">
+        <form v-else @submit.prevent="handleUpdate(transaction.id)" class="flex-1 space-y-2">
+          <div class="flex items-center space-x-2">
+            <input
+              v-model="editedTransaction.description"
+              type="text"
+              placeholder="e.g., Woolworths, Pick n Pay"
+              class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+              required
+            />
+            <input
+              v-model.number="editedTransaction.amount"
+              type="number"
+              min="0"
+              step="0.01"
+              class="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+              required
+            />
+            <button
+              type="submit"
+              class="text-green-600 dark:text-green-400 hover:text-green-700 p-1"
+              title="Save"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              @click="cancelEditing"
+              class="text-gray-600 dark:text-gray-400 hover:text-gray-700 p-1"
+              title="Cancel"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           <input
-            v-model="editedTransaction.description"
-            type="text"
-            placeholder="Description"
-            class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+            v-model="editedTransaction.date"
+            type="date"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
             required
           />
-          <input
-            v-model.number="editedTransaction.amount"
-            type="number"
-            min="0"
-            step="0.01"
-            class="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
-            required
-          />
-          <button
-            type="submit"
-            class="text-green-600 dark:text-green-400 hover:text-green-700 p-1"
-            title="Save"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            @click="cancelEditing"
-            class="text-gray-600 dark:text-gray-400 hover:text-gray-700 p-1"
-            title="Cancel"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </form>
       </li>
     </ul>
@@ -152,18 +172,32 @@ interface Props {
 const props = defineProps<Props>()
 
 const { createTransaction, updateTransaction, deleteTransaction } = useBudget()
+const { openDialog } = useConfirmDialog()
 
 const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
 
+// Helper to convert Unix timestamp to YYYY-MM-DD string
+const timestampToDateString = (timestamp: number): string => {
+  const date = new Date(timestamp * 1000)
+  return date.toISOString().split('T')[0]
+}
+
+// Helper to convert YYYY-MM-DD string to Unix timestamp
+const dateStringToTimestamp = (dateString: string): number => {
+  return Math.floor(new Date(dateString).getTime() / 1000)
+}
+
 const newTransaction = ref({
   description: '',
   amount: 0,
+  date: timestampToDateString(getCurrentTimestamp()),
 })
 
 const editedTransaction = ref({
   description: '',
   amount: 0,
+  date: '',
 })
 
 const sortedTransactions = computed(() => {
@@ -183,7 +217,7 @@ const handleAdd = async () => {
       categoryId: props.categoryId,
       description: newTransaction.value.description,
       amount: newTransaction.value.amount,
-      transactionDate: getCurrentTimestamp(),
+      transactionDate: dateStringToTimestamp(newTransaction.value.date),
     })
     cancelAdd()
   } catch (error) {
@@ -193,7 +227,11 @@ const handleAdd = async () => {
 
 const cancelAdd = () => {
   showAddForm.value = false
-  newTransaction.value = { description: '', amount: 0 }
+  newTransaction.value = {
+    description: '',
+    amount: 0,
+    date: timestampToDateString(getCurrentTimestamp()),
+  }
 }
 
 const startEditing = (transaction: Transaction) => {
@@ -201,12 +239,15 @@ const startEditing = (transaction: Transaction) => {
   editedTransaction.value = {
     description: transaction.description || '',
     amount: centsToRands(transaction.amount),
+    date: transaction.transactionDate
+      ? timestampToDateString(transaction.transactionDate)
+      : timestampToDateString(getCurrentTimestamp()),
   }
 }
 
 const cancelEditing = () => {
   editingId.value = null
-  editedTransaction.value = { description: '', amount: 0 }
+  editedTransaction.value = { description: '', amount: 0, date: '' }
 }
 
 const handleUpdate = async (id: number) => {
@@ -214,6 +255,7 @@ const handleUpdate = async (id: number) => {
     await updateTransaction(id, {
       description: editedTransaction.value.description,
       amount: editedTransaction.value.amount,
+      transactionDate: dateStringToTimestamp(editedTransaction.value.date),
     })
     cancelEditing()
   } catch (error) {
@@ -222,12 +264,18 @@ const handleUpdate = async (id: number) => {
 }
 
 const handleDelete = async (id: number) => {
-  if (confirm('Are you sure you want to delete this transaction?')) {
-    try {
-      await deleteTransaction(id)
-    } catch (error) {
-      console.error('Failed to delete transaction:', error)
-    }
-  }
+  openDialog({
+    title: 'Delete Transaction',
+    message: 'Are you sure you want to delete this transaction?',
+    confirmText: 'Delete',
+    confirmColor: 'red',
+    onConfirm: async () => {
+      try {
+        await deleteTransaction(id)
+      } catch (error) {
+        console.error('Failed to delete transaction:', error)
+      }
+    },
+  })
 }
 </script>

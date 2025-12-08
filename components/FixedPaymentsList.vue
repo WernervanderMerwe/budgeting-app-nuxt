@@ -21,7 +21,7 @@
         <input
           v-model="newPayment.name"
           type="text"
-          placeholder="Payment name"
+          placeholder="e.g., Rent, Car Payment"
           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
@@ -30,7 +30,7 @@
           type="number"
           min="0"
           step="0.01"
-          placeholder="Amount"
+          placeholder="e.g., 8500.00"
           class="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
@@ -53,8 +53,12 @@
     </form>
 
     <!-- Payments List -->
-    <div v-if="fixedPayments.length === 0 && !showAddForm" class="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-      No fixed payments yet. Click "Add" to create one.
+    <div v-if="fixedPayments.length === 0 && !showAddForm" class="text-center py-10">
+      <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">No fixed payments yet</p>
+      <p class="text-gray-500 dark:text-gray-500 text-xs mt-1">Add recurring payments like rent or subscriptions</p>
     </div>
 
     <ul v-else class="space-y-2">
@@ -160,6 +164,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const { createFixedPayment, updateFixedPayment, deleteFixedPayment } = useBudget()
+const { openDialog } = useConfirmDialog()
 
 const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
@@ -223,12 +228,18 @@ const handleUpdate = async (id: number) => {
 }
 
 const handleDelete = async (id: number) => {
-  if (confirm('Are you sure you want to delete this fixed payment?')) {
-    try {
-      await deleteFixedPayment(id)
-    } catch (error) {
-      console.error('Failed to delete fixed payment:', error)
-    }
-  }
+  openDialog({
+    title: 'Delete Fixed Payment',
+    message: 'Are you sure you want to delete this fixed payment?',
+    confirmText: 'Delete',
+    confirmColor: 'red',
+    onConfirm: async () => {
+      try {
+        await deleteFixedPayment(id)
+      } catch (error) {
+        console.error('Failed to delete fixed payment:', error)
+      }
+    },
+  })
 }
 </script>
