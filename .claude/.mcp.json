@@ -4,10 +4,6 @@
       "command": "cmd",
       "args": ["/c", "npx", "-y", "context7"]
     },
-    "chrome-devtools": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-chrome"]
-    },
     "playwright": {
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-playwright"]

@@ -282,3 +282,4 @@ For complete step-by-step instructions, code examples, and detailed explanations
 Always use context7 when I need code generation, setup or configuration steps, or
 library/API documentation, bug fixes. This means you should automatically use the Context7 MCP
 tools to resolve library id and get library docs without me having to explicitly ask.
+- remember to run npm run cleanup when the playwright local server becomes slow to remove leftover node instances that wasnt correctly killed
