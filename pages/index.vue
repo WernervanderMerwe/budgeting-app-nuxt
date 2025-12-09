@@ -1,185 +1,114 @@
 <template>
-  <div>
-    <!-- Welcome / No Month Selected State -->
-    <div v-if="!selectedMonthId" class="flex items-center justify-center min-h-[60vh]">
-      <div class="text-center">
-        <div class="mb-6">
-          <svg class="w-24 h-24 mx-auto text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  <div class="text-center">
+    <!-- Logo/Title -->
+    <div class="mb-12">
+      <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-blue-600 flex items-center justify-center">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+        Budget Tracker
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+        Take control of your finances with detailed tracking or a bird's eye view of your year
+      </p>
+    </div>
+
+    <!-- Mode Selection Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <!-- Transaction Tracker Card -->
+      <NuxtLink
+        to="/transaction"
+        class="group block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-transparent hover:border-blue-500 transition-all duration-200 hover:shadow-xl"
+      >
+        <div class="w-16 h-16 mx-auto mb-6 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
         </div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome to Budget Tracker
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+          Transaction Tracker
         </h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-          {{ hasMonths ? 'Select a month from the sidebar to get started' : 'Create your first month to start budgeting' }}
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+          Track every transaction in detail. Perfect for monitoring daily expenses, categorizing spending, and seeing exactly where your money goes each month.
         </p>
-      </div>
-    </div>
-
-    <!-- Month Content -->
-    <div v-else-if="currentMonth">
-      <!-- Page Header -->
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {{ currentMonth.name }}
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400">
-          Manage your budget for {{ getMonthName(currentMonth.month) }} {{ currentMonth.year }}
-        </p>
-      </div>
-
-      <!-- Add Category Button -->
-      <div class="mb-6">
-        <button
-          v-if="!showAddCategoryForm"
-          @click="showAddCategoryForm = true"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <div class="mt-6 flex items-center justify-center text-blue-600 dark:text-blue-400 font-medium">
+          <span>Get Started</span>
+          <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
-          <span>Add Budget Category</span>
-        </button>
+        </div>
+      </NuxtLink>
 
-        <!-- Add Category Form -->
-        <form v-else @submit.prevent="handleAddCategory" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-3">New Budget Category</h3>
-          <div class="flex gap-3 mb-4">
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Category Name
-              </label>
-              <input
-                v-model="newCategory.name"
-                type="text"
-                placeholder="e.g., Groceries"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <div class="w-40">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Amount (R)
-              </label>
-              <input
-                v-model.number="newCategory.allocatedAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="e.g., 5000.00"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-          <div class="flex justify-end space-x-3">
-            <button
-              type="button"
-              @click="cancelAddCategory"
-              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              :disabled="isAddingCategory"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {{ isAddingCategory ? 'Adding...' : 'Add Category' }}
-            </button>
-          </div>
-        </form>
+      <!-- Yearly Overview Card -->
+      <NuxtLink
+        to="/yearly"
+        class="group block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-transparent hover:border-green-500 transition-all duration-200 hover:shadow-xl"
+      >
+        <div class="w-16 h-16 mx-auto mb-6 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+          Yearly Overview
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+          View your entire year at a glance. Track recurring payments, manage the 70/20/10 budget rule, and check off bills as you pay them month by month.
+        </p>
+        <div class="mt-6 flex items-center justify-center text-green-600 dark:text-green-400 font-medium">
+          <span>Get Started</span>
+          <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </NuxtLink>
+    </div>
+
+    <!-- Features Summary -->
+    <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto text-left">
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+          <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900 dark:text-white">Private & Secure</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Your data stays yours</p>
+        </div>
       </div>
 
-      <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column - Budget Items -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- Income Card -->
-          <IncomeCard :month="currentMonth" />
-
-          <!-- Fixed Payments -->
-          <FixedPaymentsList
-            :month-id="currentMonth.id"
-            :fixed-payments="currentMonth.fixedPayments"
-          />
-
-          <!-- Budget Categories -->
-          <div v-if="currentMonth.categories.length > 0" class="space-y-4">
-            <BudgetCategoryCard
-              v-for="category in currentMonth.categories"
-              :key="category.id"
-              :category="category"
-            />
-          </div>
-
-          <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 border border-gray-200 dark:border-gray-700 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <p class="text-gray-600 dark:text-gray-300 font-medium mb-2">
-              No budget categories yet
-            </p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">
-              Create your first budget category to start tracking expenses
-            </p>
-          </div>
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+          <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
         </div>
+        <div>
+          <h3 class="font-medium text-gray-900 dark:text-white">Fast & Simple</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">No complicated setup</p>
+        </div>
+      </div>
 
-        <!-- Right Column - Summary -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-6">
-            <BudgetSummaryCard />
-          </div>
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+          <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-900 dark:text-white">Clear Insights</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">See your spending trends</p>
         </div>
       </div>
     </div>
-
-    <!-- Loading State -->
-    <div v-else class="flex items-center justify-center min-h-[60vh]">
-      <LoadingSpinner size="lg" />
-    </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { getMonthName } from '~/utils/date'
-import { formatCurrency, centsToRands } from '~/utils/currency'
-
-const { currentMonth, selectedMonthId, hasMonths } = useMonths()
-const { createCategory, summary } = useBudget()
-
-const showAddCategoryForm = ref(false)
-const isAddingCategory = ref(false)
-
-const newCategory = ref({
-  name: '',
-  allocatedAmount: 0,
+definePageMeta({
+  layout: 'landing'
 })
-
-
-const handleAddCategory = async () => {
-  if (!currentMonth.value) return
-
-  isAddingCategory.value = true
-  try {
-    await createCategory({
-      monthId: currentMonth.value.id,
-      name: newCategory.value.name,
-      allocatedAmount: newCategory.value.allocatedAmount,
-    })
-    cancelAddCategory()
-  } catch (error) {
-    console.error('Failed to add category:', error)
-  } finally {
-    isAddingCategory.value = false
-  }
-}
-
-const cancelAddCategory = () => {
-  showAddCategoryForm.value = false
-  newCategory.value = { name: '', allocatedAmount: 0 }
-}
 </script>
