@@ -1,0 +1,56 @@
+import prisma from '~/server/utils/db'
+import dayjs from 'dayjs'
+
+// POST /api/yearly/income-sources - Create a new income source with 12 month entries
+export default defineEventHandler(async (event) => {
+  try {
+    const body = await readBody(event)
+    const { yearlyBudgetId, name, orderIndex = 0 } = body
+
+    if (!yearlyBudgetId || !name) {
+      throw createError({
+        statusCode: 400,
+        message: 'yearlyBudgetId and name are required',
+      })
+    }
+
+    const now = dayjs().unix()
+
+    // Create income source with 12 month entries (one for each month)
+    const incomeSource = await prisma.yearlyIncomeSource.create({
+      data: {
+        yearlyBudgetId,
+        name,
+        orderIndex,
+        createdAt: now,
+        updatedAt: now,
+        entries: {
+          create: Array.from({ length: 12 }, (_, i) => ({
+            month: i + 1, // 1-12
+            grossAmount: 0,
+            createdAt: now,
+            updatedAt: now,
+          })),
+        },
+      },
+      include: {
+        entries: {
+          orderBy: { month: 'asc' },
+          include: {
+            deductions: true,
+          },
+        },
+      },
+    })
+
+    return incomeSource
+  } catch (error: any) {
+    if (error.statusCode) throw error
+
+    console.error('Error creating income source:', error)
+    throw createError({
+      statusCode: 500,
+      message: 'Failed to create income source',
+    })
+  }
+})
