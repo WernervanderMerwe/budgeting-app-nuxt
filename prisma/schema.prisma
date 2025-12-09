@@ -18,12 +18,16 @@ model User {
   createdAt Int    @map("created_at") // Unix timestamp in seconds
   updatedAt Int    @map("updated_at") // Unix timestamp in seconds
 
-  months Month[]
+  // Transaction Tracker mode
+  transactionMonths TransactionMonth[]
+
+  // Yearly Overview mode
+  yearlyBudgets YearlyBudget[]
 
   @@map("users")
 }
 
-model Month {
+model TransactionMonth {
   id        Int    @id @default(autoincrement())
   userId    Int?   @map("user_id") // Nullable for now, required later with auth
   name      String @map("month_name")
@@ -33,15 +37,15 @@ model Month {
   createdAt Int    @map("created_at") // Unix timestamp in seconds
   updatedAt Int    @map("updated_at") // Unix timestamp in seconds
 
-  user          User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fixedPayments FixedPayment[]
-  categories    BudgetCategory[]
+  user          User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fixedPayments TransactionFixedPayment[]
+  categories    TransactionCategory[]
 
   @@unique([userId, name, year])
-  @@map("months")
+  @@map("transaction_months")
 }
 
-model FixedPayment {
+model TransactionFixedPayment {
   id         Int    @id @default(autoincrement())
   monthId    Int    @map("month_id")
   name       String
@@ -50,12 +54,12 @@ model FixedPayment {
   createdAt  Int    @map("created_at") // Unix timestamp in seconds
   updatedAt  Int    @map("updated_at") // Unix timestamp in seconds
 
-  month Month @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  month TransactionMonth @relation(fields: [monthId], references: [id], onDelete: Cascade)
 
-  @@map("fixed_payments")
+  @@map("transaction_fixed_payments")
 }
 
-model BudgetCategory {
+model TransactionCategory {
   id              Int    @id @default(autoincrement())
   monthId         Int    @map("month_id")
   name            String
@@ -64,13 +68,13 @@ model BudgetCategory {
   createdAt       Int    @map("created_at") // Unix timestamp in seconds
   updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
 
-  month        Month         @relation(fields: [monthId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  month        TransactionMonth  @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  transactions TransactionEntry[]
 
-  @@map("budget_categories")
+  @@map("transaction_categories")
 }
 
-model Transaction {
+model TransactionEntry {
   id              Int    @id @default(autoincrement())
   categoryId      Int    @map("category_id")
   amount          Int    // Stored in cents
@@ -79,7 +83,126 @@ model Transaction {
   createdAt       Int    @map("created_at") // Unix timestamp in seconds
   updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
 
-  category BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category TransactionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@map("transactions")
+  @@map("transaction_entries")
+}
+
+// ============================================
+// YEARLY OVERVIEW MODE MODELS
+// ============================================
+
+// Yearly budget for a specific year
+model YearlyBudget {
+  id           Int     @id @default(autoincrement())
+  userId       Int?    @map("user_id")
+  year         Int
+  spendTarget  Int     @default(500000) @map("spend_target") // Target discretionary spend in cents (R5000)
+  showWarnings Boolean @default(true) @map("show_warnings") // Color warnings toggle
+  createdAt    Int     @map("created_at")
+  updatedAt    Int     @map("updated_at")
+
+  user          User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incomeSources YearlyIncomeSource[]
+  sections      YearlySection[]
+
+  @@unique([userId, year])
+  @@map("yearly_budgets")
+}
+
+// Income source (Salary, Side Hustle, etc.)
+model YearlyIncomeSource {
+  id             Int    @id @default(autoincrement())
+  yearlyBudgetId Int    @map("yearly_budget_id")
+  name           String
+  orderIndex     Int    @default(0) @map("order_index")
+  createdAt      Int    @map("created_at")
+  updatedAt      Int    @map("updated_at")
+
+  yearlyBudget YearlyBudget        @relation(fields: [yearlyBudgetId], references: [id], onDelete: Cascade)
+  entries      YearlyIncomeEntry[]
+
+  @@map("yearly_income_sources")
+}
+
+// Monthly income entry (gross amount per month)
+model YearlyIncomeEntry {
+  id             Int @id @default(autoincrement())
+  incomeSourceId Int @map("income_source_id")
+  month          Int // 1-12
+  grossAmount    Int @default(0) @map("gross_amount") // In cents
+  createdAt      Int @map("created_at")
+  updatedAt      Int @map("updated_at")
+
+  incomeSource YearlyIncomeSource @relation(fields: [incomeSourceId], references: [id], onDelete: Cascade)
+  deductions   YearlyDeduction[]
+
+  @@unique([incomeSourceId, month])
+  @@map("yearly_income_entries")
+}
+
+// Deduction from income (Tax, Pension, etc.)
+model YearlyDeduction {
+  id            Int    @id @default(autoincrement())
+  incomeEntryId Int    @map("income_entry_id")
+  name          String
+  amount        Int    @default(0) // In cents
+  orderIndex    Int    @default(0) @map("order_index")
+  createdAt     Int    @map("created_at")
+  updatedAt     Int    @map("updated_at")
+
+  incomeEntry YearlyIncomeEntry @relation(fields: [incomeEntryId], references: [id], onDelete: Cascade)
+
+  @@map("yearly_deductions")
+}
+
+// Budget section (Living Essentials 70%, Non-Essentials 20%, Savings 10%)
+model YearlySection {
+  id             Int    @id @default(autoincrement())
+  yearlyBudgetId Int    @map("yearly_budget_id")
+  type           String // LIVING, NON_ESSENTIAL, SAVINGS
+  name           String // Display name
+  targetPercent  Int    @default(70) @map("target_percent") // 70, 20, or 10
+  orderIndex     Int    @default(0) @map("order_index")
+  createdAt      Int    @map("created_at")
+  updatedAt      Int    @map("updated_at")
+
+  yearlyBudget YearlyBudget     @relation(fields: [yearlyBudgetId], references: [id], onDelete: Cascade)
+  categories   YearlyCategory[]
+
+  @@map("yearly_sections")
+}
+
+// Category within a section (can have parent for 2-level nesting)
+model YearlyCategory {
+  id         Int    @id @default(autoincrement())
+  sectionId  Int    @map("section_id")
+  parentId   Int?   @map("parent_id") // For subcategories (null = top-level)
+  name       String
+  orderIndex Int    @default(0) @map("order_index")
+  createdAt  Int    @map("created_at")
+  updatedAt  Int    @map("updated_at")
+
+  section  YearlySection         @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  parent   YearlyCategory?       @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children YearlyCategory[]      @relation("CategoryHierarchy")
+  entries  YearlyCategoryEntry[]
+
+  @@map("yearly_categories")
+}
+
+// Monthly entry for a category (amount + paid status)
+model YearlyCategoryEntry {
+  id         Int     @id @default(autoincrement())
+  categoryId Int     @map("category_id")
+  month      Int     // 1-12
+  amount     Int     @default(0) // In cents
+  isPaid     Boolean @default(false) @map("is_paid")
+  createdAt  Int     @map("created_at")
+  updatedAt  Int     @map("updated_at")
+
+  category YearlyCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, month])
+  @@map("yearly_category_entries")
 }

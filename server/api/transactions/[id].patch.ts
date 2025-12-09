@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (body.description !== undefined) updateData.description = body.description
     if (body.transactionDate !== undefined) updateData.transactionDate = body.transactionDate
 
-    const transaction = await prisma.transaction.update({
+    const transaction = await prisma.transactionEntry.update({
       where: { id },
       data: updateData,
     })

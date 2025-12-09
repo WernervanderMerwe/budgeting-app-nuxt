@@ -315,7 +315,7 @@ const handleCreateMonth = async () => {
       year: newMonth.value.year,
       month: newMonth.value.month,
       income: newMonth.value.income,
-      copyFromMonthId: copyFromPrevious.value ? selectedMonthId.value : undefined,
+      copyFromMonthId: copyFromPrevious.value && selectedMonthId.value ? selectedMonthId.value : undefined,
     })
 
     showCreateModal.value = false

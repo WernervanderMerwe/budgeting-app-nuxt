@@ -30,7 +30,7 @@ async function main() {
   })
 
   // === JANUARY 2025 ===
-  const january = await prisma.month.create({
+  const january = await prisma.transactionMonth.create({
     data: {
       userId: user.id,
       name: 'January 2025',
@@ -154,7 +154,7 @@ async function main() {
   })
 
   // === FEBRUARY 2025 ===
-  const february = await prisma.month.create({
+  const february = await prisma.transactionMonth.create({
     data: {
       userId: user.id,
       name: 'February 2025',
@@ -277,7 +277,7 @@ async function main() {
   })
 
   // === MARCH 2025 ===
-  const march = await prisma.month.create({
+  const march = await prisma.transactionMonth.create({
     data: {
       userId: user.id,
       name: 'March 2025',

@@ -2,7 +2,7 @@ import prisma from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
   try {
-    const months = await prisma.month.findMany({
+    const months = await prisma.transactionMonth.findMany({
       orderBy: [
         { year: 'desc' },
         { month: 'desc' },

@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   try {
     const id = parseInt(getRouterParam(event, 'id')!)
 
-    await prisma.fixedPayment.delete({
+    await prisma.transactionFixedPayment.delete({
       where: { id },
     })
 

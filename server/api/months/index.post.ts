@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     const now = dayjs().unix()
 
     // Create month
-    const month = await prisma.month.create({
+    const month = await prisma.transactionMonth.create({
       data: {
         name: validatedData.name,
         year: validatedData.year,
@@ -28,13 +28,13 @@ export default defineEventHandler(async (event) => {
     // If copyFromMonthId is provided, copy fixed payments and categories
     if (validatedData.copyFromMonthId) {
       // Copy fixed payments
-      const sourceFixedPayments = await prisma.fixedPayment.findMany({
+      const sourceFixedPayments = await prisma.transactionFixedPayment.findMany({
         where: { monthId: validatedData.copyFromMonthId },
         orderBy: { orderIndex: 'asc' },
       })
 
       for (const payment of sourceFixedPayments) {
-        await prisma.fixedPayment.create({
+        await prisma.transactionFixedPayment.create({
           data: {
             monthId: month.id,
             name: payment.name,
@@ -47,13 +47,13 @@ export default defineEventHandler(async (event) => {
       }
 
       // Copy budget categories (without transactions)
-      const sourceCategories = await prisma.budgetCategory.findMany({
+      const sourceCategories = await prisma.transactionCategory.findMany({
         where: { monthId: validatedData.copyFromMonthId },
         orderBy: { orderIndex: 'asc' },
       })
 
       for (const category of sourceCategories) {
-        await prisma.budgetCategory.create({
+        await prisma.transactionCategory.create({
           data: {
             monthId: month.id,
             name: category.name,

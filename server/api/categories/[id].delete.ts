@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   try {
     const id = parseInt(getRouterParam(event, 'id')!)
 
-    await prisma.budgetCategory.delete({
+    await prisma.transactionCategory.delete({
       where: { id },
     })
 

@@ -1,4 +1,4 @@
-import type { FixedPayment, BudgetCategory, Transaction } from '@prisma/client'
+import type { TransactionFixedPayment, TransactionCategory, TransactionEntry } from '@prisma/client'
 import prisma from '~/server/utils/db'
 
 interface CategorySpending {
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
       })
     }
 
-    const month = await prisma.month.findUnique({
+    const month = await prisma.transactionMonth.findUnique({
       where: { id },
       include: {
         fixedPayments: true,
@@ -55,19 +55,19 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
 
     // Calculate fixed payments total
     const fixedPaymentsTotal = month.fixedPayments.reduce(
-      (sum: number, fp: FixedPayment) => sum + fp.amount,
+      (sum: number, fp: TransactionFixedPayment) => sum + fp.amount,
       0
     )
 
     // Calculate budget allocations total
     const budgetAllocationsTotal = month.categories.reduce(
-      (sum: number, cat: BudgetCategory) => sum + cat.allocatedAmount,
+      (sum: number, cat: TransactionCategory) => sum + cat.allocatedAmount,
       0
     )
 
     // Calculate category spending
-    const categorySpending: CategorySpending[] = month.categories.map((cat: BudgetCategory & { transactions: Transaction[] }) => {
-      const spent = cat.transactions.reduce((sum: number, txn: Transaction) => sum + txn.amount, 0)
+    const categorySpending: CategorySpending[] = month.categories.map((cat: TransactionCategory & { transactions: TransactionEntry[] }) => {
+      const spent = cat.transactions.reduce((sum: number, txn: TransactionEntry) => sum + txn.amount, 0)
       const remaining = cat.allocatedAmount - spent
 
       return {
@@ -82,7 +82,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
 
     // Calculate totals
     const totalActualSpending = month.categories.reduce(
-      (sum: number, cat: BudgetCategory & { transactions: Transaction[] }) => sum + cat.transactions.reduce((txnSum: number, txn: Transaction) => txnSum + txn.amount, 0),
+      (sum: number, cat: TransactionCategory & { transactions: TransactionEntry[] }) => sum + cat.transactions.reduce((txnSum: number, txn: TransactionEntry) => txnSum + txn.amount, 0),
       0
     )
 

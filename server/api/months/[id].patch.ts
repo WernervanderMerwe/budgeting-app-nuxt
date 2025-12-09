@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     if (body.month !== undefined) updateData.month = body.month
     if (body.income !== undefined) updateData.income = randsToCents(body.income)
 
-    const month = await prisma.month.update({
+    const month = await prisma.transactionMonth.update({
       where: { id },
       data: updateData,
     })

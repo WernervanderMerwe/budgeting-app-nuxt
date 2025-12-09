@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     }
     if (body.orderIndex !== undefined) updateData.orderIndex = body.orderIndex
 
-    const category = await prisma.budgetCategory.update({
+    const category = await prisma.transactionCategory.update({
       where: { id },
       data: updateData,
     })

@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
     const now = dayjs().unix()
 
-    const fixedPayment = await prisma.fixedPayment.create({
+    const fixedPayment = await prisma.transactionFixedPayment.create({
       data: {
         monthId: validatedData.monthId,
         name: validatedData.name,

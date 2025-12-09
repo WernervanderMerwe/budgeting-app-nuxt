@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
     const now = dayjs().unix()
 
-    const category = await prisma.budgetCategory.create({
+    const category = await prisma.transactionCategory.create({
       data: {
         monthId: validatedData.monthId,
         name: validatedData.name,

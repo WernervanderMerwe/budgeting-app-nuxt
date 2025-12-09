@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    await prisma.month.delete({
+    await prisma.transactionMonth.delete({
       where: { id },
     })
 

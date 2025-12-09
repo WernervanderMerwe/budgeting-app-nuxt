@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const month = await prisma.month.findUnique({
+    const month = await prisma.transactionMonth.findUnique({
       where: { id },
       include: {
         fixedPayments: {

@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (body.amount !== undefined) updateData.amount = randsToCents(body.amount)
     if (body.orderIndex !== undefined) updateData.orderIndex = body.orderIndex
 
-    const fixedPayment = await prisma.fixedPayment.update({
+    const fixedPayment = await prisma.transactionFixedPayment.update({
       where: { id },
       data: updateData,
     })

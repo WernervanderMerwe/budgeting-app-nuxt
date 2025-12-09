@@ -13,7 +13,7 @@ export interface User {
   updatedAt: number // Unix timestamp in seconds
 }
 
-export interface Month {
+export interface TransactionMonth {
   id: number
   name: string
   year: number
@@ -24,7 +24,7 @@ export interface Month {
   updatedAt: number // Unix timestamp in seconds
 }
 
-export interface FixedPayment {
+export interface TransactionFixedPayment {
   id: number
   name: string
   amount: number // stored in cents
@@ -33,7 +33,7 @@ export interface FixedPayment {
   updatedAt: number // Unix timestamp in seconds
 }
 
-export interface BudgetCategory {
+export interface TransactionCategory {
   id: number
   name: string
   allocatedAmount: number // stored in cents
@@ -42,7 +42,7 @@ export interface BudgetCategory {
   updatedAt: number // Unix timestamp in seconds
 }
 
-export interface Transaction {
+export interface TransactionEntry {
   id: number
   description: string
   amount: number // stored in cents
@@ -52,18 +52,28 @@ export interface Transaction {
   updatedAt: number // Unix timestamp in seconds
 }
 
+// Backwards compatibility aliases
+export type Month = TransactionMonth
+export type FixedPayment = TransactionFixedPayment
+export type BudgetCategory = TransactionCategory
+export type Transaction = TransactionEntry
+
 // ============================================================================
 // Extended Models (with relations)
 // ============================================================================
 
-export interface MonthWithRelations extends Month {
-  fixedPayments: readonly FixedPayment[]
-  categories: readonly BudgetCategoryWithTransactions[]
+export interface TransactionMonthWithRelations extends TransactionMonth {
+  fixedPayments: readonly TransactionFixedPayment[]
+  categories: readonly TransactionCategoryWithEntries[]
 }
 
-export interface BudgetCategoryWithTransactions extends BudgetCategory {
-  transactions: readonly Transaction[]
+export interface TransactionCategoryWithEntries extends TransactionCategory {
+  transactions: readonly TransactionEntry[]
 }
+
+// Backwards compatibility aliases
+export type MonthWithRelations = TransactionMonthWithRelations
+export type BudgetCategoryWithTransactions = TransactionCategoryWithEntries
 
 // ============================================================================
 // DTOs (Data Transfer Objects) for API requests

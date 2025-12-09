@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
     const now = dayjs().unix()
 
-    const transaction = await prisma.transaction.create({
+    const transaction = await prisma.transactionEntry.create({
       data: {
         categoryId: validatedData.categoryId,
         amount: randsToCents(validatedData.amount),
