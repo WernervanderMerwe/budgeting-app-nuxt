@@ -129,69 +129,6 @@ const cancelAddCategory = () => {
         </p>
       </div>
 
-      <!-- Add Category Button -->
-      <div class="mb-6">
-        <button
-          v-if="!showAddCategoryForm"
-          @click="showAddCategoryForm = true"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Add Budget Category</span>
-        </button>
-
-        <!-- Add Category Form -->
-        <form v-else @submit.prevent="handleAddCategory" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-3">New Budget Category</h3>
-          <div class="flex gap-3 mb-4">
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Category Name
-              </label>
-              <input
-                v-model="newCategory.name"
-                type="text"
-                placeholder="e.g., Groceries"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <div class="w-40">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Amount (R)
-              </label>
-              <input
-                v-model.number="newCategory.allocatedAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="e.g., 5000.00"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-          <div class="flex justify-end space-x-3">
-            <button
-              type="button"
-              @click="cancelAddCategory"
-              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              :disabled="isAddingCategory"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {{ isAddingCategory ? 'Adding...' : 'Add Category' }}
-            </button>
-          </div>
-        </form>
-      </div>
-
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left Column - Budget Items -->
@@ -205,25 +142,87 @@ const cancelAddCategory = () => {
             :fixed-payments="currentMonth.fixedPayments"
           />
 
-          <!-- Budget Categories -->
-          <div v-if="currentMonth.categories.length > 0" class="space-y-4">
-            <BudgetCategoryCard
-              v-for="category in currentMonth.categories"
-              :key="category.id"
-              :category="category"
-            />
-          </div>
+          <!-- Budget Categories Section -->
+          <div class="space-y-4">
+            <!-- Section Header with Add Button -->
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Budget Categories</h2>
+              <button
+                v-if="!showAddCategoryForm"
+                @click="showAddCategoryForm = true"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Category</span>
+              </button>
+            </div>
 
-          <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 border border-gray-200 dark:border-gray-700 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <p class="text-gray-600 dark:text-gray-300 font-medium mb-2">
-              No budget categories yet
-            </p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">
-              Create your first budget category to start tracking expenses
-            </p>
+            <!-- Add Category Form -->
+            <form v-if="showAddCategoryForm" @submit.prevent="handleAddCategory" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 class="font-semibold text-gray-900 dark:text-white mb-3">New Budget Category</h3>
+              <div class="flex gap-3 mb-4">
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Category Name
+                  </label>
+                  <input
+                    v-model="newCategory.name"
+                    type="text"
+                    placeholder="e.g., Groceries"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                <div class="w-40">
+                  <CurrencyInput
+                    v-model="newCategory.allocatedAmount"
+                    label="Amount (R)"
+                    placeholder="e.g., 5000.00"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  @click="cancelAddCategory"
+                  class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  :disabled="isAddingCategory"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {{ isAddingCategory ? 'Adding...' : 'Add Category' }}
+                </button>
+              </div>
+            </form>
+
+            <!-- Categories List -->
+            <template v-if="currentMonth.categories.length > 0">
+              <BudgetCategoryCard
+                v-for="category in currentMonth.categories"
+                :key="category.id"
+                :category="category"
+              />
+            </template>
+
+            <!-- Empty State -->
+            <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 border border-gray-200 dark:border-gray-700 text-center">
+              <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <p class="text-gray-600 dark:text-gray-300 font-medium mb-2">
+                No budget categories yet
+              </p>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">
+                Create your first budget category to start tracking expenses
+              </p>
+            </div>
           </div>
         </div>
 

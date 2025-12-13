@@ -29,13 +29,10 @@
                 class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 required
               />
-              <input
-                v-model.number="editedCategory.allocatedAmount"
-                type="number"
-                min="0"
-                step="0.01"
+              <CurrencyInput
+                v-model="editedCategory.allocatedAmount"
                 placeholder="e.g., 5000.00"
-                class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                class="w-28 text-sm"
                 required
               />
               <button

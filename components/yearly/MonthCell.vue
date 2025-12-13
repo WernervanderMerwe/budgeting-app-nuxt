@@ -28,20 +28,52 @@ function startEditing() {
   })
 }
 
-function finishEditing() {
-  isEditing.value = false
+function saveEditing() {
   const newAmount = parseCurrency(inputValue.value)
+  isEditing.value = false
   if (newAmount !== props.amount) {
     emit('update:amount', newAmount)
   }
 }
 
+function cancelEditing() {
+  // Revert to original value (just close without saving)
+  isEditing.value = false
+}
+
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
-    finishEditing()
+    event.preventDefault()
+    saveEditing()
   } else if (event.key === 'Escape') {
-    isEditing.value = false
+    event.preventDefault()
+    cancelEditing()
   }
+}
+
+// Sanitize input to allow only valid currency format (max 2 decimals)
+function handleInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  let value = input.value
+
+  // Remove any non-numeric characters except . and ,
+  value = value.replace(/[^\d.,]/g, '')
+
+  // Only allow one decimal separator
+  const decimalMatch = value.match(/[.,]/)
+  if (decimalMatch) {
+    const parts = value.split(/[.,]/)
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('')
+    }
+    // Limit to 2 decimal places
+    const [whole, decimal] = value.split(/[.,]/)
+    if (decimal && decimal.length > 2) {
+      value = whole + '.' + decimal.slice(0, 2)
+    }
+  }
+
+  inputValue.value = value
 }
 
 function togglePaid() {
@@ -82,9 +114,11 @@ function togglePaid() {
         ref="inputRef"
         v-model="inputValue"
         type="text"
+        inputmode="decimal"
         class="w-full text-right text-sm bg-white dark:bg-gray-700 border border-blue-500 rounded px-1 py-0.5 focus:outline-none"
-        @blur="finishEditing"
+        @blur="cancelEditing"
         @keydown="handleKeydown"
+        @input="handleInput"
       />
       <span
         v-else

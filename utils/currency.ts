@@ -56,7 +56,9 @@ export function parseCurrency(value: string): number {
   }
 
   const parsed = parseFloat(cleaned)
-  return isNaN(parsed) ? 0 : parsed
+  if (isNaN(parsed)) return 0
+  // Round to 2 decimal places to ensure no precision issues
+  return Math.round(parsed * 100) / 100
 }
 
 /**

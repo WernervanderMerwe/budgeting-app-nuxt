@@ -82,89 +82,84 @@
 
           <form @submit.prevent="handleCreateMonth">
             <div class="space-y-4">
-              <!-- Year -->
+              <!-- Month Calendar Picker -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Year
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select Month
                 </label>
-                <input
-                  v-model.number="newMonth.year"
-                  type="number"
-                  min="2000"
-                  max="2100"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
+
+                <!-- Year Navigation -->
+                <div class="flex items-center justify-between mb-3">
+                  <button
+                    type="button"
+                    @click="newMonth.year--"
+                    class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ newMonth.year }}</span>
+                  <button
+                    type="button"
+                    @click="newMonth.year++"
+                    class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Month Grid -->
+                <div class="grid grid-cols-4 gap-2">
+                  <button
+                    v-for="m in 12"
+                    :key="m"
+                    type="button"
+                    @click="newMonth.month = m"
+                    :disabled="isMonthExisting(newMonth.year, m)"
+                    :class="[
+                      'py-2 px-1 text-sm rounded-lg transition-colors',
+                      newMonth.month === m
+                        ? 'bg-blue-600 text-white font-medium'
+                        : isMonthExisting(newMonth.year, m)
+                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                          : isRecommendedMonth(newMonth.year, m)
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 ring-2 ring-green-500'
+                            : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    ]"
+                  >
+                    {{ getMonthName(m, 'short') }}
+                  </button>
+                </div>
+
+                <!-- Legend -->
+                <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded bg-green-500"></span>
+                    <span>Recommended</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded bg-gray-300 dark:bg-gray-600"></span>
+                    <span>Already exists</span>
+                  </div>
+                </div>
               </div>
 
-              <!-- Month (1-12) -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Month
-                </label>
-                <select
-                  v-model.number="newMonth.month"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="1">January</option>
-                  <option value="2">February</option>
-                  <option value="3">March</option>
-                  <option value="4">April</option>
-                  <option value="5">May</option>
-                  <option value="6">June</option>
-                  <option value="7">July</option>
-                  <option value="8">August</option>
-                  <option value="9">September</option>
-                  <option value="10">October</option>
-                  <option value="11">November</option>
-                  <option value="12">December</option>
-                </select>
-              </div>
-
-              <!-- Auto-generated name preview -->
+              <!-- Selected Month Preview -->
               <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
                 <p class="text-sm text-blue-700 dark:text-blue-300">
                   <span class="font-medium">Creating:</span> {{ generatedMonthName }}
                 </p>
               </div>
 
-              <!-- Sequential validation warning -->
-              <div
-                v-if="hasMonths && !isValidMonthSelection && !overrideSequential"
-                class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700"
-              >
-                <p class="text-sm text-amber-700 dark:text-amber-300">
-                  <span class="font-medium">Recommendation:</span> For sequential budgeting,
-                  the next month should be {{ getMonthName(nextValidMonth.month) }} {{ nextValidMonth.year }}
-                </p>
-              </div>
-
-              <!-- Override checkbox -->
-              <div v-if="hasMonths && !isValidMonthSelection" class="flex items-start space-x-2">
-                <input
-                  id="overrideSequential"
-                  v-model="overrideSequential"
-                  type="checkbox"
-                  class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <label for="overrideSequential" class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-                  I understand, let me create a non-sequential month
-                </label>
-              </div>
-
               <!-- Income -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Monthly Income (R)
-                </label>
-                <input
-                  v-model.number="newMonth.income"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                <CurrencyInput
+                  v-model="newMonth.income"
+                  label="Monthly Income (R)"
                   placeholder="e.g., 45000.00"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
                 <p v-if="previousMonthIncome > 0" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -271,11 +266,10 @@ const previousMonthIncome = computed(() => {
   return centsToRands(currentMonth.value.income)
 })
 
-// Sequential month validation
+// Sequential month validation - get the actual latest month (sortedMonths is ascending)
 const latestMonth = computed(() => {
-  if (!hasMonths.value) return null
-  const [firstMonth] = sortedMonths.value // First is latest (desc sort)
-  return firstMonth
+  if (!hasMonths.value || sortedMonths.value.length === 0) return null
+  return sortedMonths.value[sortedMonths.value.length - 1] // Last is latest (ascending sort)
 })
 
 const nextValidMonth = computed(() => {
@@ -304,6 +298,16 @@ const isValidMonthSelection = computed(() => {
 })
 
 const overrideSequential = ref(false)
+
+// Check if a month already exists in the database
+function isMonthExisting(year: number, month: number): boolean {
+  return months.value.some(m => m.year === year && m.month === month)
+}
+
+// Check if this is the recommended next month
+function isRecommendedMonth(year: number, month: number): boolean {
+  return year === nextValidMonth.value.year && month === nextValidMonth.value.month
+}
 
 // Watch modal open/close to set smart defaults
 watch(showCreateModal, (isOpen) => {
