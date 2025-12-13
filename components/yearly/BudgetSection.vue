@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { YearlySectionWithCategories } from '~/types/yearly'
 import { MONTH_NAMES_SHORT } from '~/types/yearly'
-import { formatCurrency } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 import { useColumnWidth } from '~/composables/useColumnResize'
 
 const props = defineProps<{
@@ -142,7 +142,7 @@ function handleSectionCheckboxClick(month: number, event: MouseEvent) {
             </span>
           </button>
           <span class="flex-1 text-right text-sm font-medium">
-            {{ formatCurrency(getSectionTotalForMonth(section.id, month)) }}
+            {{ formatCurrency(centsToRands(getSectionTotalForMonth(section.id, month))) }}
             <span class="text-xs ml-1">({{ getSectionPercentage(section.id, month) }}%)</span>
           </span>
         </div>

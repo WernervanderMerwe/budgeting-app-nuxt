@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { YearlyIncomeSourceWithEntries } from '~/types/yearly'
-import { formatCurrency, parseCurrency } from '~/utils/currency'
+import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
 import { useColumnWidth } from '~/composables/useColumnResize'
 
 const props = defineProps<{
@@ -85,10 +85,11 @@ function getNetForMonth(month: number): number {
   return entry.grossAmount - totalDeductions
 }
 
-function handleGrossUpdate(month: number, amount: number) {
+function handleGrossUpdate(month: number, amountInRands: number) {
   const entry = getEntryForMonth(month)
   if (entry) {
-    emit('update-entry', entry.id, amount)
+    // Convert rands to cents for storage
+    emit('update-entry', entry.id, randsToCents(amountInRands))
   }
 }
 
@@ -99,10 +100,11 @@ function getDeductionForMonth(month: number, deductionName: string) {
 }
 
 // Handle deduction amount update
-function handleDeductionUpdate(month: number, deductionName: string, amount: number) {
+function handleDeductionUpdate(month: number, deductionName: string, amountInRands: number) {
   const deduction = getDeductionForMonth(month, deductionName)
   if (deduction) {
-    emit('update-deduction', deduction.id, { amount })
+    // Convert rands to cents for storage
+    emit('update-deduction', deduction.id, { amount: randsToCents(amountInRands) })
   }
 }
 
@@ -242,8 +244,9 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
           :key="month"
           class="flex-1 min-w-[100px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
         >
+          <!-- Convert cents to rands for display -->
           <YearlyMonthCell
-            :amount="getEntryForMonth(month)?.grossAmount ?? 0"
+            :amount="centsToRands(getEntryForMonth(month)?.grossAmount ?? 0)"
             :editable="true"
             @update:amount="handleGrossUpdate(month, $event)"
           />
@@ -300,8 +303,9 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
             :key="month"
             class="flex-1 min-w-[100px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
+            <!-- Convert cents to rands for display -->
             <YearlyMonthCell
-              :amount="getDeductionForMonth(month, deductionName)?.amount ?? 0"
+              :amount="centsToRands(getDeductionForMonth(month, deductionName)?.amount ?? 0)"
               :editable="true"
               class="text-red-600 dark:text-red-400"
               @update:amount="handleDeductionUpdate(month, deductionName, $event)"
@@ -356,7 +360,7 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
             :key="month"
             class="flex-1 min-w-[100px] px-2 py-2 text-right text-sm font-medium text-blue-700 dark:text-blue-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
-            {{ formatCurrency(getNetForMonth(month)) }}
+            {{ formatCurrency(centsToRands(getNetForMonth(month))) }}
           </div>
         </div>
       </div>

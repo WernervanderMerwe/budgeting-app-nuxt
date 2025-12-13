@@ -17,9 +17,9 @@ async function toggleWarnings() {
 
 <template>
   <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-    <div class="flex items-center justify-between px-4 py-3">
+    <div class="relative flex items-center justify-between px-4 py-3">
       <!-- Left: Back to Home -->
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 flex-1">
         <NuxtLink
           to="/"
           class="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
@@ -33,11 +33,13 @@ async function toggleWarnings() {
         <h1 class="text-xl font-bold text-gray-900 dark:text-white">Yearly Overview</h1>
       </div>
 
-      <!-- Center: Year Selector -->
-      <YearlyYearSelector />
+      <!-- Center: Year Selector (absolute centered) -->
+      <div class="absolute left-1/2 -translate-x-1/2">
+        <YearlyYearSelector />
+      </div>
 
       <!-- Right: Actions -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-1 justify-end">
         <!-- Copy Month Button -->
         <button
           @click="emit('open-copy-modal')"

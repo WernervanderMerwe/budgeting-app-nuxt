@@ -76,8 +76,8 @@ export function useYearlySummary() {
       }, 0)
 
       const sectionSummaries: SectionSummary[] = sections.value.map(section => {
-        const total = getSectionTotalForMonth(section.id, month)
-        const actualPercent = totalNet > 0 ? Math.round((total / totalNet) * 100) : 0
+        const totalInCents = getSectionTotalForMonth(section.id, month)
+        const actualPercent = totalNet > 0 ? Math.round((totalInCents / totalNet) * 100) : 0
 
         return {
           sectionId: section.id,
@@ -85,22 +85,25 @@ export function useYearlySummary() {
           sectionName: section.name,
           targetPercent: section.targetPercent,
           actualPercent,
-          total,
+          total: centsToRands(totalInCents),
           isOverBudget: actualPercent > section.targetPercent,
         }
       })
 
-      // Convert spendTarget from cents to rands for display
-      const spendTargetInRands = centsToRands(currentBudget.value!.spendTarget)
+      // Get spendTarget in cents for calculation
+      const spendTargetInCents = currentBudget.value!.spendTarget
+
+      // Calculate leftover in cents, then convert everything to rands for display
+      const leftoverInCents = totalNet - totalExpenses - spendTargetInCents
 
       return {
         month,
         totalGross: 0, // Would need income data
         totalDeductions: 0,
-        totalNet,
-        totalExpenses,
-        spendTarget: spendTargetInRands,
-        leftover: totalNet - totalExpenses - spendTargetInRands,
+        totalNet: centsToRands(totalNet),
+        totalExpenses: centsToRands(totalExpenses),
+        spendTarget: centsToRands(spendTargetInCents),
+        leftover: centsToRands(leftoverInCents),
         sections: sectionSummaries,
       }
     })

@@ -2,7 +2,7 @@
 import type { YearlyCategoryWithChildren, YearlyCategoryEntry } from '~/types/yearly'
 import { MONTH_NAMES_SHORT } from '~/types/yearly'
 import { useColumnWidth } from '~/composables/useColumnResize'
-import { formatCurrency } from '~/utils/currency'
+import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
 
 const props = defineProps<{
   category: YearlyCategoryWithChildren
@@ -79,10 +79,11 @@ function handleParentCheckboxClick(month: number) {
   }
 }
 
-function handleAmountUpdate(month: number, amount: number) {
+function handleAmountUpdate(month: number, amountInRands: number) {
   const entry = getEntryForMonth(month)
   if (entry) {
-    emit('update-entry', entry.id, { amount })
+    // Convert rands to cents for storage
+    emit('update-entry', entry.id, { amount: randsToCents(amountInRands) })
   }
 }
 
@@ -240,13 +241,14 @@ function handleEditKeydown(event: KeyboardEvent) {
             <span
               class="flex-1 text-right text-sm text-gray-900 dark:text-gray-100"
             >
-              {{ formatCurrency(getParentTotalForMonth(month)) }}
+              {{ formatCurrency(centsToRands(getParentTotalForMonth(month))) }}
             </span>
           </div>
           <!-- Leaf category - use regular MonthCell -->
+          <!-- Convert cents to rands for display -->
           <YearlyMonthCell
             v-else
-            :amount="getEntryForMonth(month)?.amount ?? 0"
+            :amount="centsToRands(getEntryForMonth(month)?.amount ?? 0)"
             :is-paid="getEntryForMonth(month)?.isPaid ?? false"
             :show-checkbox="true"
             :editable="true"

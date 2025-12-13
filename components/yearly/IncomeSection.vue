@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { MONTH_NAMES_SHORT } from '~/types/yearly'
 import type { YearlyIncomeSourceWithEntries } from '~/types/yearly'
-import { formatCurrency } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 import { useColumnWidth } from '~/composables/useColumnResize'
 
 const emit = defineEmits<{
@@ -136,7 +136,7 @@ async function handleRenameDeduction(oldName: string, newName: string, sourceId:
           :key="index"
           class="flex-1 min-w-[100px] px-1 py-2 text-right text-sm font-medium text-green-700 dark:text-green-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
         >
-          {{ formatCurrency(total.net) }}
+          {{ formatCurrency(centsToRands(total.net)) }}
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@ async function handleRenameDeduction(oldName: string, newName: string, sourceId:
             :key="index"
             class="flex-1 min-w-[100px] px-1 py-1 text-right text-sm font-bold text-green-700 dark:text-green-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
-            {{ formatCurrency(total.net) }}
+            {{ formatCurrency(centsToRands(total.net)) }}
           </div>
         </div>
       </div>
