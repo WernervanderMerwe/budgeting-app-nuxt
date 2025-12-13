@@ -30,8 +30,11 @@ export function useYearlyBudget() {
   }
 
   // Fetch a budget by ID with all relations
-  async function fetchBudgetById(id: number) {
-    loading.value = true
+  // Set silent=true to skip global loading state (for background refreshes after small updates)
+  async function fetchBudgetById(id: number, silent = false) {
+    if (!silent) {
+      loading.value = true
+    }
     error.value = null
     try {
       const data = await $fetch<YearlyBudgetWithRelations>(`/api/yearly/${id}`)
@@ -43,8 +46,16 @@ export function useYearlyBudget() {
       console.error('Error fetching budget:', e)
       return null
     } finally {
-      loading.value = false
+      if (!silent) {
+        loading.value = false
+      }
     }
+  }
+
+  // Refresh budget silently (for small updates like checkbox toggles)
+  async function refreshBudgetSilently() {
+    if (!currentBudget.value) return null
+    return fetchBudgetById(currentBudget.value.id, true)
   }
 
   // Fetch budget by year
@@ -173,6 +184,7 @@ export function useYearlyBudget() {
     fetchBudgets,
     fetchBudgetById,
     fetchBudgetByYear,
+    refreshBudgetSilently,
     createBudget,
     updateBudget,
     deleteBudget,

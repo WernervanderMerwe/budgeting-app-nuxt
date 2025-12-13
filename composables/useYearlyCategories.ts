@@ -13,18 +13,16 @@ import type {
 } from '~/types/yearly'
 
 export function useYearlyCategories() {
-  const { currentBudget, fetchBudgetById } = useYearlyBudget()
+  const { currentBudget, fetchBudgetById, refreshBudgetSilently } = useYearlyBudget()
 
-  // Update a section
+  // Update a section (silent refresh - small update)
   async function updateSection(id: number, dto: UpdateSectionDTO) {
     try {
       const data = await $fetch<YearlySection>(`/api/yearly/sections/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error updating section:', e)
@@ -32,16 +30,14 @@ export function useYearlyCategories() {
     }
   }
 
-  // Create a category
+  // Create a category (silent refresh - single operation)
   async function createCategory(dto: CreateCategoryDTO) {
     try {
       const data = await $fetch<YearlyCategoryWithChildren>('/api/yearly/categories', {
         method: 'POST',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error creating category:', e)
@@ -49,16 +45,14 @@ export function useYearlyCategories() {
     }
   }
 
-  // Update a category
+  // Update a category (silent refresh - small update)
   async function updateCategory(id: number, dto: UpdateCategoryDTO) {
     try {
       const data = await $fetch<YearlyCategory>(`/api/yearly/categories/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error updating category:', e)
@@ -66,13 +60,11 @@ export function useYearlyCategories() {
     }
   }
 
-  // Delete a category
+  // Delete a category (silent refresh - single operation)
   async function deleteCategory(id: number) {
     try {
       await $fetch(`/api/yearly/categories/${id}`, { method: 'DELETE' })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return true
     } catch (e: any) {
       console.error('Error deleting category:', e)
@@ -80,15 +72,16 @@ export function useYearlyCategories() {
     }
   }
 
-  // Update a category entry (amount or isPaid)
-  async function updateCategoryEntry(id: number, dto: UpdateCategoryEntryDTO) {
+  // Update a category entry (amount or isPaid) - silent refresh for instant feel
+  // Set skipRefresh=true when doing batch updates to avoid multiple refreshes
+  async function updateCategoryEntry(id: number, dto: UpdateCategoryEntryDTO, skipRefresh = false) {
     try {
       const data = await $fetch<YearlyCategoryEntry>(`/api/yearly/category-entries/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
+      if (!skipRefresh) {
+        await refreshBudgetSilently()
       }
       return data
     } catch (e: any) {
@@ -103,42 +96,49 @@ export function useYearlyCategories() {
   }
 
   // Check/uncheck all children of a category for a specific month
+  // Uses skipRefresh to avoid multiple refreshes, then refreshes once at the end
   async function checkAllChildrenForCategory(categoryId: number, month: number, isPaid: boolean) {
     // Find the category and its children
     for (const section of sections.value) {
       const category = section.categories.find(c => c.id === categoryId)
       if (category && category.children.length > 0) {
-        // Update all children's entries for this month
+        // Update all children's entries for this month (skip individual refreshes)
         const updatePromises = category.children.map(child => {
           const entry = child.entries.find(e => e.month === month)
           if (entry) {
-            return updateCategoryEntry(entry.id, { isPaid })
+            return updateCategoryEntry(entry.id, { isPaid }, true)
           }
           return Promise.resolve()
         })
         await Promise.all(updatePromises)
+        // Single refresh after all updates complete
+        await refreshBudgetSilently()
         return
       }
     }
   }
 
   // Check/uncheck all categories in a section for a specific month
+  // Uses skipRefresh to avoid multiple refreshes, then refreshes once at the end
   async function checkAllCategoriesForSection(sectionId: number, month: number, isPaid: boolean) {
     const section = sections.value.find(s => s.id === sectionId)
     if (!section) return
 
-    // Update all categories (including children) entries for this month
+    // Update all categories (including children) entries for this month (skip individual refreshes)
     const updatePromises = section.categories.map(category => {
       const entry = category.entries.find(e => e.month === month)
       if (entry) {
-        return updateCategoryEntry(entry.id, { isPaid })
+        return updateCategoryEntry(entry.id, { isPaid }, true)
       }
       return Promise.resolve()
     })
     await Promise.all(updatePromises)
+    // Single refresh after all updates complete
+    await refreshBudgetSilently()
   }
 
   // Copy category amounts from one month to another
+  // Uses full loading state since this is a larger operation affecting multiple entries
   async function copyFromMonth(dto: CopyMonthDTO) {
     if (!currentBudget.value) return null
     try {
@@ -146,7 +146,8 @@ export function useYearlyCategories() {
         method: 'POST',
         body: dto,
       })
-      await fetchBudgetById(currentBudget.value.id)
+      // Use regular fetch with loading state (not silent) for large operations
+      await fetchBudgetById(currentBudget.value.id, false)
       return result
     } catch (e: any) {
       console.error('Error copying month:', e)

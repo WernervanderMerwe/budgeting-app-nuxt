@@ -11,19 +11,16 @@ import type {
 } from '~/types/yearly'
 
 export function useYearlyIncome() {
-  const { currentBudget, fetchBudgetById } = useYearlyBudget()
+  const { currentBudget, refreshBudgetSilently } = useYearlyBudget()
 
-  // Create a new income source
+  // Create a new income source (silent refresh - single operation)
   async function createIncomeSource(dto: CreateIncomeSourceDTO) {
     try {
       const data = await $fetch<YearlyIncomeSourceWithEntries>('/api/yearly/income-sources', {
         method: 'POST',
         body: dto,
       })
-      // Refresh the budget to get updated data
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error creating income source:', e)
@@ -31,16 +28,14 @@ export function useYearlyIncome() {
     }
   }
 
-  // Update an income source
+  // Update an income source (silent refresh - single operation)
   async function updateIncomeSource(id: number, dto: UpdateIncomeSourceDTO) {
     try {
       const data = await $fetch<YearlyIncomeSource>(`/api/yearly/income-sources/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error updating income source:', e)
@@ -48,13 +43,11 @@ export function useYearlyIncome() {
     }
   }
 
-  // Delete an income source
+  // Delete an income source (silent refresh - single operation)
   async function deleteIncomeSource(id: number) {
     try {
       await $fetch(`/api/yearly/income-sources/${id}`, { method: 'DELETE' })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return true
     } catch (e: any) {
       console.error('Error deleting income source:', e)
@@ -62,16 +55,14 @@ export function useYearlyIncome() {
     }
   }
 
-  // Update an income entry (gross amount)
+  // Update an income entry (gross amount) - silent refresh for instant feel
   async function updateIncomeEntry(id: number, dto: UpdateIncomeEntryDTO) {
     try {
       const data = await $fetch<YearlyIncomeEntry>(`/api/yearly/income-entries/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error updating income entry:', e)
@@ -79,16 +70,14 @@ export function useYearlyIncome() {
     }
   }
 
-  // Create a deduction
+  // Create a deduction (silent refresh - single operation)
   async function createDeduction(dto: CreateDeductionDTO) {
     try {
       const data = await $fetch<YearlyDeduction>('/api/yearly/deductions', {
         method: 'POST',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error creating deduction:', e)
@@ -96,16 +85,14 @@ export function useYearlyIncome() {
     }
   }
 
-  // Update a deduction
+  // Update a deduction (silent refresh - single operation)
   async function updateDeduction(id: number, dto: UpdateDeductionDTO) {
     try {
       const data = await $fetch<YearlyDeduction>(`/api/yearly/deductions/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return data
     } catch (e: any) {
       console.error('Error updating deduction:', e)
@@ -113,13 +100,11 @@ export function useYearlyIncome() {
     }
   }
 
-  // Delete a deduction
+  // Delete a deduction (silent refresh - single operation)
   async function deleteDeduction(id: number) {
     try {
       await $fetch(`/api/yearly/deductions/${id}`, { method: 'DELETE' })
-      if (currentBudget.value) {
-        await fetchBudgetById(currentBudget.value.id)
-      }
+      await refreshBudgetSilently()
       return true
     } catch (e: any) {
       console.error('Error deleting deduction:', e)
