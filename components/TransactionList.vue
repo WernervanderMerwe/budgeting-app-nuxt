@@ -162,7 +162,7 @@
 <script setup lang="ts">
 import type { Transaction } from '~/types/budget'
 import { formatCurrency, centsToRands } from '~/utils/currency'
-import { formatDate, getCurrentTimestamp } from '~/utils/date'
+import { formatDate, getCurrentTimestamp, parseDate } from '~/utils/date'
 
 interface Props {
   categoryId: number
@@ -177,22 +177,10 @@ const { openDialog } = useConfirmDialog()
 const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
 
-// Helper to convert Unix timestamp to YYYY-MM-DD string
-const timestampToDateString = (timestamp: number): string => {
-  const date = new Date(timestamp * 1000)
-  const [datePart] = date.toISOString().split('T')
-  return datePart
-}
-
-// Helper to convert YYYY-MM-DD string to Unix timestamp
-const dateStringToTimestamp = (dateString: string): number => {
-  return Math.floor(new Date(dateString).getTime() / 1000)
-}
-
 const newTransaction = ref({
   description: '',
   amount: 0,
-  date: timestampToDateString(getCurrentTimestamp()),
+  date: formatDate(getCurrentTimestamp(), 'iso'),
 })
 
 const editedTransaction = ref({
@@ -218,7 +206,7 @@ const handleAdd = async () => {
       categoryId: props.categoryId,
       description: newTransaction.value.description,
       amount: newTransaction.value.amount,
-      transactionDate: dateStringToTimestamp(newTransaction.value.date),
+      transactionDate: parseDate(newTransaction.value.date) ?? getCurrentTimestamp(),
     })
     cancelAdd()
   } catch (error) {
@@ -231,7 +219,7 @@ const cancelAdd = () => {
   newTransaction.value = {
     description: '',
     amount: 0,
-    date: timestampToDateString(getCurrentTimestamp()),
+    date: formatDate(getCurrentTimestamp(), 'iso'),
   }
 }
 
@@ -241,8 +229,8 @@ const startEditing = (transaction: Transaction) => {
     description: transaction.description || '',
     amount: centsToRands(transaction.amount),
     date: transaction.transactionDate
-      ? timestampToDateString(transaction.transactionDate)
-      : timestampToDateString(getCurrentTimestamp()),
+      ? formatDate(transaction.transactionDate, 'iso')
+      : formatDate(getCurrentTimestamp(), 'iso'),
   }
 }
 
@@ -256,7 +244,7 @@ const handleUpdate = async (id: number) => {
     await updateTransaction(id, {
       description: editedTransaction.value.description,
       amount: editedTransaction.value.amount,
-      transactionDate: dateStringToTimestamp(editedTransaction.value.date),
+      transactionDate: parseDate(editedTransaction.value.date) ?? getCurrentTimestamp(),
     })
     cancelEditing()
   } catch (error) {
