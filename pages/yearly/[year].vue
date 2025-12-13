@@ -44,6 +44,7 @@ provide(COLUMN_WIDTH_KEY, columnWidth)
 
 // Modal state
 const showCopyModal = ref(false)
+const showClearModal = ref(false)
 const showAddCategoryModal = ref(false)
 const addCategoryForSectionId = ref<number | null>(null)
 const newCategoryName = ref('')
@@ -177,7 +178,10 @@ async function handleAddIncomeSource() {
 <template>
   <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
     <!-- Header -->
-    <YearlyHeader @open-copy-modal="showCopyModal = true" />
+    <YearlyHeader
+      @open-copy-modal="showCopyModal = true"
+      @open-clear-modal="showClearModal = true"
+    />
 
     <!-- Main Content -->
     <main class="flex-1 overflow-auto">
@@ -284,6 +288,12 @@ async function handleAddIncomeSource() {
     <YearlyCopyMonthModal
       :is-open="showCopyModal"
       @close="showCopyModal = false"
+    />
+
+    <!-- Clear Month Modal -->
+    <YearlyClearMonthModal
+      :is-open="showClearModal"
+      @close="showClearModal = false"
     />
 
     <!-- Add Category Modal -->

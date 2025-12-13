@@ -7,56 +7,51 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'copy', sourceMonth: number, targetMonth: number, resetPaidStatus: boolean): void
+  (e: 'cleared'): void
 }>()
 
-const { copyFromMonth, getTotalExpensesForMonth } = useYearlyCategories()
+const { currentBudget, fetchBudgetById } = useYearlyBudget()
+const { getTotalExpensesForMonth } = useYearlyCategories()
 const { getTotalGrossForMonth } = useYearlyIncome()
 
-const sourceMonth = ref(1)
-const targetMonth = ref(2)
+const selectedMonth = ref(1)
 const resetPaidStatus = ref(true)
 const isLoading = ref(false)
 const errorMessage = ref('')
 
-// Check if target month has any values
-const targetMonthHasValues = computed(() => {
-  const expenses = getTotalExpensesForMonth(targetMonth.value)
-  const income = getTotalGrossForMonth(targetMonth.value)
+// Check if selected month has any values
+const monthHasValues = computed(() => {
+  const expenses = getTotalExpensesForMonth(selectedMonth.value)
+  const income = getTotalGrossForMonth(selectedMonth.value)
   return expenses > 0 || income > 0
 })
 
-// Auto-set source to previous month of target
-watch(targetMonth, (newTarget) => {
-  if (newTarget > 1) {
-    sourceMonth.value = newTarget - 1
-  }
+// Clear error when month changes
+watch(selectedMonth, () => {
   errorMessage.value = ''
 })
 
-// Clear error when source changes
-watch(sourceMonth, () => {
-  errorMessage.value = ''
-})
-
-async function handleCopy() {
+async function handleClear() {
   errorMessage.value = ''
 
-  if (sourceMonth.value === targetMonth.value) {
-    return // Already showing inline validation message
-  }
+  if (!currentBudget.value) return
 
   isLoading.value = true
   try {
-    await copyFromMonth({
-      sourceMonth: sourceMonth.value,
-      targetMonth: targetMonth.value,
-      resetPaidStatus: resetPaidStatus.value,
+    await $fetch(`/api/yearly/${currentBudget.value.id}/clear-month`, {
+      method: 'POST',
+      body: {
+        month: selectedMonth.value,
+        resetPaidStatus: resetPaidStatus.value,
+      },
     })
+    // Refresh the budget data
+    await fetchBudgetById(currentBudget.value.id, false)
+    emit('cleared')
     emit('close')
   } catch (error) {
-    console.error('Error copying month:', error)
-    errorMessage.value = 'Failed to copy month data. Please try again.'
+    console.error('Error clearing month:', error)
+    errorMessage.value = 'Failed to clear month data. Please try again.'
   } finally {
     isLoading.value = false
   }
@@ -79,7 +74,7 @@ function handleBackdropClick(event: MouseEvent) {
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Copy Month Data</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Clear Month Data</h2>
           <button
             @click="emit('close')"
             class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
@@ -93,31 +88,16 @@ function handleBackdropClick(event: MouseEvent) {
         <!-- Body -->
         <div class="px-6 py-4 space-y-4">
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            Copy all category amounts from one month to another.
+            Reset all category amounts, income, and deductions for a month to zero.
           </p>
 
-          <!-- Source Month -->
+          <!-- Month Selection -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Copy from (source)
+              Month to clear
             </label>
             <select
-              v-model="sourceMonth"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option v-for="(name, index) in MONTH_NAMES" :key="index" :value="index + 1">
-                {{ name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Target Month -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Copy to (target)
-            </label>
-            <select
-              v-model="targetMonth"
+              v-model="selectedMonth"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option v-for="(name, index) in MONTH_NAMES" :key="index" :value="index + 1">
@@ -129,36 +109,36 @@ function handleBackdropClick(event: MouseEvent) {
           <!-- Reset Paid Status -->
           <div class="flex items-center gap-2">
             <input
-              id="reset-paid"
+              id="clear-reset-paid"
               v-model="resetPaidStatus"
               type="checkbox"
               class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <label for="reset-paid" class="text-sm text-gray-700 dark:text-gray-300">
+            <label for="clear-reset-paid" class="text-sm text-gray-700 dark:text-gray-300">
               Reset paid status (uncheck all items)
             </label>
           </div>
 
-          <!-- Warning if same month -->
+          <!-- Warning if month has no values -->
           <p
-            v-if="sourceMonth === targetMonth"
-            class="text-sm text-red-500"
+            v-if="!monthHasValues"
+            class="text-sm text-yellow-600 dark:text-yellow-400"
           >
-            Source and target months cannot be the same.
+            This month has no values to clear.
           </p>
 
-          <!-- Warning if target month has values -->
+          <!-- Warning if month has values -->
           <div
-            v-if="targetMonthHasValues && sourceMonth !== targetMonth"
-            class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+            v-if="monthHasValues"
+            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
           >
-            <p class="text-sm text-yellow-700 dark:text-yellow-300 flex items-start gap-2">
+            <p class="text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
               <span>
-                <strong>{{ MONTH_NAMES[targetMonth - 1] }}</strong> already has data.
-                Copying will overwrite existing values.
+                <strong>{{ MONTH_NAMES[selectedMonth - 1] }}</strong> has existing data.
+                This action will reset all amounts to zero and cannot be undone.
               </span>
             </p>
           </div>
@@ -181,11 +161,11 @@ function handleBackdropClick(event: MouseEvent) {
             Cancel
           </button>
           <button
-            @click="handleCopy"
-            :disabled="isLoading || sourceMonth === targetMonth"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg"
+            @click="handleClear"
+            :disabled="isLoading || !monthHasValues"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed rounded-lg"
           >
-            {{ isLoading ? 'Copying...' : 'Copy Month' }}
+            {{ isLoading ? 'Clearing...' : 'Clear Month' }}
           </button>
         </div>
       </div>
