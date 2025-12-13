@@ -1,6 +1,6 @@
 import prisma from '~/server/utils/db'
 import { randsToCents } from '~/server/utils/currency'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const updateData: any = {
-      updatedAt: dayjs().unix(),
+      updatedAt: getCurrentTimestamp(),
     }
 
     if (body.name !== undefined) updateData.name = body.name

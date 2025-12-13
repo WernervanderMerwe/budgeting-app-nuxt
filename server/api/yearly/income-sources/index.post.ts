@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // POST /api/yearly/income-sources - Create a new income source with 12 month entries
 export default defineEventHandler(async (event) => {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
 
     // Create income source with 12 month entries (one for each month)
     const incomeSource = await prisma.yearlyIncomeSource.create({

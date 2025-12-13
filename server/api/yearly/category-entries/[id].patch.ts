@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // PATCH /api/yearly/category-entries/[id] - Update a category entry (amount or isPaid)
 export default defineEventHandler(async (event) => {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const updateData: any = {
-      updatedAt: dayjs().unix(),
+      updatedAt: getCurrentTimestamp(),
     }
 
     if (body.amount !== undefined) updateData.amount = body.amount

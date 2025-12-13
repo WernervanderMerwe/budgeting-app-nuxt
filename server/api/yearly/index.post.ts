@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // Default sections for 70/20/10 rule
 const DEFAULT_SECTIONS = [
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
 
     // Create yearly budget with default sections
     const yearlyBudget = await prisma.yearlyBudget.create({

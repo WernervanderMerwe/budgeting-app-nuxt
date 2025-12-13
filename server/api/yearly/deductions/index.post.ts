@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // POST /api/yearly/deductions - Create a new deduction
 export default defineEventHandler(async (event) => {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
 
     const deduction = await prisma.yearlyDeduction.create({
       data: {

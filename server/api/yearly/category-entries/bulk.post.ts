@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // POST /api/yearly/category-entries/bulk - Bulk update category entries
 // Used for copying amounts from one month to another
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
 
     // Process all updates in a transaction
     const results = await prisma.$transaction(

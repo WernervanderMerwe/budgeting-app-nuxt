@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { getCurrentYear } from '~/utils/date'
+
 // Redirect to the latest year with data, or current year if no data exists
 definePageMeta({
   layout: 'yearly'
@@ -13,12 +15,12 @@ const router = useRouter()
 onMounted(async () => {
   try {
     const { year } = await $fetch<{ year: number | null }>('/api/yearly/latest')
-    const targetYear = year ?? new Date().getFullYear()
+    const targetYear = year ?? getCurrentYear()
     router.replace(`/yearly/${targetYear}`)
   } catch (error) {
     console.error('Error fetching latest year:', error)
     // Fallback to current year on error
-    router.replace(`/yearly/${new Date().getFullYear()}`)
+    router.replace(`/yearly/${getCurrentYear()}`)
   }
 })
 </script>

@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // POST /api/yearly/categories - Create a new category with 12 month entries
 export default defineEventHandler(async (event) => {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
 
     // Create category with 12 month entries (one for each month)
     const category = await prisma.yearlyCategory.create({

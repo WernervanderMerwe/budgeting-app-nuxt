@@ -1,5 +1,5 @@
 import prisma from '~/server/utils/db'
-import dayjs from 'dayjs'
+import { getCurrentTimestamp } from '~/server/utils/date'
 
 // POST /api/yearly/[id]/copy-month - Copy category amounts from one month to another
 export default defineEventHandler(async (event) => {
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
     const updates: { id: number; amount: number; isPaid?: boolean }[] = []
 
     // Collect all category entries to update

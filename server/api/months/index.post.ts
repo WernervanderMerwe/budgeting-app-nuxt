@@ -1,8 +1,8 @@
 import prisma from '~/server/utils/db'
 import { randsToCents } from '~/server/utils/currency'
 import { monthSchema } from '~/server/utils/validation'
+import { getCurrentTimestamp } from '~/server/utils/date'
 import { z } from 'zod'
-import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     // Validate input
     const validatedData = monthSchema.parse(body)
 
-    const now = dayjs().unix()
+    const now = getCurrentTimestamp()
 
     // Create month
     const month = await prisma.transactionMonth.create({

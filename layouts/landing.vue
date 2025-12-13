@@ -28,11 +28,14 @@
 
     <!-- Footer -->
     <footer class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-      Budget Tracker &copy; {{ new Date().getFullYear() }}
+      Budget Tracker &copy; {{ currentYear }}
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { getCurrentYear } from '~/utils/date'
+
 const { isDark, toggleTheme } = useTheme()
+const currentYear = getCurrentYear()
 </script>

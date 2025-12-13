@@ -4,11 +4,12 @@ import type {
   CreateYearlyBudgetDTO,
   UpdateYearlyBudgetDTO,
 } from '~/types/yearly'
+import { getCurrentYear } from '~/utils/date'
 
 // State is shared across components
 const budgets = ref<YearlyBudget[]>([])
 const currentBudget = ref<YearlyBudgetWithRelations | null>(null)
-const selectedYear = ref<number>(new Date().getFullYear())
+const selectedYear = ref<number>(getCurrentYear())
 const loading = ref(false)
 const error = ref<string | null>(null)
 

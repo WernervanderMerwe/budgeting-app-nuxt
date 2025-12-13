@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MONTH_NAMES_SHORT } from '~/types/yearly'
 import { COLUMN_WIDTH_KEY, useColumnResize } from '~/composables/useColumnResize'
+import { getCurrentYear } from '~/utils/date'
 
 definePageMeta({
   layout: 'yearly'
@@ -55,7 +56,7 @@ const newSubcategoryName = ref('')
 // Get year from route params
 const yearFromRoute = computed(() => {
   const year = parseInt(route.params.year as string, 10)
-  return isNaN(year) ? new Date().getFullYear() : year
+  return isNaN(year) ? getCurrentYear() : year
 })
 
 // Load budget on mount and when year changes

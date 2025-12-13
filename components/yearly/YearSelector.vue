@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { getCurrentYear } from '~/utils/date'
+
 const router = useRouter()
 const { selectedYear, availableYears, createBudget } = useYearlyBudget()
 
 // Get onYearChange from parent if available (for URL updates)
 const onYearChange = inject<((year: number) => void) | undefined>('onYearChange', undefined)
 
-const currentYear = new Date().getFullYear()
+const currentYear = getCurrentYear()
 
 // Generate year options (5 years back, 2 years forward)
 const yearOptions = computed(() => {
