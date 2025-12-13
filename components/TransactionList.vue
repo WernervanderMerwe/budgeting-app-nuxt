@@ -180,7 +180,8 @@ const editingId = ref<number | null>(null)
 // Helper to convert Unix timestamp to YYYY-MM-DD string
 const timestampToDateString = (timestamp: number): string => {
   const date = new Date(timestamp * 1000)
-  return date.toISOString().split('T')[0]
+  const [datePart] = date.toISOString().split('T')
+  return datePart
 }
 
 // Helper to convert YYYY-MM-DD string to Unix timestamp

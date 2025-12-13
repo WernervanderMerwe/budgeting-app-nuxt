@@ -8,7 +8,17 @@ const emit = defineEmits<{
   (e: 'add-source'): void
 }>()
 
-const { incomeSources, monthlyIncomeTotals, updateIncomeEntry, updateIncomeSource, deleteIncomeSource } = useYearlyIncome()
+const {
+  incomeSources,
+  monthlyIncomeTotals,
+  updateIncomeEntry,
+  updateIncomeSource,
+  deleteIncomeSource,
+  createDeduction,
+  updateDeduction,
+  deleteDeduction,
+  getIncomeEntry
+} = useYearlyIncome()
 const { openDialog } = useConfirmDialog()
 const { columnWidth } = useColumnWidth()
 
@@ -32,6 +42,64 @@ function handleDeleteSource(sourceId: number) {
       await deleteIncomeSource(sourceId)
     }
   })
+}
+
+// Add a deduction for all 12 months of an income source
+async function handleAddDeduction(sourceId: number, deductionName: string) {
+  // Create a deduction for each month (12 entries)
+  for (let month = 1; month <= 12; month++) {
+    const entry = getIncomeEntry(sourceId, month)
+    if (entry) {
+      await createDeduction({
+        incomeEntryId: entry.id,
+        name: deductionName,
+        amount: 0,
+      })
+    }
+  }
+}
+
+// Update a single deduction amount
+async function handleUpdateDeduction(deductionId: number, data: { name?: string; amount?: number }) {
+  await updateDeduction(deductionId, data)
+}
+
+// Delete all deductions with a given name across all months for an income source
+function handleDeleteDeduction(deductionName: string, sourceId: number) {
+  openDialog({
+    title: 'Delete Deduction',
+    message: `Are you sure you want to delete "${deductionName}" from all months?`,
+    confirmText: 'Delete',
+    confirmColor: 'red',
+    onConfirm: async () => {
+      // Find the income source
+      const source = incomeSources.value.find(s => s.id === sourceId)
+      if (!source) return
+
+      // Delete all deductions with this name across all months
+      for (const entry of source.entries) {
+        const deduction = entry.deductions.find(d => d.name === deductionName)
+        if (deduction) {
+          await deleteDeduction(deduction.id)
+        }
+      }
+    }
+  })
+}
+
+// Rename all deductions with a given name across all months for an income source
+async function handleRenameDeduction(oldName: string, newName: string, sourceId: number) {
+  // Find the income source
+  const source = incomeSources.value.find(s => s.id === sourceId)
+  if (!source) return
+
+  // Update all deductions with this name across all months
+  for (const entry of source.entries) {
+    const deduction = entry.deductions.find(d => d.name === oldName)
+    if (deduction) {
+      await updateDeduction(deduction.id, { name: newName })
+    }
+  }
 }
 </script>
 
@@ -82,6 +150,10 @@ function handleDeleteSource(sourceId: number) {
         @update-entry="handleUpdateEntry"
         @delete="handleDeleteSource"
         @rename="handleRenameSource"
+        @add-deduction="handleAddDeduction"
+        @update-deduction="handleUpdateDeduction"
+        @delete-deduction="handleDeleteDeduction"
+        @rename-deduction="handleRenameDeduction"
       />
 
       <!-- Total Bruto Row -->

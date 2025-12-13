@@ -274,7 +274,8 @@ const previousMonthIncome = computed(() => {
 // Sequential month validation
 const latestMonth = computed(() => {
   if (!hasMonths.value) return null
-  return sortedMonths.value[0] // First is latest (desc sort)
+  const [firstMonth] = sortedMonths.value // First is latest (desc sort)
+  return firstMonth
 })
 
 const nextValidMonth = computed(() => {
