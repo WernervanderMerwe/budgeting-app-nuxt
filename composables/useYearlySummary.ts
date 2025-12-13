@@ -4,6 +4,7 @@ import type {
   SectionSummary,
   SectionType,
 } from '~/types/yearly'
+import { centsToRands } from '~/utils/currency'
 
 // Cached summary state
 const summary = ref<YearlySummary | null>(null)
@@ -89,14 +90,17 @@ export function useYearlySummary() {
         }
       })
 
+      // Convert spendTarget from cents to rands for display
+      const spendTargetInRands = centsToRands(currentBudget.value!.spendTarget)
+
       return {
         month,
         totalGross: 0, // Would need income data
         totalDeductions: 0,
         totalNet,
         totalExpenses,
-        spendTarget: currentBudget.value!.spendTarget,
-        leftover: totalNet - totalExpenses - currentBudget.value!.spendTarget,
+        spendTarget: spendTargetInRands,
+        leftover: totalNet - totalExpenses - spendTargetInRands,
         sections: sectionSummaries,
       }
     })
@@ -149,7 +153,9 @@ export function useYearlySummary() {
   function getLeftoverClass(leftover: number): string {
     if (!currentBudget.value?.showWarnings) return ''
     if (leftover < 0) return 'text-red-500'
-    if (leftover < currentBudget.value.spendTarget * 0.5) return 'text-yellow-500'
+    // Convert spendTarget from cents to rands for comparison
+    const spendTargetInRands = centsToRands(currentBudget.value.spendTarget)
+    if (leftover < spendTargetInRands * 0.5) return 'text-yellow-500'
     return 'text-green-500'
   }
 

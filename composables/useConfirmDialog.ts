@@ -3,7 +3,7 @@ interface ConfirmDialogState {
   title: string
   message: string
   confirmText: string
-  confirmColor: 'red' | 'blue'
+  confirmColor: 'red' | 'blue' | 'green'
   onConfirm: (() => void) | null
 }
 
@@ -21,7 +21,7 @@ export const useConfirmDialog = () => {
     title?: string
     message: string
     confirmText?: string
-    confirmColor?: 'red' | 'blue'
+    confirmColor?: 'red' | 'blue' | 'green'
     onConfirm: () => void
   }) => {
     state.value = {

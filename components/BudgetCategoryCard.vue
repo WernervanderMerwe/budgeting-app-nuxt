@@ -142,7 +142,7 @@ const props = defineProps<Props>()
 const { updateCategory, deleteCategory } = useBudget()
 const { openDialog } = useConfirmDialog()
 
-const isExpanded = ref(true) // Start expanded by default
+const isExpanded = ref(false) // Start collapsed by default
 const editingCategory = ref(false)
 const editedCategory = ref({
   name: '',

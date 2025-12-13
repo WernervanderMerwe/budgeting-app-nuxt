@@ -16,9 +16,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Basic Budget App',
       meta: [
-        { name: 'description', content: 'A simple budgeting application' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
     },

@@ -15,10 +15,11 @@ const yearOptions = computed(() => {
   return Array.from(years).sort((a, b) => b - a)
 })
 
-async function handleYearChange(event: Event) {
-  const year = parseInt((event.target as HTMLSelectElement).value)
-  await selectYear(year)
-}
+// Computed with getter/setter for v-model binding
+const selectedYearModel = computed({
+  get: () => selectedYear.value,
+  set: (value: number) => selectYear(value)
+})
 
 async function handlePrevYear() {
   await selectYear(selectedYear.value - 1)
@@ -37,7 +38,7 @@ async function handleCreateYear() {
   <div class="flex items-center gap-2">
     <button
       @click="handlePrevYear"
-      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
       title="Previous year"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -46,9 +47,8 @@ async function handleCreateYear() {
     </button>
 
     <select
-      :value="selectedYear"
-      @change="handleYearChange"
-      class="px-4 py-2 text-lg font-semibold bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      v-model.number="selectedYearModel"
+      class="px-4 py-2 text-lg font-semibold bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option v-for="year in yearOptions" :key="year" :value="year">
         {{ year }}
@@ -57,7 +57,7 @@ async function handleCreateYear() {
 
     <button
       @click="handleNextYear"
-      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
       title="Next year"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

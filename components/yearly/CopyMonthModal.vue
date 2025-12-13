@@ -16,18 +16,26 @@ const sourceMonth = ref(1)
 const targetMonth = ref(2)
 const resetPaidStatus = ref(true)
 const isLoading = ref(false)
+const errorMessage = ref('')
 
 // Auto-set source to previous month of target
 watch(targetMonth, (newTarget) => {
   if (newTarget > 1) {
     sourceMonth.value = newTarget - 1
   }
+  errorMessage.value = ''
+})
+
+// Clear error when source changes
+watch(sourceMonth, () => {
+  errorMessage.value = ''
 })
 
 async function handleCopy() {
+  errorMessage.value = ''
+
   if (sourceMonth.value === targetMonth.value) {
-    alert('Source and target months cannot be the same')
-    return
+    return // Already showing inline validation message
   }
 
   isLoading.value = true
@@ -40,7 +48,7 @@ async function handleCopy() {
     emit('close')
   } catch (error) {
     console.error('Error copying month:', error)
-    alert('Failed to copy month data')
+    errorMessage.value = 'Failed to copy month data. Please try again.'
   } finally {
     isLoading.value = false
   }
@@ -129,6 +137,14 @@ function handleBackdropClick(event: MouseEvent) {
             class="text-sm text-red-500"
           >
             Source and target months cannot be the same.
+          </p>
+
+          <!-- API Error Message -->
+          <p
+            v-if="errorMessage"
+            class="text-sm text-red-500"
+          >
+            {{ errorMessage }}
           </p>
         </div>
 

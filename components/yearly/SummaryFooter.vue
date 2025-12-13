@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { formatCurrency, parseCurrency } from '~/utils/currency'
+import { formatCurrency, parseCurrency, centsToRands, randsToCents } from '~/utils/currency'
+import { useColumnWidth } from '~/composables/useColumnResize'
 
 const { currentBudget, updateBudget } = useYearlyBudget()
+const { columnWidth } = useColumnWidth()
 const { monthlySummaries, getLeftoverClass } = useYearlySummary()
 
 const isEditingTarget = ref<number | null>(null)
@@ -11,7 +13,8 @@ const inputRef = ref<HTMLInputElement | null>(null)
 function startEditingTarget(month: number) {
   if (!currentBudget.value) return
   isEditingTarget.value = month
-  editTargetValue.value = formatCurrency(currentBudget.value.spendTarget).replace('R', '').trim()
+  // Convert cents to rands for editing
+  editTargetValue.value = centsToRands(currentBudget.value.spendTarget).toFixed(2)
   nextTick(() => {
     inputRef.value?.focus()
     inputRef.value?.select()
@@ -20,9 +23,11 @@ function startEditingTarget(month: number) {
 
 async function finishEditingTarget() {
   if (!currentBudget.value || isEditingTarget.value === null) return
-  const newTarget = parseCurrency(editTargetValue.value)
-  if (newTarget !== currentBudget.value.spendTarget) {
-    await updateBudget(currentBudget.value.id, { spendTarget: newTarget })
+  // Parse rands and convert to cents for storage
+  const newTargetInRands = parseCurrency(editTargetValue.value)
+  const newTargetInCents = randsToCents(newTargetInRands)
+  if (newTargetInCents !== currentBudget.value.spendTarget) {
+    await updateBudget(currentBudget.value.id, { spendTarget: newTargetInCents })
   }
   isEditingTarget.value = null
 }
@@ -40,7 +45,10 @@ function handleKeydown(event: KeyboardEvent) {
   <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
     <!-- Spend Target Row -->
     <div class="flex items-stretch border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20">
-      <div class="sticky left-0 z-10 flex items-center min-w-[200px] w-[200px] px-3 py-2 bg-orange-50 dark:bg-orange-900/20 border-r border-gray-200 dark:border-gray-700">
+      <div
+        class="sticky left-0 z-10 flex items-center px-3 py-2 bg-orange-50 dark:bg-orange-900/20 border-r border-gray-200 dark:border-gray-700"
+        :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
+      >
         <span class="font-semibold text-orange-700 dark:text-orange-300">Spend Target</span>
       </div>
       <div class="flex flex-1">
@@ -71,7 +79,10 @@ function handleKeydown(event: KeyboardEvent) {
 
     <!-- Monthly Leftover Row -->
     <div class="flex items-stretch bg-purple-50 dark:bg-purple-900/20">
-      <div class="sticky left-0 z-10 flex items-center min-w-[200px] w-[200px] px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border-r border-gray-200 dark:border-gray-700">
+      <div
+        class="sticky left-0 z-10 flex items-center px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border-r border-gray-200 dark:border-gray-700"
+        :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
+      >
         <span class="font-semibold text-purple-700 dark:text-purple-300">Monthly Leftover</span>
       </div>
       <div class="flex flex-1">

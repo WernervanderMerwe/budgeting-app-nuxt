@@ -102,6 +102,42 @@ export function useYearlyCategories() {
     return updateCategoryEntry(entryId, { isPaid })
   }
 
+  // Check/uncheck all children of a category for a specific month
+  async function checkAllChildrenForCategory(categoryId: number, month: number, isPaid: boolean) {
+    // Find the category and its children
+    for (const section of sections.value) {
+      const category = section.categories.find(c => c.id === categoryId)
+      if (category && category.children.length > 0) {
+        // Update all children's entries for this month
+        const updatePromises = category.children.map(child => {
+          const entry = child.entries.find(e => e.month === month)
+          if (entry) {
+            return updateCategoryEntry(entry.id, { isPaid })
+          }
+          return Promise.resolve()
+        })
+        await Promise.all(updatePromises)
+        return
+      }
+    }
+  }
+
+  // Check/uncheck all categories in a section for a specific month
+  async function checkAllCategoriesForSection(sectionId: number, month: number, isPaid: boolean) {
+    const section = sections.value.find(s => s.id === sectionId)
+    if (!section) return
+
+    // Update all categories (including children) entries for this month
+    const updatePromises = section.categories.map(category => {
+      const entry = category.entries.find(e => e.month === month)
+      if (entry) {
+        return updateCategoryEntry(entry.id, { isPaid })
+      }
+      return Promise.resolve()
+    })
+    await Promise.all(updatePromises)
+  }
+
   // Copy category amounts from one month to another
   async function copyFromMonth(dto: CopyMonthDTO) {
     if (!currentBudget.value) return null
@@ -211,6 +247,8 @@ export function useYearlyCategories() {
     updateCategoryEntry,
     togglePaid,
     copyFromMonth,
+    checkAllChildrenForCategory,
+    checkAllCategoriesForSection,
 
     // Helpers
     getSectionByType,
