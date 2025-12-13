@@ -6,6 +6,13 @@ definePageMeta({
   layout: 'yearly'
 })
 
+useHead({
+  title: 'Yearly Overview'
+})
+
+const route = useRoute()
+const router = useRouter()
+
 const {
   currentBudget,
   selectedYear,
@@ -14,6 +21,7 @@ const {
   hasBudget,
   fetchBudgetByYear,
   getOrCreateBudgetForYear,
+  selectYear,
 } = useYearlyBudget()
 
 const {
@@ -44,14 +52,38 @@ const showAddSubcategoryModal = ref(false)
 const addSubcategoryParentId = ref<number | null>(null)
 const newSubcategoryName = ref('')
 
-// Load budget on mount
-onMounted(async () => {
-  await fetchBudgetByYear(selectedYear.value)
+// Get year from route params
+const yearFromRoute = computed(() => {
+  const year = parseInt(route.params.year as string, 10)
+  return isNaN(year) ? new Date().getFullYear() : year
 })
+
+// Load budget on mount and when year changes
+onMounted(async () => {
+  await selectYear(yearFromRoute.value)
+})
+
+// Watch for route param changes
+watch(() => route.params.year, async (newYear) => {
+  if (newYear) {
+    const year = parseInt(newYear as string, 10)
+    if (!isNaN(year)) {
+      await selectYear(year)
+    }
+  }
+})
+
+// Handle year change from YearSelector - update URL
+function handleYearChange(year: number) {
+  router.push(`/yearly/${year}`)
+}
+
+// Provide the year change handler
+provide('onYearChange', handleYearChange)
 
 // Create budget if it doesn't exist
 async function handleCreateBudget() {
-  await getOrCreateBudgetForYear(selectedYear.value)
+  await getOrCreateBudgetForYear(yearFromRoute.value)
 }
 
 // Add category handlers
@@ -161,7 +193,7 @@ async function handleAddIncomeSource() {
         <div class="text-center">
           <p class="text-red-500 mb-4">{{ error }}</p>
           <button
-            @click="fetchBudgetByYear(selectedYear)"
+            @click="fetchBudgetByYear(yearFromRoute)"
             class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             Retry
@@ -178,7 +210,7 @@ async function handleAddIncomeSource() {
             </svg>
           </div>
           <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            No Budget for {{ selectedYear }}
+            No Budget for {{ yearFromRoute }}
           </h2>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
             Create a new yearly budget to start tracking your finances with the 70/20/10 rule.
@@ -187,7 +219,7 @@ async function handleAddIncomeSource() {
             @click="handleCreateBudget"
             class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
           >
-            Create {{ selectedYear }} Budget
+            Create {{ yearFromRoute }} Budget
           </button>
         </div>
       </div>

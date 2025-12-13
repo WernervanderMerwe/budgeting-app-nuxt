@@ -38,7 +38,7 @@
           <ul class="space-y-1">
             <li v-for="month in monthsByYear[year]" :key="month.id">
               <button
-                @click="selectMonth(month.id)"
+                @click="navigateToMonth(month.id)"
                 :class="[
                   'w-full text-left px-3 py-2 rounded-lg transition-colors',
                   selectedMonthId === month.id
@@ -219,10 +219,13 @@
 import { getCurrentYear, getCurrentMonth, getMonthName } from '~/utils/date'
 import { centsToRands } from '~/utils/currency'
 
+const router = useRouter()
+
 const {
   sortedMonths,
   monthsByYear,
   years,
+  months,
   selectedMonthId,
   currentMonth,
   isLoadingMonths,
@@ -232,6 +235,22 @@ const {
   selectMonth,
   createMonth,
 } = useMonths()
+
+// Get onMonthChange from parent if available (for URL updates)
+const onMonthChange = inject<((monthId: number) => void) | undefined>('onMonthChange', undefined)
+
+// Navigate to month via URL
+function navigateToMonth(monthId: number) {
+  const month = months.value.find(m => m.id === monthId)
+  if (!month) return
+
+  if (onMonthChange) {
+    onMonthChange(monthId)
+  } else {
+    // Fallback: navigate directly
+    router.push(`/transaction/${month.year}/${month.month}`)
+  }
+}
 
 const showCreateModal = ref(false)
 const isCreating = ref(false)
@@ -328,8 +347,8 @@ const handleCreateMonth = async () => {
     }
     copyFromPrevious.value = false
 
-    // Select the newly created month
-    await selectMonth(created.id)
+    // Navigate to the newly created month
+    router.push(`/transaction/${created.year}/${created.month}`)
   } catch (error) {
     console.error('Failed to create month:', error)
   } finally {

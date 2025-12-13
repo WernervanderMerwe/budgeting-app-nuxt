@@ -1,5 +1,9 @@
 <script setup lang="ts">
-const { selectedYear, availableYears, selectYear, createBudget } = useYearlyBudget()
+const router = useRouter()
+const { selectedYear, availableYears, createBudget } = useYearlyBudget()
+
+// Get onYearChange from parent if available (for URL updates)
+const onYearChange = inject<((year: number) => void) | undefined>('onYearChange', undefined)
 
 const currentYear = new Date().getFullYear()
 
@@ -15,18 +19,28 @@ const yearOptions = computed(() => {
   return Array.from(years).sort((a, b) => b - a)
 })
 
+// Navigate to year (updates URL which triggers data fetch)
+function navigateToYear(year: number) {
+  if (onYearChange) {
+    onYearChange(year)
+  } else {
+    // Fallback: navigate directly
+    router.push(`/yearly/${year}`)
+  }
+}
+
 // Computed with getter/setter for v-model binding
 const selectedYearModel = computed({
   get: () => selectedYear.value,
-  set: (value: number) => selectYear(value)
+  set: (value: number) => navigateToYear(value)
 })
 
-async function handlePrevYear() {
-  await selectYear(selectedYear.value - 1)
+function handlePrevYear() {
+  navigateToYear(selectedYear.value - 1)
 }
 
-async function handleNextYear() {
-  await selectYear(selectedYear.value + 1)
+function handleNextYear() {
+  navigateToYear(selectedYear.value + 1)
 }
 
 async function handleCreateYear() {

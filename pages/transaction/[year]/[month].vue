@@ -1,24 +1,124 @@
+<script setup lang="ts">
+import { getMonthName } from '~/utils/date'
+
+useHead({
+  title: 'Transaction Tracker'
+})
+
+const route = useRoute()
+const router = useRouter()
+
+const {
+  months,
+  currentMonth,
+  selectedMonthId,
+  hasMonths,
+  isLoadingMonths,
+  fetchMonths,
+  selectMonth,
+} = useMonths()
+const { createCategory } = useBudget()
+
+const showAddCategoryForm = ref(false)
+const isAddingCategory = ref(false)
+
+const newCategory = ref({
+  name: '',
+  allocatedAmount: 0,
+})
+
+// Get year/month from route params
+const yearFromRoute = computed(() => {
+  const year = parseInt(route.params.year as string, 10)
+  return isNaN(year) ? null : year
+})
+
+const monthFromRoute = computed(() => {
+  const month = parseInt(route.params.month as string, 10)
+  return isNaN(month) || month < 1 || month > 12 ? null : month
+})
+
+// Find and load the month based on route params
+async function loadMonthFromRoute() {
+  if (!yearFromRoute.value || !monthFromRoute.value) return
+
+  // Ensure months are loaded
+  if (months.value.length === 0) {
+    await fetchMonths()
+  }
+
+  // Find the month matching year/month
+  const targetMonth = months.value.find(
+    m => m.year === yearFromRoute.value && m.month === monthFromRoute.value
+  )
+
+  if (targetMonth) {
+    await selectMonth(targetMonth.id)
+  } else {
+    // Month not found, redirect to index
+    router.replace('/transaction')
+  }
+}
+
+// Load on mount
+onMounted(async () => {
+  await loadMonthFromRoute()
+})
+
+// Watch for route changes
+watch(
+  () => [route.params.year, route.params.month],
+  async () => {
+    await loadMonthFromRoute()
+  }
+)
+
+// Provide month change handler for sidebar
+function handleMonthChange(monthId: number) {
+  const month = months.value.find(m => m.id === monthId)
+  if (month) {
+    router.push(`/transaction/${month.year}/${month.month}`)
+  }
+}
+
+provide('onMonthChange', handleMonthChange)
+
+const handleAddCategory = async () => {
+  if (!currentMonth.value) return
+
+  isAddingCategory.value = true
+  try {
+    await createCategory({
+      monthId: currentMonth.value.id,
+      name: newCategory.value.name,
+      allocatedAmount: newCategory.value.allocatedAmount,
+    })
+    cancelAddCategory()
+  } catch (error) {
+    console.error('Failed to add category:', error)
+  } finally {
+    isAddingCategory.value = false
+  }
+}
+
+const cancelAddCategory = () => {
+  showAddCategoryForm.value = false
+  newCategory.value = { name: '', allocatedAmount: 0 }
+}
+</script>
+
 <template>
   <div>
-    <!-- Welcome / No Month Selected State -->
-    <div v-if="!selectedMonthId" class="flex items-center justify-center min-h-[60vh]">
+    <!-- Loading State -->
+    <div v-if="isLoadingMonths || !currentMonth" class="flex items-center justify-center min-h-[60vh]">
       <div class="text-center">
-        <div class="mb-6">
-          <svg class="w-24 h-24 mx-auto text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Transaction Tracker
-        </h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-          {{ hasMonths ? 'Select a month from the sidebar to get started' : 'Create your first month to start budgeting' }}
-        </p>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p class="text-gray-600 dark:text-gray-400">Loading...</p>
       </div>
     </div>
 
     <!-- Month Content -->
-    <div v-else-if="currentMonth">
+    <div v-else>
       <!-- Page Header -->
       <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -135,50 +235,5 @@
         </div>
       </div>
     </div>
-
-    <!-- Loading State -->
-    <div v-else class="flex items-center justify-center min-h-[60vh]">
-      <LoadingSpinner size="lg" />
-    </div>
-
   </div>
 </template>
-
-<script setup lang="ts">
-import { getMonthName } from '~/utils/date'
-
-const { currentMonth, selectedMonthId, hasMonths } = useMonths()
-const { createCategory } = useBudget()
-
-const showAddCategoryForm = ref(false)
-const isAddingCategory = ref(false)
-
-const newCategory = ref({
-  name: '',
-  allocatedAmount: 0,
-})
-
-
-const handleAddCategory = async () => {
-  if (!currentMonth.value) return
-
-  isAddingCategory.value = true
-  try {
-    await createCategory({
-      monthId: currentMonth.value.id,
-      name: newCategory.value.name,
-      allocatedAmount: newCategory.value.allocatedAmount,
-    })
-    cancelAddCategory()
-  } catch (error) {
-    console.error('Failed to add category:', error)
-  } finally {
-    isAddingCategory.value = false
-  }
-}
-
-const cancelAddCategory = () => {
-  showAddCategoryForm.value = false
-  newCategory.value = { name: '', allocatedAmount: 0 }
-}
-</script>

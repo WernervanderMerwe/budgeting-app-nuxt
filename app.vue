@@ -16,25 +16,24 @@ onMounted(() => {
 
 // SEO Meta Tags
 useHead({
+  titleTemplate: (titleChunk) => {
+    return titleChunk ? `${titleChunk} | Budget App` : 'Budget App'
+  },
   htmlAttrs: {
     lang: 'en',
   },
-  link: [
-    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-  ],
 })
 
 useSeoMeta({
-  title: 'Basic Budget App',
   description: 'A simple budgeting application to track income, expenses, and savings goals',
   ogType: 'website',
-  ogTitle: 'Basic Budget App',
+  ogTitle: 'Budget App',
   ogDescription: 'A simple budgeting application to track income, expenses, and savings goals',
   ogImage: '/og-image.svg',
   ogUrl: '/',
-  ogSiteName: 'Basic Budget App',
+  ogSiteName: 'Budget App',
   twitterCard: 'summary',
-  twitterTitle: 'Basic Budget App',
+  twitterTitle: 'Budget App',
   twitterDescription: 'A simple budgeting application to track income, expenses, and savings goals',
   twitterImage: '/og-image.svg',
 })
