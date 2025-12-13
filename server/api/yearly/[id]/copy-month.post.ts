@@ -1,7 +1,7 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
 
-// POST /api/yearly/[id]/copy-month - Copy category amounts from one month to another
+// POST /api/yearly/[id]/copy-month - Copy category amounts, income entries, and deductions from one month to another
 export default defineEventHandler(async (event) => {
   try {
     const id = parseInt(getRouterParam(event, 'id')!)
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get the budget with all categories
+    // Get the budget with all categories, income sources, and deductions
     const budget = await prisma.yearlyBudget.findUnique({
       where: { id },
       include: {
@@ -54,6 +54,15 @@ export default defineEventHandler(async (event) => {
             },
           },
         },
+        incomeSources: {
+          include: {
+            entries: {
+              include: {
+                deductions: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -65,7 +74,9 @@ export default defineEventHandler(async (event) => {
     }
 
     const now = getCurrentTimestamp()
-    const updates: { id: number; amount: number; isPaid?: boolean }[] = []
+    const categoryUpdates: { id: number; amount: number; isPaid?: boolean }[] = []
+    const incomeUpdates: { id: number; grossAmount: number }[] = []
+    const deductionUpdates: { id: number; amount: number }[] = []
 
     // Collect all category entries to update
     for (const section of budget.sections) {
@@ -74,7 +85,7 @@ export default defineEventHandler(async (event) => {
         const targetEntry = category.entries.find(e => e.month === targetMonth)
 
         if (sourceEntry && targetEntry) {
-          updates.push({
+          categoryUpdates.push({
             id: targetEntry.id,
             amount: sourceEntry.amount,
             ...(resetPaidStatus ? { isPaid: false } : {}),
@@ -87,7 +98,7 @@ export default defineEventHandler(async (event) => {
           const childTargetEntry = child.entries.find(e => e.month === targetMonth)
 
           if (childSourceEntry && childTargetEntry) {
-            updates.push({
+            categoryUpdates.push({
               id: childTargetEntry.id,
               amount: childSourceEntry.amount,
               ...(resetPaidStatus ? { isPaid: false } : {}),
@@ -97,25 +108,75 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    // Collect all income entries and deductions to update
+    for (const incomeSource of budget.incomeSources) {
+      const sourceEntry = incomeSource.entries.find(e => e.month === sourceMonth)
+      const targetEntry = incomeSource.entries.find(e => e.month === targetMonth)
+
+      if (sourceEntry && targetEntry) {
+        // Copy gross amount
+        incomeUpdates.push({
+          id: targetEntry.id,
+          grossAmount: sourceEntry.grossAmount,
+        })
+
+        // Copy deductions by matching name
+        for (const sourceDeduction of sourceEntry.deductions) {
+          const targetDeduction = targetEntry.deductions.find(d => d.name === sourceDeduction.name)
+          if (targetDeduction) {
+            deductionUpdates.push({
+              id: targetDeduction.id,
+              amount: sourceDeduction.amount,
+            })
+          }
+        }
+      }
+    }
+
     // Apply all updates in a transaction
-    if (updates.length > 0) {
-      await prisma.$transaction(
-        updates.map(update =>
-          prisma.yearlyCategoryEntry.update({
-            where: { id: update.id },
-            data: {
-              amount: update.amount,
-              ...(update.isPaid !== undefined ? { isPaid: update.isPaid } : {}),
-              updatedAt: now,
-            },
-          })
-        )
-      )
+    const allTransactions = [
+      // Category entry updates
+      ...categoryUpdates.map(update =>
+        prisma.yearlyCategoryEntry.update({
+          where: { id: update.id },
+          data: {
+            amount: update.amount,
+            ...(update.isPaid !== undefined ? { isPaid: update.isPaid } : {}),
+            updatedAt: now,
+          },
+        })
+      ),
+      // Income entry updates
+      ...incomeUpdates.map(update =>
+        prisma.yearlyIncomeEntry.update({
+          where: { id: update.id },
+          data: {
+            grossAmount: update.grossAmount,
+            updatedAt: now,
+          },
+        })
+      ),
+      // Deduction updates
+      ...deductionUpdates.map(update =>
+        prisma.yearlyDeduction.update({
+          where: { id: update.id },
+          data: {
+            amount: update.amount,
+            updatedAt: now,
+          },
+        })
+      ),
+    ]
+
+    if (allTransactions.length > 0) {
+      await prisma.$transaction(allTransactions)
     }
 
     return {
       success: true,
-      copiedEntries: updates.length,
+      copiedCategoryEntries: categoryUpdates.length,
+      copiedIncomeEntries: incomeUpdates.length,
+      copiedDeductions: deductionUpdates.length,
       sourceMonth,
       targetMonth,
       resetPaidStatus,
