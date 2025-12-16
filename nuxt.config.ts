@@ -49,6 +49,11 @@ export default defineNuxtConfig({
       include: ['/transaction/*', '/yearly/*'],
       exclude: ['/'],
     },
+    cookieOptions: {
+      maxAge: 60 * 60 * 8, // 8 hours
+      sameSite: 'lax',
+      secure: false, // Set to true in production with HTTPS
+    },
   },
 
   runtimeConfig: {

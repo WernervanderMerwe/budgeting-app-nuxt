@@ -37,6 +37,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // serverSupabaseUser returns JWT claims where ID is in 'sub' field
     const user = await serverSupabaseUser(event)
 
     if (!user) {
@@ -47,17 +48,28 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // JWT claims use 'sub' for user ID, not 'id'
+    const userId = user.sub as string
+
+    if (!userId) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Unauthorized',
+        message: 'Invalid authentication token',
+      })
+    }
+
     // Check cache first
-    const cached = profileTokenCache.get(user.id)
+    const cached = profileTokenCache.get(userId)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       event.context.profileToken = cached.token
-      event.context.user = user
+      event.context.userId = userId
       return
     }
 
     // Fetch profile token from profiles table
     const profile = await prisma.profile.findUnique({
-      where: { authUserId: user.id },
+      where: { authUserId: userId },
       select: { profileToken: true },
     })
 
@@ -70,14 +82,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // Cache the token
-    profileTokenCache.set(user.id, {
+    profileTokenCache.set(userId, {
       token: profile.profileToken,
       timestamp: Date.now(),
     })
 
     // Hydrate event context
     event.context.profileToken = profile.profileToken
-    event.context.user = user
+    event.context.userId = userId
   } catch (error: any) {
     // Re-throw HTTP errors
     if (error.statusCode) {
