@@ -19,9 +19,9 @@ export interface TransactionMonth {
   year: number
   month: number
   income: number // stored in cents
-  userId: number | null
+  profileToken?: string | null // References profile for data ownership
   createdAt: number // Unix timestamp in seconds
-  updatedAt: number // Unix timestamp in seconds
+  updatedAt?: number // Unix timestamp in seconds (optional - not always returned by API)
 }
 
 export interface TransactionFixedPayment {

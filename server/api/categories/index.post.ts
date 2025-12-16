@@ -34,9 +34,9 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    // Return as-is (values in cents) to match GET endpoint
     return {
       ...category,
-      allocatedAmount: centsToRands(category.allocatedAmount),
       transactions: [],
     }
   } catch (error) {

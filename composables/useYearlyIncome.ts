@@ -3,33 +3,98 @@ import type {
   YearlyIncomeSourceWithEntries,
   YearlyIncomeEntry,
   YearlyDeduction,
+  YearlyBudgetWithRelations,
   CreateIncomeSourceDTO,
   UpdateIncomeSourceDTO,
   UpdateIncomeEntryDTO,
   CreateDeductionDTO,
   UpdateDeductionDTO,
 } from '~/types/yearly'
+import { generateTempId, useOptimisticUpdates } from './useOptimisticUpdates'
+import { getWritableYearlyBudget } from './useYearlyBudget'
+import { getCurrentTimestamp } from '~/utils/date'
+// NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyIncome() {
   const { currentBudget, refreshBudgetSilently } = useYearlyBudget()
+  const { showErrorToast } = useOptimisticUpdates()
 
-  // Create a new income source (silent refresh - single operation)
+  // Helper to get writable budget state
+  const getBudgetState = () => getWritableYearlyBudget()
+
+  // Create a new income source (optimistic)
   async function createIncomeSource(dto: CreateIncomeSourceDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Generate temp ID and create optimistic entry with 12 month entries
+    const tempId = generateTempId()
+    const now = getCurrentTimestamp()
+    const optimisticSource: YearlyIncomeSourceWithEntries = {
+      id: tempId,
+      yearlyBudgetId: dto.yearlyBudgetId,
+      name: dto.name,
+      orderIndex: dto.orderIndex ?? 0,
+      createdAt: now,
+      updatedAt: now,
+      entries: Array.from({ length: 12 }, (_, i) => ({
+        id: generateTempId(),
+        incomeSourceId: tempId,
+        month: i + 1,
+        grossAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+        deductions: [],
+      })),
+    }
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: [...budgetState.value.incomeSources, optimisticSource],
+      }
+    }
+
     try {
       const data = await $fetch<YearlyIncomeSourceWithEntries>('/api/yearly/income-sources', {
         method: 'POST',
         body: dto,
       })
+      // Replace temp with real data via silent refresh
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error creating income source:', e)
+      // Rollback
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to create income source')
       throw e
     }
   }
 
-  // Update an income source (silent refresh - single operation)
+  // Update an income source (optimistic)
   async function updateIncomeSource(id: number, dto: UpdateIncomeSourceDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: budgetState.value.incomeSources.map(source =>
+          source.id === id
+            ? { ...source, ...dto, updatedAt: getCurrentTimestamp() }
+            : source
+        ),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyIncomeSource>(`/api/yearly/income-sources/${id}`, {
         method: 'PATCH',
@@ -38,25 +103,67 @@ export function useYearlyIncome() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error updating income source:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to update income source')
       throw e
     }
   }
 
-  // Delete an income source (silent refresh - single operation)
+  // Delete an income source (optimistic)
   async function deleteIncomeSource(id: number) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Apply optimistic delete
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: budgetState.value.incomeSources.filter(source => source.id !== id),
+      }
+    }
+
     try {
       await $fetch(`/api/yearly/income-sources/${id}`, { method: 'DELETE' })
-      await refreshBudgetSilently()
       return true
     } catch (e: any) {
-      console.error('Error deleting income source:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to delete income source')
       throw e
     }
   }
 
-  // Update an income entry (gross amount) - silent refresh for instant feel
+  // Update an income entry (gross amount) - optimistic
+  // NOTE: Component already converts RANDS→CENTS before calling, so we use dto directly
   async function updateIncomeEntry(id: number, dto: UpdateIncomeEntryDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Use dto directly - component already converted to cents
+    const optimisticDto = dto
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: budgetState.value.incomeSources.map(source => ({
+          ...source,
+          entries: source.entries.map(entry =>
+            entry.id === id
+              ? { ...entry, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+              : entry
+          ),
+        })),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyIncomeEntry>(`/api/yearly/income-entries/${id}`, {
         method: 'PATCH',
@@ -65,13 +172,50 @@ export function useYearlyIncome() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error updating income entry:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to update income entry')
       throw e
     }
   }
 
-  // Create a deduction (silent refresh - single operation)
+  // Create a deduction (optimistic)
+  // NOTE: Component already converts RANDS→CENTS before calling, so dto.amount is already in cents
   async function createDeduction(dto: CreateDeductionDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    const tempId = generateTempId()
+    const now = getCurrentTimestamp()
+    // Use dto.amount directly - component already converted to cents (default to 0 if undefined)
+    const optimisticDeduction: YearlyDeduction = {
+      id: tempId,
+      incomeEntryId: dto.incomeEntryId,
+      name: dto.name,
+      amount: dto.amount ?? 0,
+      orderIndex: dto.orderIndex ?? 0,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    // Apply optimistic update - find the entry and add deduction
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: budgetState.value.incomeSources.map(source => ({
+          ...source,
+          entries: source.entries.map(entry =>
+            entry.id === dto.incomeEntryId
+              ? { ...entry, deductions: [...entry.deductions, optimisticDeduction] }
+              : entry
+          ),
+        })),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyDeduction>('/api/yearly/deductions', {
         method: 'POST',
@@ -80,13 +224,43 @@ export function useYearlyIncome() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error creating deduction:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to create deduction')
       throw e
     }
   }
 
-  // Update a deduction (silent refresh - single operation)
+  // Update a deduction (optimistic)
+  // NOTE: Component already converts RANDS→CENTS before calling, so we use dto directly
   async function updateDeduction(id: number, dto: UpdateDeductionDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Use dto directly - component already converted to cents
+    const optimisticDto = dto
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: budgetState.value.incomeSources.map(source => ({
+          ...source,
+          entries: source.entries.map(entry => ({
+            ...entry,
+            deductions: entry.deductions.map(ded =>
+              ded.id === id
+                ? { ...ded, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+                : ded
+            ),
+          })),
+        })),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyDeduction>(`/api/yearly/deductions/${id}`, {
         method: 'PATCH',
@@ -95,19 +269,43 @@ export function useYearlyIncome() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error updating deduction:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to update deduction')
       throw e
     }
   }
 
-  // Delete a deduction (silent refresh - single operation)
+  // Delete a deduction (optimistic)
   async function deleteDeduction(id: number) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Apply optimistic delete
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        incomeSources: budgetState.value.incomeSources.map(source => ({
+          ...source,
+          entries: source.entries.map(entry => ({
+            ...entry,
+            deductions: entry.deductions.filter(ded => ded.id !== id),
+          })),
+        })),
+      }
+    }
+
     try {
       await $fetch(`/api/yearly/deductions/${id}`, { method: 'DELETE' })
-      await refreshBudgetSilently()
       return true
     } catch (e: any) {
-      console.error('Error deleting deduction:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to delete deduction')
       throw e
     }
   }

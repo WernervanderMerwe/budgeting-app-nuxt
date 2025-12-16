@@ -1,7 +1,10 @@
 <template>
   <div
-    class="rounded-lg shadow border border-gray-200 dark:border-gray-700"
-    :class="remaining >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'"
+    class="rounded-lg shadow border border-gray-200 dark:border-gray-700 transition-opacity"
+    :class="[
+      remaining >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20',
+      { 'animate-pulse opacity-70': isTempId(category.id) }
+    ]"
   >
     <!-- Category Header - Collapsible -->
     <div
@@ -129,6 +132,7 @@
 <script setup lang="ts">
 import type { BudgetCategoryWithTransactions } from '~/types/budget'
 import { formatCurrency, centsToRands } from '~/utils/currency'
+import { isTempId } from '~/composables/useOptimisticUpdates'
 
 interface Props {
   category: BudgetCategoryWithTransactions
@@ -181,12 +185,16 @@ const cancelEditCategory = () => {
 }
 
 const handleUpdateCategory = async () => {
+  // Capture values before clearing form
+  const data = {
+    name: editedCategory.value.name,
+    allocatedAmount: editedCategory.value.allocatedAmount,
+  }
+  const categoryId = props.category.id
+  // Close edit mode immediately (optimistic)
+  cancelEditCategory()
   try {
-    await updateCategory(props.category.id, {
-      name: editedCategory.value.name,
-      allocatedAmount: editedCategory.value.allocatedAmount,
-    })
-    cancelEditCategory()
+    await updateCategory(categoryId, data)
   } catch (error) {
     console.error('Failed to update category:', error)
   }

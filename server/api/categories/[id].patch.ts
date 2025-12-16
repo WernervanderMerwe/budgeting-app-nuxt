@@ -37,10 +37,8 @@ export default defineEventHandler(async (event) => {
       data: updateData,
     })
 
-    return {
-      ...category,
-      allocatedAmount: centsToRands(category.allocatedAmount),
-    }
+    // Return as-is (values in cents) to match GET endpoint
+    return category
   } catch (error) {
     console.error('Error updating category:', error)
     throw createError({

@@ -86,18 +86,18 @@ provide('onMonthChange', handleMonthChange)
 const handleAddCategory = async () => {
   if (!currentMonth.value) return
 
-  isAddingCategory.value = true
+  // Capture values before clearing form
+  const data = {
+    monthId: currentMonth.value.id,
+    name: newCategory.value.name,
+    allocatedAmount: newCategory.value.allocatedAmount,
+  }
+  // Close form immediately (optimistic)
+  cancelAddCategory()
   try {
-    await createCategory({
-      monthId: currentMonth.value.id,
-      name: newCategory.value.name,
-      allocatedAmount: newCategory.value.allocatedAmount,
-    })
-    cancelAddCategory()
+    await createCategory(data)
   } catch (error) {
     console.error('Failed to add category:', error)
-  } finally {
-    isAddingCategory.value = false
   }
 }
 

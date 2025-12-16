@@ -34,10 +34,8 @@ export default defineEventHandler(async (event) => {
       },
     })
 
-    return {
-      ...fixedPayment,
-      amount: centsToRands(fixedPayment.amount),
-    }
+    // Return as-is (values in cents) to match GET endpoint
+    return fixedPayment
   } catch (error) {
     console.error('Error creating fixed payment:', error)
     throw createError({

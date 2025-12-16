@@ -4,7 +4,8 @@ import type {
   CreateYearlyBudgetDTO,
   UpdateYearlyBudgetDTO,
 } from '~/types/yearly'
-import { getCurrentYear } from '~/utils/date'
+import { getCurrentYear, getCurrentTimestamp } from '~/utils/date'
+import { generateTempId } from './useOptimisticUpdates'
 
 // State is shared across components
 const budgets = ref<YearlyBudget[]>([])
@@ -13,7 +14,13 @@ const selectedYear = ref<number>(getCurrentYear())
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+// Helper to get writable currentBudget for optimistic updates
+export function getWritableYearlyBudget() {
+  return currentBudget
+}
+
 export function useYearlyBudget() {
+  const { showErrorToast } = useOptimisticUpdates()
   // Fetch all yearly budgets
   async function fetchBudgets() {
     loading.value = true
@@ -103,51 +110,77 @@ export function useYearlyBudget() {
     }
   }
 
-  // Update a yearly budget (spendTarget, showWarnings)
+  // Update a yearly budget (spendTarget, showWarnings) - optimistic
   async function updateBudget(id: number, dto: UpdateYearlyBudgetDTO) {
-    loading.value = true
     error.value = null
+
+    // Store previous state for rollback
+    const previousBudgets = JSON.parse(JSON.stringify(budgets.value))
+    const previousCurrentBudget = currentBudget.value ? JSON.parse(JSON.stringify(currentBudget.value)) : null
+
+    // Apply optimistic update
+    const index = budgets.value.findIndex(b => b.id === id)
+    if (index !== -1) {
+      budgets.value[index] = { ...budgets.value[index], ...dto, updatedAt: getCurrentTimestamp() }
+    }
+    if (currentBudget.value?.id === id) {
+      currentBudget.value = { ...currentBudget.value, ...dto, updatedAt: getCurrentTimestamp() }
+    }
+
     try {
       const data = await $fetch<YearlyBudget>(`/api/yearly/${id}`, {
         method: 'PATCH',
         body: dto,
       })
-      // Update in budgets list
-      const index = budgets.value.findIndex(b => b.id === id)
-      if (index !== -1) {
-        budgets.value[index] = { ...budgets.value[index], ...data }
+      // Update with server response
+      const idx = budgets.value.findIndex(b => b.id === id)
+      if (idx !== -1) {
+        budgets.value[idx] = { ...budgets.value[idx], ...data }
       }
-      // Update current budget if it's the same
       if (currentBudget.value?.id === id) {
         currentBudget.value = { ...currentBudget.value, ...data }
       }
       return data
     } catch (e: any) {
+      // Rollback on error
+      budgets.value = previousBudgets
+      if (previousCurrentBudget) {
+        currentBudget.value = previousCurrentBudget
+      }
       error.value = e.message || 'Failed to update budget'
+      showErrorToast(e.message || 'Failed to update budget')
       console.error('Error updating budget:', e)
       return null
-    } finally {
-      loading.value = false
     }
   }
 
-  // Delete a yearly budget
+  // Delete a yearly budget - optimistic
   async function deleteBudget(id: number) {
-    loading.value = true
     error.value = null
+
+    // Store previous state for rollback
+    const previousBudgets = JSON.parse(JSON.stringify(budgets.value))
+    const previousCurrentBudget = currentBudget.value ? JSON.parse(JSON.stringify(currentBudget.value)) : null
+
+    // Apply optimistic update
+    budgets.value = budgets.value.filter(b => b.id !== id)
+    if (currentBudget.value?.id === id) {
+      currentBudget.value = null
+    }
+
     try {
       await $fetch(`/api/yearly/${id}`, { method: 'DELETE' })
-      budgets.value = budgets.value.filter(b => b.id !== id)
-      if (currentBudget.value?.id === id) {
-        currentBudget.value = null
-      }
       return true
     } catch (e: any) {
+      // Rollback on error
+      budgets.value = previousBudgets
+      if (previousCurrentBudget) {
+        currentBudget.value = previousCurrentBudget
+      }
       error.value = e.message || 'Failed to delete budget'
+      showErrorToast(e.message || 'Failed to delete budget')
       console.error('Error deleting budget:', e)
       return false
-    } finally {
-      loading.value = false
     }
   }
 

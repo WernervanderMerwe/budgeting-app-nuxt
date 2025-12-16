@@ -19,14 +19,18 @@
           v-model="newTransaction.description"
           type="text"
           placeholder="e.g., Woolworths, Pick n Pay"
-          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           required
+          :disabled="isAdding"
+          @keydown.enter.prevent="handleAdd"
         />
         <CurrencyInput
           v-model="newTransaction.amount"
           placeholder="e.g., 250.00"
           class="w-28 text-sm"
           required
+          :disabled="isAdding"
+          @enter="handleAdd"
         />
       </div>
       <div class="mb-2">
@@ -35,21 +39,28 @@
           placeholder="Select date"
           class="text-sm"
           required
+          :disabled="isAdding"
         />
       </div>
       <div class="flex justify-end space-x-2 mt-2">
         <button
           type="button"
           @click="cancelAdd"
-          class="px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm"
+          :disabled="isAdding"
+          class="px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
         <button
           type="submit"
-          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
+          :disabled="isAdding"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
         >
-          Add
+          <svg v-if="isAdding" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>{{ isAdding ? 'Adding...' : 'Add' }}</span>
         </button>
       </div>
     </form>
@@ -67,7 +78,10 @@
       <li
         v-for="transaction in sortedTransactions"
         :key="transaction.id"
-        class="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-700/50 rounded"
+        :class="[
+          'flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-700/50 rounded transition-opacity',
+          { 'animate-pulse opacity-70': isTempId(transaction.id) }
+        ]"
       >
         <!-- Display Mode -->
         <template v-if="editingId !== transaction.id">
@@ -86,7 +100,9 @@
             <div class="flex space-x-1">
               <button
                 @click="startEditing(transaction)"
-                class="text-blue-600 dark:text-blue-400 hover:text-blue-700 p-1"
+                :disabled="isTempId(transaction.id)"
+                class="p-1"
+                :class="isTempId(transaction.id) ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-700'"
                 title="Edit"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,7 +111,9 @@
               </button>
               <button
                 @click="handleDelete(transaction.id)"
-                class="text-red-600 dark:text-red-400 hover:text-red-700 p-1"
+                :disabled="isTempId(transaction.id)"
+                class="p-1"
+                :class="isTempId(transaction.id) ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 dark:text-red-400 hover:text-red-700'"
                 title="Delete"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,28 +131,38 @@
               v-model="editedTransaction.description"
               type="text"
               placeholder="e.g., Woolworths, Pick n Pay"
-              class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+              class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs disabled:opacity-50"
               required
+              :disabled="isUpdating"
+              @keydown.enter.prevent="handleUpdate(transaction.id)"
             />
             <CurrencyInput
               v-model="editedTransaction.amount"
               placeholder=""
               class="w-20 text-xs"
               required
+              :disabled="isUpdating"
+              @enter="handleUpdate(transaction.id)"
             />
             <button
               type="submit"
-              class="text-green-600 dark:text-green-400 hover:text-green-700 p-1"
+              :disabled="isUpdating"
+              class="text-green-600 dark:text-green-400 hover:text-green-700 p-1 disabled:opacity-50"
               title="Save"
             >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-if="isUpdating" class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
             </button>
             <button
               type="button"
               @click="cancelEditing"
-              class="text-gray-600 dark:text-gray-400 hover:text-gray-700 p-1"
+              :disabled="isUpdating"
+              class="text-gray-600 dark:text-gray-400 hover:text-gray-700 p-1 disabled:opacity-50"
               title="Cancel"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,6 +175,7 @@
             placeholder="Select date"
             class="text-xs"
             required
+            :disabled="isUpdating"
           />
         </form>
       </li>
@@ -158,6 +187,7 @@
 import type { Transaction } from '~/types/budget'
 import { formatCurrency, centsToRands } from '~/utils/currency'
 import { formatDate, getCurrentTimestamp, parseDate } from '~/utils/date'
+import { isTempId } from '~/composables/useOptimisticUpdates'
 
 interface Props {
   categoryId: number
@@ -171,6 +201,8 @@ const { openDialog } = useConfirmDialog()
 
 const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
+const isAdding = ref(false)
+const isUpdating = ref(false)
 
 const newTransaction = ref({
   description: '',
@@ -186,26 +218,36 @@ const editedTransaction = ref({
 
 const sortedTransactions = computed(() => {
   return [...props.transactions].sort((a, b) => {
-    // Sort by transactionDate descending (most recent first)
-    if (a.transactionDate && b.transactionDate) {
-      return b.transactionDate - a.transactionDate
+    // Sort by transactionDate descending, then by createdAt descending
+    const dateA = a.transactionDate || 0
+    const dateB = b.transactionDate || 0
+    if (dateB !== dateA) {
+      return dateB - dateA
     }
-    // If no date, sort by createdAt descending
+    // Same transactionDate, sort by createdAt (newest first)
     return b.createdAt - a.createdAt
   })
 })
 
 const handleAdd = async () => {
+  if (isAdding.value) return // Prevent double submission
+  isAdding.value = true
+
+  // Capture values before clearing form
+  const data = {
+    categoryId: props.categoryId,
+    description: newTransaction.value.description,
+    amount: newTransaction.value.amount,
+    transactionDate: parseDate(newTransaction.value.date) ?? getCurrentTimestamp(),
+  }
+  // Close form immediately (optimistic)
+  cancelAdd()
   try {
-    await createTransaction({
-      categoryId: props.categoryId,
-      description: newTransaction.value.description,
-      amount: newTransaction.value.amount,
-      transactionDate: parseDate(newTransaction.value.date) ?? getCurrentTimestamp(),
-    })
-    cancelAdd()
+    await createTransaction(data)
   } catch (error) {
     console.error('Failed to add transaction:', error)
+  } finally {
+    isAdding.value = false
   }
 }
 
@@ -235,15 +277,23 @@ const cancelEditing = () => {
 }
 
 const handleUpdate = async (id: number) => {
+  if (isUpdating.value) return // Prevent double submission
+  isUpdating.value = true
+
+  // Capture values before clearing form
+  const data = {
+    description: editedTransaction.value.description,
+    amount: editedTransaction.value.amount,
+    transactionDate: parseDate(editedTransaction.value.date) ?? getCurrentTimestamp(),
+  }
+  // Close edit mode immediately (optimistic)
+  cancelEditing()
   try {
-    await updateTransaction(id, {
-      description: editedTransaction.value.description,
-      amount: editedTransaction.value.amount,
-      transactionDate: parseDate(editedTransaction.value.date) ?? getCurrentTimestamp(),
-    })
-    cancelEditing()
+    await updateTransaction(id, data)
   } catch (error) {
     console.error('Failed to update transaction:', error)
+  } finally {
+    isUpdating.value = false
   }
 }
 

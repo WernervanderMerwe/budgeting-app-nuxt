@@ -3,6 +3,7 @@ import type { YearlyCategoryWithChildren, YearlyCategoryEntry } from '~/types/ye
 import { MONTH_NAMES_SHORT } from '~/types/yearly'
 import { useColumnWidth } from '~/composables/useColumnResize'
 import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
+import { isTempId } from '~/composables/useOptimisticUpdates'
 
 const props = defineProps<{
   category: YearlyCategoryWithChildren
@@ -27,6 +28,15 @@ const editName = ref('')
 const editInputRef = ref<HTMLInputElement | null>(null)
 
 const hasChildren = computed(() => props.category.children && props.category.children.length > 0)
+
+// Check if category is syncing (has temp ID)
+const isCategorySyncing = computed(() => isTempId(props.category.id))
+
+// Check if a specific entry is syncing (category or entry has temp ID)
+function isEntrySyncing(entry: YearlyCategoryEntry | undefined): boolean {
+  if (!entry) return isTempId(props.category.id) // If no entry, just check category
+  return isTempId(props.category.id) || isTempId(entry.id)
+}
 
 function getEntryForMonth(month: number): YearlyCategoryEntry | undefined {
   return props.category.entries.find(e => e.month === month)
@@ -177,13 +187,25 @@ function handleEditKeydown(event: KeyboardEvent) {
         <!-- Display Mode -->
         <span
           v-else
-          class="text-sm font-medium truncate flex-1 min-w-0 text-gray-900 dark:text-white cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-1 py-0.5 rounded"
-          @click="startEditing"
+          class="text-sm font-medium truncate flex-1 min-w-0 text-gray-900 dark:text-white px-1 py-0.5 rounded"
+          :class="isCategorySyncing ? 'opacity-70' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'"
+          @click="!isCategorySyncing && startEditing()"
         >{{ category.name }}</span>
+        <!-- Syncing spinner -->
+        <svg
+          v-if="isCategorySyncing"
+          class="animate-spin h-3.5 w-3.5 text-blue-500 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
 
-        <!-- Actions (absolute positioned) - hidden when editing -->
+        <!-- Actions (absolute positioned) - hidden when editing or syncing -->
         <div
-          v-if="!isEditing"
+          v-if="!isEditing && !isCategorySyncing"
           class="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-white dark:bg-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <button
@@ -224,8 +246,10 @@ function handleEditKeydown(event: KeyboardEvent) {
             class="relative flex items-center gap-1 px-1 py-0.5 min-w-[100px] h-full"
           >
             <button
-              @click="handleParentCheckboxClick(month)"
+              @click="!isCategorySyncing && handleParentCheckboxClick(month)"
+              :disabled="isCategorySyncing"
               class="flex-shrink-0 w-5 h-5 flex items-center justify-center"
+              :class="{ 'cursor-not-allowed opacity-50': isCategorySyncing }"
             >
               <span
                 class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors"
@@ -252,6 +276,7 @@ function handleEditKeydown(event: KeyboardEvent) {
             :is-paid="getEntryForMonth(month)?.isPaid ?? false"
             :show-checkbox="true"
             :editable="true"
+            :disabled="isEntrySyncing(getEntryForMonth(month))"
             @update:amount="handleAmountUpdate(month, $event)"
             @update:is-paid="handlePaidUpdate(month, $event)"
           />

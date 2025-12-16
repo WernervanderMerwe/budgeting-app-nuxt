@@ -97,13 +97,21 @@ function openAddCategoryModal(sectionId: number) {
 
 async function handleAddCategory() {
   if (!newCategoryName.value.trim() || !addCategoryForSectionId.value) return
-  await createCategory({
+  // Capture values before clearing
+  const data = {
     sectionId: addCategoryForSectionId.value,
     name: newCategoryName.value.trim(),
-  })
+  }
+  // Close modal immediately (optimistic)
   showAddCategoryModal.value = false
   newCategoryName.value = ''
   addCategoryForSectionId.value = null
+  // API call in background
+  try {
+    await createCategory(data)
+  } catch (error) {
+    console.error('Failed to add category:', error)
+  }
 }
 
 function openAddSubcategoryModal(parentId: number) {
@@ -114,21 +122,27 @@ function openAddSubcategoryModal(parentId: number) {
 
 async function handleAddSubcategory() {
   if (!newSubcategoryName.value.trim() || !addSubcategoryParentId.value) return
-  // Find parent category to get sectionId
+  // Find parent category to get sectionId and capture data
+  let sectionId: number | null = null
+  const parentId = addSubcategoryParentId.value
+  const name = newSubcategoryName.value.trim()
   for (const section of sections.value) {
-    const parent = section.categories.find(c => c.id === addSubcategoryParentId.value)
-    if (parent) {
-      await createCategory({
-        sectionId: section.id,
-        name: newSubcategoryName.value.trim(),
-        parentId: addSubcategoryParentId.value,
-      })
+    if (section.categories.find(c => c.id === parentId)) {
+      sectionId = section.id
       break
     }
   }
+  if (!sectionId) return
+  // Close modal immediately (optimistic)
   showAddSubcategoryModal.value = false
   newSubcategoryName.value = ''
   addSubcategoryParentId.value = null
+  // API call in background
+  try {
+    await createCategory({ sectionId, name, parentId })
+  } catch (error) {
+    console.error('Failed to add subcategory:', error)
+  }
 }
 
 async function handleUpdateEntry(entryId: number, data: { amount?: number; isPaid?: boolean }) {
@@ -166,12 +180,20 @@ function openAddIncomeSourceModal() {
 
 async function handleAddIncomeSource() {
   if (!newIncomeSourceName.value.trim() || !currentBudget.value) return
-  await createIncomeSource({
+  // Capture values before clearing
+  const data = {
     yearlyBudgetId: currentBudget.value.id,
     name: newIncomeSourceName.value.trim(),
-  })
+  }
+  // Close modal immediately (optimistic)
   showAddIncomeSourceModal.value = false
   newIncomeSourceName.value = ''
+  // API call in background
+  try {
+    await createIncomeSource(data)
+  } catch (error) {
+    console.error('Failed to add income source:', error)
+  }
 }
 </script>
 

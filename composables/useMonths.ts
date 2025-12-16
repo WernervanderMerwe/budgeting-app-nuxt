@@ -6,8 +6,11 @@ import type {
   UpdateMonthDTO,
   MonthListItem
 } from '~/types/budget'
+import { generateTempId } from './useOptimisticUpdates'
+import { getCurrentTimestamp } from '~/utils/date'
 
 export const useMonths = () => {
+  const { showErrorToast } = useOptimisticUpdates()
   // State
   const months = useState<Month[]>('months', () => [])
   const currentMonth = useState<MonthWithRelations | null>('currentMonth', () => null)
@@ -99,10 +102,28 @@ export const useMonths = () => {
   }
 
   /**
-   * Create a new month
+   * Create a new month (optimistic)
    */
   const createMonth = async (monthData: CreateMonthDTO): Promise<Month> => {
     monthsError.value = null
+
+    // Store previous state for rollback
+    const previousMonths = JSON.parse(JSON.stringify(months.value))
+
+    // Generate temp ID and create optimistic month
+    const tempId = generateTempId()
+    const now = getCurrentTimestamp()
+    const optimisticMonth: Month = {
+      id: tempId,
+      name: monthData.name,
+      year: monthData.year,
+      month: monthData.month,
+      income: 0,
+      createdAt: now,
+    }
+
+    // Apply optimistic update
+    months.value = [...months.value, optimisticMonth]
 
     try {
       const newMonth = await $fetch<Month>('/api/months', {
@@ -110,20 +131,37 @@ export const useMonths = () => {
         body: monthData
       })
 
-      months.value.push(newMonth)
+      // Replace temp with real month
+      months.value = months.value.map(m => m.id === tempId ? newMonth : m)
       return newMonth
     } catch (error: any) {
+      // Rollback on error
+      months.value = previousMonths
       monthsError.value = error.message || 'Failed to create month'
+      showErrorToast(error.message || 'Failed to create month')
       console.error('Error creating month:', error)
       throw error
     }
   }
 
   /**
-   * Update an existing month
+   * Update an existing month (optimistic)
    */
   const updateMonth = async (id: number, monthData: UpdateMonthDTO): Promise<Month> => {
     monthsError.value = null
+
+    // Store previous state for rollback
+    const previousMonths = JSON.parse(JSON.stringify(months.value))
+    const previousCurrentMonth = currentMonth.value ? JSON.parse(JSON.stringify(currentMonth.value)) : null
+
+    // Apply optimistic update
+    const index = months.value.findIndex(m => m.id === id)
+    if (index !== -1) {
+      months.value[index] = { ...months.value[index], ...monthData, updatedAt: getCurrentTimestamp() }
+    }
+    if (currentMonth.value && currentMonth.value.id === id) {
+      currentMonth.value = { ...currentMonth.value, ...monthData, updatedAt: getCurrentTimestamp() }
+    }
 
     try {
       const updatedMonth = await $fetch<Month>(`/api/months/${id}`, {
@@ -131,49 +169,60 @@ export const useMonths = () => {
         body: monthData
       })
 
-      // Update in the list
-      const index = months.value.findIndex(m => m.id === id)
-      if (index !== -1) {
-        months.value[index] = updatedMonth
+      // Update with server response
+      const idx = months.value.findIndex(m => m.id === id)
+      if (idx !== -1) {
+        months.value[idx] = updatedMonth
       }
-
-      // Update current month if it's the same
       if (currentMonth.value && currentMonth.value.id === id) {
-        currentMonth.value = {
-          ...currentMonth.value,
-          ...updatedMonth
-        }
+        currentMonth.value = { ...currentMonth.value, ...updatedMonth }
       }
 
       return updatedMonth
     } catch (error: any) {
+      // Rollback on error
+      months.value = previousMonths
+      if (previousCurrentMonth) {
+        currentMonth.value = previousCurrentMonth
+      }
       monthsError.value = error.message || 'Failed to update month'
+      showErrorToast(error.message || 'Failed to update month')
       console.error('Error updating month:', error)
       throw error
     }
   }
 
   /**
-   * Delete a month
+   * Delete a month (optimistic)
    */
   const deleteMonth = async (id: number): Promise<void> => {
     monthsError.value = null
+
+    // Store previous state for rollback
+    const previousMonths = JSON.parse(JSON.stringify(months.value))
+    const previousCurrentMonth = currentMonth.value ? JSON.parse(JSON.stringify(currentMonth.value)) : null
+    const previousSelectedMonthId = selectedMonthId.value
+
+    // Apply optimistic update
+    months.value = months.value.filter(m => m.id !== id)
+    if (currentMonth.value && currentMonth.value.id === id) {
+      currentMonth.value = null
+      selectedMonthId.value = null
+    }
 
     try {
       await $fetch(`/api/months/${id}`, {
         method: 'DELETE'
       })
-
-      // Remove from list
-      months.value = months.value.filter(m => m.id !== id)
-
-      // Clear current month if it was deleted
-      if (currentMonth.value && currentMonth.value.id === id) {
-        currentMonth.value = null
-        selectedMonthId.value = null
-      }
     } catch (error: any) {
+      // Rollback on error
+      months.value = previousMonths
+      if (previousCurrentMonth) {
+        currentMonth.value = previousCurrentMonth
+        selectedMonthId.value = previousSelectedMonthId
+      }
       monthsError.value = error.message || 'Failed to delete month'
+      showErrorToast(error.message || 'Failed to delete month')
       console.error('Error deleting month:', error)
       throw error
     }

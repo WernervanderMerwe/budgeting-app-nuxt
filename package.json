@@ -10,7 +10,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
-    "cleanup:all": "taskkill //F //IM node.exe"
+    "cleanup:all": "taskkill /F /IM node.exe"
   },
   "dependencies": {
     "@nuxt/ui": "^2.22.3",

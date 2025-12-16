@@ -11,12 +11,37 @@ import type {
   CopyMonthDTO,
   SectionType,
 } from '~/types/yearly'
+import { generateTempId, useOptimisticUpdates } from './useOptimisticUpdates'
+import { getWritableYearlyBudget } from './useYearlyBudget'
+import { getCurrentTimestamp } from '~/utils/date'
+// NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyCategories() {
   const { currentBudget, fetchBudgetById, refreshBudgetSilently } = useYearlyBudget()
+  const { showErrorToast } = useOptimisticUpdates()
 
-  // Update a section (silent refresh - small update)
+  // Helper to get writable budget state
+  const getBudgetState = () => getWritableYearlyBudget()
+
+  // Update a section (optimistic)
   async function updateSection(id: number, dto: UpdateSectionDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        sections: budgetState.value.sections.map(section =>
+          section.id === id
+            ? { ...section, ...dto, updatedAt: getCurrentTimestamp() }
+            : section
+        ),
+      }
+    }
+
     try {
       const data = await $fetch<YearlySection>(`/api/yearly/sections/${id}`, {
         method: 'PATCH',
@@ -25,13 +50,71 @@ export function useYearlyCategories() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error updating section:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to update section')
       throw e
     }
   }
 
-  // Create a category (silent refresh - single operation)
+  // Create a category (optimistic)
   async function createCategory(dto: CreateCategoryDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    const tempId = generateTempId()
+    const now = getCurrentTimestamp()
+    const optimisticCategory: YearlyCategoryWithChildren = {
+      id: tempId,
+      sectionId: dto.sectionId,
+      parentId: dto.parentId ?? null,
+      name: dto.name,
+      orderIndex: dto.orderIndex ?? 0,
+      createdAt: now,
+      updatedAt: now,
+      children: [],
+      entries: Array.from({ length: 12 }, (_, i) => ({
+        id: generateTempId(),
+        categoryId: tempId,
+        month: i + 1,
+        amount: 0,
+        isPaid: false,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    }
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        sections: budgetState.value.sections.map(section => {
+          if (section.id !== dto.sectionId) return section
+
+          if (dto.parentId) {
+            // Adding as a child category
+            return {
+              ...section,
+              categories: section.categories.map(cat =>
+                cat.id === dto.parentId
+                  ? { ...cat, children: [...cat.children, optimisticCategory] }
+                  : cat
+              ),
+            }
+          } else {
+            // Adding as a top-level category
+            return {
+              ...section,
+              categories: [...section.categories, optimisticCategory],
+            }
+          }
+        }),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyCategoryWithChildren>('/api/yearly/categories', {
         method: 'POST',
@@ -40,13 +123,45 @@ export function useYearlyCategories() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error creating category:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to create category')
       throw e
     }
   }
 
-  // Update a category (silent refresh - small update)
+  // Update a category (optimistic)
   async function updateCategory(id: number, dto: UpdateCategoryDTO) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        sections: budgetState.value.sections.map(section => ({
+          ...section,
+          categories: section.categories.map(cat => {
+            if (cat.id === id) {
+              return { ...cat, ...dto, updatedAt: getCurrentTimestamp() }
+            }
+            // Check children
+            return {
+              ...cat,
+              children: cat.children.map(child =>
+                child.id === id
+                  ? { ...child, ...dto, updatedAt: getCurrentTimestamp() }
+                  : child
+              ),
+            }
+          }),
+        })),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyCategory>(`/api/yearly/categories/${id}`, {
         method: 'PATCH',
@@ -55,26 +170,87 @@ export function useYearlyCategories() {
       await refreshBudgetSilently()
       return data
     } catch (e: any) {
-      console.error('Error updating category:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to update category')
       throw e
     }
   }
 
-  // Delete a category (silent refresh - single operation)
+  // Delete a category (optimistic)
   async function deleteCategory(id: number) {
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Apply optimistic delete
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        sections: budgetState.value.sections.map(section => ({
+          ...section,
+          categories: section.categories
+            .filter(cat => cat.id !== id)
+            .map(cat => ({
+              ...cat,
+              children: cat.children.filter(child => child.id !== id),
+            })),
+        })),
+      }
+    }
+
     try {
       await $fetch(`/api/yearly/categories/${id}`, { method: 'DELETE' })
-      await refreshBudgetSilently()
       return true
     } catch (e: any) {
-      console.error('Error deleting category:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to delete category')
       throw e
     }
   }
 
-  // Update a category entry (amount or isPaid) - silent refresh for instant feel
+  // Update a category entry (amount or isPaid) - optimistic
   // Set skipRefresh=true when doing batch updates to avoid multiple refreshes
+  // NOTE: Component already converts RANDS→CENTS before calling, so we use dto directly
   async function updateCategoryEntry(id: number, dto: UpdateCategoryEntryDTO, skipRefresh = false) {
+    const budgetState = getBudgetState()
+    const previousBudget = !skipRefresh && budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    // Use dto directly - component already converted to cents
+    const optimisticDto = dto
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        sections: budgetState.value.sections.map(section => ({
+          ...section,
+          categories: section.categories.map(cat => ({
+            ...cat,
+            entries: cat.entries.map(entry =>
+              entry.id === id
+                ? { ...entry, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+                : entry
+            ),
+            children: cat.children.map(child => ({
+              ...child,
+              entries: child.entries.map(entry =>
+                entry.id === id
+                  ? { ...entry, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+                  : entry
+              ),
+            })),
+          })),
+        })),
+      }
+    }
+
     try {
       const data = await $fetch<YearlyCategoryEntry>(`/api/yearly/category-entries/${id}`, {
         method: 'PATCH',
@@ -85,7 +261,12 @@ export function useYearlyCategories() {
       }
       return data
     } catch (e: any) {
-      console.error('Error updating category entry:', e)
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      if (!skipRefresh) {
+        showErrorToast(e.message || 'Failed to update category entry')
+      }
       throw e
     }
   }
@@ -163,7 +344,7 @@ export function useYearlyCategories() {
       await fetchBudgetById(currentBudget.value.id, false)
       return result
     } catch (e: any) {
-      console.error('Error copying month:', e)
+      showErrorToast(e.message || 'Failed to copy month')
       throw e
     }
   }

@@ -7,6 +7,7 @@ const props = defineProps<{
   showCheckbox?: boolean
   editable?: boolean
   highlight?: boolean
+  disabled?: boolean // Disables all interactions (for temp IDs syncing)
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +20,7 @@ const inputValue = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 
 function startEditing() {
-  if (!props.editable) return
+  if (!props.editable || props.disabled) return
   inputValue.value = props.amount === 0 ? '' : formatCurrency(props.amount).replace('R', '').trim()
   isEditing.value = true
   nextTick(() => {
@@ -77,6 +78,7 @@ function handleInput(event: Event) {
 }
 
 function togglePaid() {
+  if (props.disabled) return
   emit('update:isPaid', !props.isPaid)
 }
 </script>
@@ -93,7 +95,9 @@ function togglePaid() {
     <button
       v-if="showCheckbox"
       @click="togglePaid"
+      :disabled="disabled"
       class="flex-shrink-0 w-5 h-5 flex items-center justify-center"
+      :class="{ 'cursor-not-allowed opacity-50': disabled }"
     >
       <span
         class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors"
@@ -123,9 +127,11 @@ function togglePaid() {
       <span
         v-else
         @click="startEditing"
-        class="text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-1 py-0.5 rounded text-gray-900 dark:text-gray-100"
+        class="text-sm px-1 py-0.5 rounded text-gray-900 dark:text-gray-100"
         :class="{
           'text-gray-400 dark:text-gray-500': amount === 0 && editable,
+          'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700': editable && !disabled,
+          'cursor-not-allowed opacity-50': disabled,
         }"
       >
         {{ formatCurrency(amount) }}

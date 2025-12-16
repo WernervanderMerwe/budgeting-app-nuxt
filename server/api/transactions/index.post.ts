@@ -37,10 +37,8 @@ export default defineEventHandler(async (event) => {
       },
     })
 
-    return {
-      ...transaction,
-      amount: centsToRands(transaction.amount),
-    }
+    // Return as-is (values in cents) to match GET endpoint
+    return transaction
   } catch (error) {
     console.error('Error creating transaction:', error)
     throw createError({

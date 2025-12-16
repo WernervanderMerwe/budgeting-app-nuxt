@@ -35,10 +35,8 @@ export default defineEventHandler(async (event) => {
       data: updateData,
     })
 
-    return {
-      ...fixedPayment,
-      amount: centsToRands(fixedPayment.amount),
-    }
+    // Return as-is (values in cents) to match GET endpoint
+    return fixedPayment
   } catch (error) {
     console.error('Error updating fixed payment:', error)
     throw createError({

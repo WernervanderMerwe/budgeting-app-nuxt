@@ -22,29 +22,37 @@
           v-model="newPayment.name"
           type="text"
           placeholder="e.g., Rent, Car Payment"
-          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           required
+          :disabled="isAdding"
         />
         <CurrencyInput
           v-model="newPayment.amount"
           placeholder="e.g., 8500.00"
           class="w-32 text-sm"
           required
+          :disabled="isAdding"
         />
       </div>
       <div class="flex justify-end space-x-2">
         <button
           type="button"
           @click="cancelAdd"
-          class="px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm"
+          :disabled="isAdding"
+          class="px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
         <button
           type="submit"
-          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
+          :disabled="isAdding"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
         >
-          Add
+          <svg v-if="isAdding" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>{{ isAdding ? 'Adding...' : 'Add' }}</span>
         </button>
       </div>
     </form>
@@ -62,7 +70,10 @@
       <li
         v-for="payment in fixedPayments"
         :key="payment.id"
-        class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+        :class="[
+          'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-opacity',
+          { 'animate-pulse opacity-70': isTempId(payment.id) }
+        ]"
       >
         <!-- Display Mode -->
         <template v-if="editingId !== payment.id">
@@ -78,7 +89,9 @@
             <div class="flex space-x-1">
               <button
                 @click="startEditing(payment)"
-                class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 p-1"
+                :disabled="isTempId(payment.id)"
+                class="p-1"
+                :class="isTempId(payment.id) ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'"
                 title="Edit"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +100,9 @@
               </button>
               <button
                 @click="handleDelete(payment.id)"
-                class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1"
+                :disabled="isTempId(payment.id)"
+                class="p-1"
+                :class="isTempId(payment.id) ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300'"
                 title="Delete"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,28 +118,36 @@
           <input
             v-model="editedPayment.name"
             type="text"
-            class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm disabled:opacity-50"
             required
+            :disabled="isUpdating"
           />
           <CurrencyInput
             v-model="editedPayment.amount"
             placeholder=""
             class="w-24 text-sm"
             required
+            :disabled="isUpdating"
           />
           <button
             type="submit"
-            class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 p-1"
+            :disabled="isUpdating"
+            class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 p-1 disabled:opacity-50"
             title="Save"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg v-if="isUpdating" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </button>
           <button
             type="button"
             @click="cancelEditing"
-            class="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-1"
+            :disabled="isUpdating"
+            class="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-1 disabled:opacity-50"
             title="Cancel"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,6 +173,7 @@
 <script setup lang="ts">
 import type { FixedPayment } from '~/types/budget'
 import { formatCurrency, centsToRands } from '~/utils/currency'
+import { isTempId } from '~/composables/useOptimisticUpdates'
 
 interface Props {
   monthId: number
@@ -163,6 +187,8 @@ const { openDialog } = useConfirmDialog()
 
 const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
+const isAdding = ref(false)
+const isUpdating = ref(false)
 
 const newPayment = ref({
   name: '',
@@ -180,15 +206,23 @@ const totalFixedPayments = computed(() => {
 })
 
 const handleAdd = async () => {
+  if (isAdding.value) return // Prevent double submission
+  isAdding.value = true
+
+  // Capture values before clearing form
+  const data = {
+    monthId: props.monthId,
+    name: newPayment.value.name,
+    amount: newPayment.value.amount,
+  }
+  // Close form immediately (optimistic)
+  cancelAdd()
   try {
-    await createFixedPayment({
-      monthId: props.monthId,
-      name: newPayment.value.name,
-      amount: newPayment.value.amount,
-    })
-    cancelAdd()
+    await createFixedPayment(data)
   } catch (error) {
     console.error('Failed to add fixed payment:', error)
+  } finally {
+    isAdding.value = false
   }
 }
 
@@ -211,14 +245,22 @@ const cancelEditing = () => {
 }
 
 const handleUpdate = async (id: number) => {
+  if (isUpdating.value) return // Prevent double submission
+  isUpdating.value = true
+
+  // Capture values before clearing form
+  const data = {
+    name: editedPayment.value.name,
+    amount: editedPayment.value.amount,
+  }
+  // Close edit mode immediately (optimistic)
+  cancelEditing()
   try {
-    await updateFixedPayment(id, {
-      name: editedPayment.value.name,
-      amount: editedPayment.value.amount,
-    })
-    cancelEditing()
+    await updateFixedPayment(id, data)
   } catch (error) {
     console.error('Failed to update fixed payment:', error)
+  } finally {
+    isUpdating.value = false
   }
 }
 

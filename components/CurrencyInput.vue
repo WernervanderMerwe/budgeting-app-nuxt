@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: number): void
+  (e: 'enter'): void
 }>()
 
 const inputValue = ref('')
@@ -57,6 +58,13 @@ function handleBlur() {
   const parsed = parseFloat(inputValue.value.replace(',', '.')) || 0
   inputValue.value = parsed === 0 ? '' : parsed.toFixed(2)
 }
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    event.preventDefault() // Prevent form submission, let parent handle it
+    emit('enter')
+  }
+}
 </script>
 
 <template>
@@ -81,6 +89,7 @@ function handleBlur() {
       ]"
       @input="handleInput"
       @blur="handleBlur"
+      @keydown="handleKeydown"
     />
   </div>
 </template>

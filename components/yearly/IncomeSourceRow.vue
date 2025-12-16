@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { YearlyIncomeSourceWithEntries } from '~/types/yearly'
+import type { YearlyIncomeSourceWithEntries, YearlyIncomeEntryWithDeductions, YearlyDeduction } from '~/types/yearly'
 import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
 import { useColumnWidth } from '~/composables/useColumnResize'
+import { isTempId } from '~/composables/useOptimisticUpdates'
 
 const props = defineProps<{
   source: YearlyIncomeSourceWithEntries
@@ -42,6 +43,22 @@ const uniqueDeductionNames = computed(() => {
   }
   return Array.from(names)
 })
+
+// Check if source is syncing (has temp ID)
+const isSourceSyncing = computed(() => isTempId(props.source.id))
+
+// Check if an entry is syncing (source or entry has temp ID)
+function isEntrySyncing(entry: YearlyIncomeEntryWithDeductions | undefined): boolean {
+  if (!entry) return isTempId(props.source.id)
+  return isTempId(props.source.id) || isTempId(entry.id)
+}
+
+// Check if a deduction is syncing (source, entry, or deduction has temp ID)
+function isDeductionSyncing(entry: YearlyIncomeEntryWithDeductions | undefined, deduction: YearlyDeduction | undefined): boolean {
+  if (!entry) return isTempId(props.source.id)
+  if (!deduction) return isTempId(props.source.id) || isTempId(entry.id)
+  return isTempId(props.source.id) || isTempId(entry.id) || isTempId(deduction.id)
+}
 
 function startEditing() {
   editName.value = props.source.name
@@ -216,13 +233,25 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
         <!-- Display Mode -->
         <span
           v-else
-          class="text-sm font-medium truncate flex-1 min-w-0 text-gray-900 dark:text-white cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-1 py-0.5 rounded"
-          @click="startEditing"
+          class="text-sm font-medium truncate flex-1 min-w-0 text-gray-900 dark:text-white px-1 py-0.5 rounded"
+          :class="isSourceSyncing ? 'opacity-70' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'"
+          @click="!isSourceSyncing && startEditing()"
         >{{ source.name }}</span>
+        <!-- Syncing spinner -->
+        <svg
+          v-if="isSourceSyncing"
+          class="animate-spin h-3.5 w-3.5 text-green-500 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
 
-        <!-- Actions (absolute positioned) - hidden when editing -->
+        <!-- Actions (absolute positioned) - hidden when editing or syncing -->
         <div
-          v-if="!isEditing"
+          v-if="!isEditing && !isSourceSyncing"
           class="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-white dark:bg-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <button
@@ -248,6 +277,7 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
           <YearlyMonthCell
             :amount="centsToRands(getEntryForMonth(month)?.grossAmount ?? 0)"
             :editable="true"
+            :disabled="isEntrySyncing(getEntryForMonth(month))"
             @update:amount="handleGrossUpdate(month, $event)"
           />
         </div>
@@ -281,12 +311,13 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
           <!-- Display Mode for deduction name -->
           <span
             v-else
-            class="text-xs text-red-600 dark:text-red-400 truncate flex-1 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 px-1 py-0.5 rounded"
-            @click="startEditingDeductionName(deductionName)"
+            class="text-xs text-red-600 dark:text-red-400 truncate flex-1 px-1 py-0.5 rounded"
+            :class="isSourceSyncing ? 'opacity-70' : 'cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30'"
+            @click="!isSourceSyncing && startEditingDeductionName(deductionName)"
           >{{ deductionName }}</span>
-          <!-- Delete deduction button -->
+          <!-- Delete deduction button - hidden when syncing -->
           <button
-            v-if="editingDeductionName !== deductionName"
+            v-if="editingDeductionName !== deductionName && !isSourceSyncing"
             @click.stop="handleDeleteDeduction(deductionName)"
             class="p-0.5 text-gray-400 hover:text-red-500 opacity-0 group-hover/deduction:opacity-100 transition-opacity flex-shrink-0"
             title="Delete deduction"
@@ -307,6 +338,7 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
             <YearlyMonthCell
               :amount="centsToRands(getDeductionForMonth(month, deductionName)?.amount ?? 0)"
               :editable="true"
+              :disabled="isDeductionSyncing(getEntryForMonth(month), getDeductionForMonth(month, deductionName))"
               class="text-red-600 dark:text-red-400"
               @update:amount="handleDeductionUpdate(month, deductionName, $event)"
             />
@@ -331,11 +363,13 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
             @keydown="handleNewDeductionKeydown"
             @blur="saveNewDeduction"
           />
-          <!-- Add button -->
+          <!-- Add button - disabled when syncing -->
           <button
             v-else
-            @click.stop="startAddingDeduction"
-            class="flex items-center gap-1 text-xs text-red-500 hover:text-red-600"
+            @click.stop="!isSourceSyncing && startAddingDeduction()"
+            :disabled="isSourceSyncing"
+            class="flex items-center gap-1 text-xs"
+            :class="isSourceSyncing ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 hover:text-red-600'"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
