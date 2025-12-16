@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // PATCH /api/yearly/[id] - Update yearly budget settings
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
 
@@ -11,6 +12,18 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'Invalid yearly budget ID',
+      })
+    }
+
+    // Verify ownership before update
+    const existing = await prisma.yearlyBudget.findFirst({
+      where: { id, profileToken },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Yearly budget not found',
       })
     }
 

@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // PATCH /api/yearly/income-entries/[id] - Update an income entry (gross amount)
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
 
@@ -11,6 +12,23 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'Invalid income entry ID',
+      })
+    }
+
+    // Verify ownership through parent chain
+    const existing = await prisma.yearlyIncomeEntry.findFirst({
+      where: {
+        id,
+        incomeSource: {
+          yearlyBudget: { profileToken },
+        },
+      },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Income entry not found',
       })
     }
 

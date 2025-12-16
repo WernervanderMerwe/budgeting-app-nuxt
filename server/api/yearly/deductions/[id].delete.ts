@@ -3,12 +3,32 @@ import prisma from '~/server/utils/db'
 // DELETE /api/yearly/deductions/[id] - Delete a deduction
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
       throw createError({
         statusCode: 400,
         message: 'Invalid deduction ID',
+      })
+    }
+
+    // Verify ownership through parent chain
+    const existing = await prisma.yearlyDeduction.findFirst({
+      where: {
+        id,
+        incomeEntry: {
+          incomeSource: {
+            yearlyBudget: { profileToken },
+          },
+        },
+      },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Deduction not found',
       })
     }
 

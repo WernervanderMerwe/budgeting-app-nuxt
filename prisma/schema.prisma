@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
@@ -12,13 +13,14 @@ datasource db {
   schemas   = ["budgeting"]
 }
 
-// Authentication-ready: User model for future multi-user support
-model User {
-  id        Int    @id @default(autoincrement())
-  email     String @unique
-  name      String?
-  createdAt Int    @map("created_at") // Unix timestamp in seconds
-  updatedAt Int    @map("updated_at") // Unix timestamp in seconds
+// Profile model for pseudonymization
+// Maps Supabase auth.users to anonymous profile_token
+model Profile {
+  id           Int    @id @default(autoincrement())
+  authUserId   String @unique @map("auth_user_id") @db.Uuid
+  profileToken String @unique @map("profile_token")
+  createdAt    Int    @map("created_at")
+  updatedAt    Int    @map("updated_at")
 
   // Transaction Tracker mode
   transactionMonths TransactionMonth[]
@@ -26,25 +28,25 @@ model User {
   // Yearly Overview mode
   yearlyBudgets YearlyBudget[]
 
-  @@map("users")
+  @@map("profiles")
   @@schema("budgeting")
 }
 
 model TransactionMonth {
-  id        Int    @id @default(autoincrement())
-  userId    Int?   @map("user_id") // Nullable for now, required later with auth
-  name      String @map("month_name")
-  year      Int
-  month     Int    @default(1) // Month number 1-12
-  income    Int    @default(0) // Stored in cents
-  createdAt Int    @map("created_at") // Unix timestamp in seconds
-  updatedAt Int    @map("updated_at") // Unix timestamp in seconds
+  id           Int     @id @default(autoincrement())
+  profileToken String? @map("profile_token") // References profile for data ownership
+  name         String  @map("month_name")
+  year         Int
+  month        Int     @default(1) // Month number 1-12
+  income       Int     @default(0) // Stored in cents
+  createdAt    Int     @map("created_at") // Unix timestamp in seconds
+  updatedAt    Int     @map("updated_at") // Unix timestamp in seconds
 
-  user          User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile       Profile?                   @relation(fields: [profileToken], references: [profileToken], onDelete: Cascade)
   fixedPayments TransactionFixedPayment[]
   categories    TransactionCategory[]
 
-  @@unique([userId, name, year])
+  @@unique([profileToken, name, year])
   @@map("transaction_months")
   @@schema("budgeting")
 }
@@ -73,7 +75,7 @@ model TransactionCategory {
   createdAt       Int    @map("created_at") // Unix timestamp in seconds
   updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
 
-  month        TransactionMonth  @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  month        TransactionMonth   @relation(fields: [monthId], references: [id], onDelete: Cascade)
   transactions TransactionEntry[]
 
   @@map("transaction_categories")
@@ -81,13 +83,13 @@ model TransactionCategory {
 }
 
 model TransactionEntry {
-  id              Int    @id @default(autoincrement())
-  categoryId      Int    @map("category_id")
-  amount          Int    // Stored in cents
+  id              Int     @id @default(autoincrement())
+  categoryId      Int     @map("category_id")
+  amount          Int     // Stored in cents
   description     String?
-  transactionDate Int?   @map("transaction_date") // Unix timestamp in seconds
-  createdAt       Int    @map("created_at") // Unix timestamp in seconds
-  updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
+  transactionDate Int?    @map("transaction_date") // Unix timestamp in seconds
+  createdAt       Int     @map("created_at") // Unix timestamp in seconds
+  updatedAt       Int     @map("updated_at") // Unix timestamp in seconds
 
   category TransactionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
@@ -102,18 +104,18 @@ model TransactionEntry {
 // Yearly budget for a specific year
 model YearlyBudget {
   id           Int     @id @default(autoincrement())
-  userId       Int?    @map("user_id")
+  profileToken String? @map("profile_token") // References profile for data ownership
   year         Int
   spendTarget  Int     @default(500000) @map("spend_target") // Target discretionary spend in cents (R5000)
   showWarnings Boolean @default(true) @map("show_warnings") // Color warnings toggle
   createdAt    Int     @map("created_at")
   updatedAt    Int     @map("updated_at")
 
-  user          User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile       Profile?             @relation(fields: [profileToken], references: [profileToken], onDelete: Cascade)
   incomeSources YearlyIncomeSource[]
   sections      YearlySection[]
 
-  @@unique([userId, year])
+  @@unique([profileToken, year])
   @@map("yearly_budgets")
   @@schema("budgeting")
 }

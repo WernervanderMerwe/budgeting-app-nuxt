@@ -5,8 +5,24 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const validatedData = transactionSchema.parse(body)
+
+    // Verify ownership through parent chain: category -> month
+    const category = await prisma.transactionCategory.findFirst({
+      where: {
+        id: validatedData.categoryId,
+        month: { profileToken },
+      },
+    })
+
+    if (!category) {
+      throw createError({
+        statusCode: 404,
+        message: 'Category not found',
+      })
+    }
 
     const now = getCurrentTimestamp()
 

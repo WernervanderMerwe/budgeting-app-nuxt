@@ -1,47 +1,43 @@
 import type { H3Event } from 'h3'
-import { serverSupabaseUser } from '#supabase/server'
 
 /**
- * Get the authenticated user's profile token from the request
- * This is used for data pseudonymization - the profile_token replaces user_id
- * in all data tables to add an extra layer of privacy
+ * Get the profile token from the event context.
+ * This is populated by the auth middleware for all API routes.
  *
  * @param event - H3 event from the request
- * @returns The user's profile token (their Supabase user ID)
- * @throws Error if user is not authenticated
+ * @returns The user's profile token (prf_xxx format)
+ * @throws Error if profile token is not in context (middleware didn't run or auth failed)
  */
-export async function getProfileToken(event: H3Event): Promise<string> {
-  const user = await serverSupabaseUser(event)
+export function getProfileToken(event: H3Event): string {
+  const profileToken = event.context.profileToken
 
-  if (!user) {
+  if (!profileToken) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
-      message: 'You must be logged in to access this resource',
+      message: 'Authentication required',
     })
   }
 
-  // The profile token is the user's Supabase auth ID
-  // This provides pseudonymization as it's separate from any PII
-  return user.id
+  return profileToken
 }
 
 /**
- * Get the authenticated user from the request
- * Use this when you need access to the full user object
+ * Get the authenticated user from the event context.
+ * This is populated by the auth middleware for all API routes.
  *
  * @param event - H3 event from the request
  * @returns The authenticated Supabase user
- * @throws Error if user is not authenticated
+ * @throws Error if user is not in context
  */
-export async function requireAuth(event: H3Event) {
-  const user = await serverSupabaseUser(event)
+export function getUser(event: H3Event) {
+  const user = event.context.user
 
   if (!user) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Unauthorized',
-      message: 'You must be logged in to access this resource',
+      message: 'Authentication required',
     })
   }
 
@@ -49,16 +45,12 @@ export async function requireAuth(event: H3Event) {
 }
 
 /**
- * Optional auth check - returns null if not authenticated instead of throwing
- * Use this for routes that have different behavior for authenticated vs anonymous users
+ * Check if the request is authenticated.
+ * Useful for routes that behave differently for authenticated vs anonymous users.
  *
  * @param event - H3 event from the request
- * @returns The authenticated user or null
+ * @returns true if authenticated, false otherwise
  */
-export async function optionalAuth(event: H3Event) {
-  try {
-    return await serverSupabaseUser(event)
-  } catch {
-    return null
-  }
+export function isAuthenticated(event: H3Event): boolean {
+  return !!event.context.profileToken && !!event.context.user
 }

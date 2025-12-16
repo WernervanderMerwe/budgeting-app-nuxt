@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // POST /api/yearly/categories - Create a new category with 12 month entries
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const { sectionId, name, parentId = null, orderIndex = 0 } = body
 
@@ -11,6 +12,21 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'sectionId and name are required',
+      })
+    }
+
+    // Verify ownership through parent section -> budget
+    const section = await prisma.yearlySection.findFirst({
+      where: {
+        id: sectionId,
+        yearlyBudget: { profileToken },
+      },
+    })
+
+    if (!section) {
+      throw createError({
+        statusCode: 404,
+        message: 'Section not found',
       })
     }
 

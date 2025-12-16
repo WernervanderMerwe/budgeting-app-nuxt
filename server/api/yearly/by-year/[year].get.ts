@@ -3,6 +3,7 @@ import prisma from '~/server/utils/db'
 // GET /api/yearly/by-year/[year] - Get a yearly budget by year with all relations
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const year = parseInt(getRouterParam(event, 'year')!)
 
     if (isNaN(year)) {
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const yearlyBudget = await prisma.yearlyBudget.findFirst({
-      where: { year },
+      where: { year, profileToken },
       include: {
         incomeSources: {
           orderBy: { orderIndex: 'asc' },

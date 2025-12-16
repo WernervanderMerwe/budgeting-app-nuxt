@@ -5,6 +5,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // Used for copying amounts from one month to another
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const { updates } = body
 
@@ -12,6 +13,30 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'updates array is required',
+      })
+    }
+
+    // Verify ownership of all entries before updating
+    const entryIds = updates.map((u: { id: number }) => u.id)
+    const ownedEntries = await prisma.yearlyCategoryEntry.findMany({
+      where: {
+        id: { in: entryIds },
+        category: {
+          section: {
+            yearlyBudget: { profileToken },
+          },
+        },
+      },
+      select: { id: true },
+    })
+
+    const ownedIds = new Set(ownedEntries.map(e => e.id))
+    const unauthorizedIds = entryIds.filter((id: number) => !ownedIds.has(id))
+
+    if (unauthorizedIds.length > 0) {
+      throw createError({
+        statusCode: 404,
+        message: 'One or more category entries not found',
       })
     }
 

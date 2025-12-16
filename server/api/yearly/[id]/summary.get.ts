@@ -3,6 +3,7 @@ import prisma from '~/server/utils/db'
 // GET /api/yearly/[id]/summary - Calculate budget summary with totals and percentages
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
@@ -12,9 +13,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get the budget with all relations
-    const budget = await prisma.yearlyBudget.findUnique({
-      where: { id },
+    // Get the budget with all relations (ownership verified by profileToken)
+    const budget = await prisma.yearlyBudget.findFirst({
+      where: { id, profileToken },
       include: {
         incomeSources: {
           include: {

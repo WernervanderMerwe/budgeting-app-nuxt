@@ -3,12 +3,30 @@ import prisma from '~/server/utils/db'
 // DELETE /api/yearly/categories/[id] - Delete a category
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
       throw createError({
         statusCode: 400,
         message: 'Invalid category ID',
+      })
+    }
+
+    // Verify ownership through parent chain
+    const existing = await prisma.yearlyCategory.findFirst({
+      where: {
+        id,
+        section: {
+          yearlyBudget: { profileToken },
+        },
+      },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Category not found',
       })
     }
 

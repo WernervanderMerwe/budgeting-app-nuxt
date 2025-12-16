@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // PATCH /api/yearly/deductions/[id] - Update a deduction
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
 
@@ -11,6 +12,25 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'Invalid deduction ID',
+      })
+    }
+
+    // Verify ownership through parent chain
+    const existing = await prisma.yearlyDeduction.findFirst({
+      where: {
+        id,
+        incomeEntry: {
+          incomeSource: {
+            yearlyBudget: { profileToken },
+          },
+        },
+      },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Deduction not found',
       })
     }
 

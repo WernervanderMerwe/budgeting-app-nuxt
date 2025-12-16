@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // POST /api/yearly/income-sources - Create a new income source with 12 month entries
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const { yearlyBudgetId, name, orderIndex = 0 } = body
 
@@ -11,6 +12,18 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'yearlyBudgetId and name are required',
+      })
+    }
+
+    // Verify ownership of the budget
+    const budget = await prisma.yearlyBudget.findFirst({
+      where: { id: yearlyBudgetId, profileToken },
+    })
+
+    if (!budget) {
+      throw createError({
+        statusCode: 404,
+        message: 'Budget not found',
       })
     }
 

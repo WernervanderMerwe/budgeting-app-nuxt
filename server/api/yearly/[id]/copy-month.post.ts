@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // POST /api/yearly/[id]/copy-month - Copy category amounts, income entries, and deductions from one month to another
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
     const { sourceMonth, targetMonth, resetPaidStatus = true } = body
@@ -36,9 +37,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get the budget with all categories, income sources, and deductions
-    const budget = await prisma.yearlyBudget.findUnique({
-      where: { id },
+    // Get the budget with all categories, income sources, and deductions (ownership verified)
+    const budget = await prisma.yearlyBudget.findFirst({
+      where: { id, profileToken },
       include: {
         sections: {
           include: {

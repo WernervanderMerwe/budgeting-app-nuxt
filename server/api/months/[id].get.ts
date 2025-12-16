@@ -2,6 +2,7 @@ import prisma from '~/server/utils/db'
 
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
@@ -11,8 +12,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const month = await prisma.transactionMonth.findUnique({
-      where: { id },
+    const month = await prisma.transactionMonth.findFirst({
+      where: { id, profileToken },
       include: {
         fixedPayments: {
           orderBy: { orderIndex: 'asc' },

@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
 
     // Validate input
@@ -20,6 +21,7 @@ export default defineEventHandler(async (event) => {
         year: validatedData.year,
         month: validatedData.month,
         income: randsToCents(validatedData.income),
+        profileToken,
         createdAt: now,
         updatedAt: now,
       },
@@ -27,6 +29,18 @@ export default defineEventHandler(async (event) => {
 
     // If copyFromMonthId is provided, copy fixed payments and categories
     if (validatedData.copyFromMonthId) {
+      // Verify ownership of source month
+      const sourceMonth = await prisma.transactionMonth.findFirst({
+        where: { id: validatedData.copyFromMonthId, profileToken },
+      })
+
+      if (!sourceMonth) {
+        throw createError({
+          statusCode: 404,
+          message: 'Source month not found',
+        })
+      }
+
       // Copy fixed payments
       const sourceFixedPayments = await prisma.transactionFixedPayment.findMany({
         where: { monthId: validatedData.copyFromMonthId },

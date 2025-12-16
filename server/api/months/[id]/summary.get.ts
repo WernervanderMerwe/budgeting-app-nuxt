@@ -25,6 +25,7 @@ interface MonthSummary {
 
 export default defineEventHandler(async (event): Promise<MonthSummary> => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
@@ -34,8 +35,8 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
       })
     }
 
-    const month = await prisma.transactionMonth.findUnique({
-      where: { id },
+    const month = await prisma.transactionMonth.findFirst({
+      where: { id, profileToken },
       include: {
         fixedPayments: true,
         categories: {

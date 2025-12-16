@@ -5,8 +5,21 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const validatedData = categorySchema.parse(body)
+
+    // Verify ownership of the parent month
+    const month = await prisma.transactionMonth.findFirst({
+      where: { id: validatedData.monthId, profileToken },
+    })
+
+    if (!month) {
+      throw createError({
+        statusCode: 404,
+        message: 'Month not found',
+      })
+    }
 
     const now = getCurrentTimestamp()
 

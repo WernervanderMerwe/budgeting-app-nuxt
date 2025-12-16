@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // PATCH /api/yearly/category-entries/[id] - Update a category entry (amount or isPaid)
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
 
@@ -11,6 +12,25 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'Invalid category entry ID',
+      })
+    }
+
+    // Verify ownership through parent chain
+    const existing = await prisma.yearlyCategoryEntry.findFirst({
+      where: {
+        id,
+        category: {
+          section: {
+            yearlyBudget: { profileToken },
+          },
+        },
+      },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Category entry not found',
       })
     }
 

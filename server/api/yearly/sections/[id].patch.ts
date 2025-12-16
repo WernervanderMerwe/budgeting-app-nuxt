@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // PATCH /api/yearly/sections/[id] - Update a section
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
 
@@ -11,6 +12,21 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'Invalid section ID',
+      })
+    }
+
+    // Verify ownership through parent budget
+    const existing = await prisma.yearlySection.findFirst({
+      where: {
+        id,
+        yearlyBudget: { profileToken },
+      },
+    })
+
+    if (!existing) {
+      throw createError({
+        statusCode: 404,
+        message: 'Section not found',
       })
     }
 

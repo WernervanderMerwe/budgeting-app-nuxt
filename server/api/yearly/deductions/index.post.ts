@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '~/server/utils/date'
 // POST /api/yearly/deductions - Create a new deduction
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const { incomeEntryId, name, amount = 0, orderIndex = 0 } = body
 
@@ -11,6 +12,23 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'incomeEntryId and name are required',
+      })
+    }
+
+    // Verify ownership through parent chain
+    const incomeEntry = await prisma.yearlyIncomeEntry.findFirst({
+      where: {
+        id: incomeEntryId,
+        incomeSource: {
+          yearlyBudget: { profileToken },
+        },
+      },
+    })
+
+    if (!incomeEntry) {
+      throw createError({
+        statusCode: 404,
+        message: 'Income entry not found',
       })
     }
 

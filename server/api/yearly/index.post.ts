@@ -11,6 +11,7 @@ const DEFAULT_SECTIONS = [
 // POST /api/yearly - Create a new yearly budget with default sections
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
     const body = await readBody(event)
     const { year, spendTarget = 500000, showWarnings = true } = body
 
@@ -21,9 +22,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check if budget already exists for this year
+    // Check if budget already exists for this year for this user
     const existing = await prisma.yearlyBudget.findFirst({
-      where: { year },
+      where: { year, profileToken },
     })
 
     if (existing) {
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event) => {
         year,
         spendTarget,
         showWarnings,
+        profileToken,
         createdAt: now,
         updatedAt: now,
         sections: {

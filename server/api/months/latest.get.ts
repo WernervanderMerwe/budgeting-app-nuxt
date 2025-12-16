@@ -1,9 +1,12 @@
 import prisma from '~/server/utils/db'
 
 // GET /api/months/latest - Get the latest transaction month year/month
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
+
     const latestMonth = await prisma.transactionMonth.findFirst({
+      where: { profileToken },
       orderBy: [
         { year: 'desc' },
         { month: 'desc' },

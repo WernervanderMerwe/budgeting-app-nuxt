@@ -3,7 +3,10 @@ import prisma from '~/server/utils/db'
 // GET /api/yearly - List all yearly budgets
 export default defineEventHandler(async (event) => {
   try {
+    const { profileToken } = event.context
+
     const yearlyBudgets = await prisma.yearlyBudget.findMany({
+      where: { profileToken },
       orderBy: { year: 'desc' },
       select: {
         id: true,
