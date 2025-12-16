@@ -6,8 +6,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["budgeting"]
 }
 
 // Authentication-ready: User model for future multi-user support
@@ -25,6 +27,7 @@ model User {
   yearlyBudgets YearlyBudget[]
 
   @@map("users")
+  @@schema("budgeting")
 }
 
 model TransactionMonth {
@@ -43,6 +46,7 @@ model TransactionMonth {
 
   @@unique([userId, name, year])
   @@map("transaction_months")
+  @@schema("budgeting")
 }
 
 model TransactionFixedPayment {
@@ -57,6 +61,7 @@ model TransactionFixedPayment {
   month TransactionMonth @relation(fields: [monthId], references: [id], onDelete: Cascade)
 
   @@map("transaction_fixed_payments")
+  @@schema("budgeting")
 }
 
 model TransactionCategory {
@@ -72,6 +77,7 @@ model TransactionCategory {
   transactions TransactionEntry[]
 
   @@map("transaction_categories")
+  @@schema("budgeting")
 }
 
 model TransactionEntry {
@@ -86,6 +92,7 @@ model TransactionEntry {
   category TransactionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@map("transaction_entries")
+  @@schema("budgeting")
 }
 
 // ============================================
@@ -108,6 +115,7 @@ model YearlyBudget {
 
   @@unique([userId, year])
   @@map("yearly_budgets")
+  @@schema("budgeting")
 }
 
 // Income source (Salary, Side Hustle, etc.)
@@ -123,6 +131,7 @@ model YearlyIncomeSource {
   entries      YearlyIncomeEntry[]
 
   @@map("yearly_income_sources")
+  @@schema("budgeting")
 }
 
 // Monthly income entry (gross amount per month)
@@ -139,6 +148,7 @@ model YearlyIncomeEntry {
 
   @@unique([incomeSourceId, month])
   @@map("yearly_income_entries")
+  @@schema("budgeting")
 }
 
 // Deduction from income (Tax, Pension, etc.)
@@ -154,6 +164,7 @@ model YearlyDeduction {
   incomeEntry YearlyIncomeEntry @relation(fields: [incomeEntryId], references: [id], onDelete: Cascade)
 
   @@map("yearly_deductions")
+  @@schema("budgeting")
 }
 
 // Budget section (Living Essentials 70%, Non-Essentials 20%, Savings 10%)
@@ -171,6 +182,7 @@ model YearlySection {
   categories   YearlyCategory[]
 
   @@map("yearly_sections")
+  @@schema("budgeting")
 }
 
 // Category within a section (can have parent for 2-level nesting)
@@ -189,6 +201,7 @@ model YearlyCategory {
   entries  YearlyCategoryEntry[]
 
   @@map("yearly_categories")
+  @@schema("budgeting")
 }
 
 // Monthly entry for a category (amount + paid status)
@@ -205,4 +218,5 @@ model YearlyCategoryEntry {
 
   @@unique([categoryId, month])
   @@map("yearly_category_entries")
+  @@schema("budgeting")
 }

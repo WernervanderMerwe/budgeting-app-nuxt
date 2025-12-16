@@ -1,9 +1,15 @@
+import { config } from 'dotenv'
+
+// Load environment variables from .env.local
+config({ path: '.env.local' })
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: [
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/supabase',
   ],
 
   css: [],
@@ -11,6 +17,10 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+  },
+
+  nitro: {
+    preset: 'cloudflare_module',
   },
 
   app: {
@@ -30,10 +40,18 @@ export default defineNuxtConfig({
     classSuffix: '', // Remove '-mode' suffix
   },
 
-  runtimeConfig: {
-    // Server-side only config
-    databaseUrl: 'file:./prisma/dev.db',
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_KEY,
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      include: ['/transaction/*', '/yearly/*'],
+      exclude: ['/'],
+    },
+  },
 
+  runtimeConfig: {
     public: {
       // Client-side config
       appName: 'Basic Budget App',

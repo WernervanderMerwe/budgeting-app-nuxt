@@ -15,7 +15,9 @@
   "dependencies": {
     "@nuxt/ui": "^2.22.3",
     "@nuxtjs/color-mode": "^4.0.0",
+    "@nuxtjs/supabase": "^2.0.3",
     "@prisma/client": "^6.19.0",
+    "@supabase/supabase-js": "^2.87.3",
     "@vueuse/core": "^14.0.0",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
