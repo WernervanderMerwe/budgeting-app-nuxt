@@ -30,10 +30,10 @@
         />
       </div>
       <div class="mb-2">
-        <input
+        <DatePicker
           v-model="newTransaction.date"
-          type="date"
-          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Select date"
+          class="text-sm"
           required
         />
       </div>
@@ -142,10 +142,10 @@
               </svg>
             </button>
           </div>
-          <input
+          <DatePicker
             v-model="editedTransaction.date"
-            type="date"
-            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+            placeholder="Select date"
+            class="text-xs"
             required
           />
         </form>

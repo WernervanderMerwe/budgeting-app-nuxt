@@ -124,14 +124,27 @@ export function useYearlyCategories() {
     const section = sections.value.find(s => s.id === sectionId)
     if (!section) return
 
-    // Update all categories (including children) entries for this month (skip individual refreshes)
-    const updatePromises = section.categories.map(category => {
-      const entry = category.entries.find(e => e.month === month)
-      if (entry) {
-        return updateCategoryEntry(entry.id, { isPaid }, true)
+    // Collect all leaf category entries (categories without children, or children of parent categories)
+    const updatePromises: Promise<any>[] = []
+
+    for (const category of section.categories) {
+      if (category.children && category.children.length > 0) {
+        // Parent category: update all children entries
+        for (const child of category.children) {
+          const entry = child.entries.find(e => e.month === month)
+          if (entry) {
+            updatePromises.push(updateCategoryEntry(entry.id, { isPaid }, true))
+          }
+        }
+      } else {
+        // Leaf category: update its own entry
+        const entry = category.entries.find(e => e.month === month)
+        if (entry) {
+          updatePromises.push(updateCategoryEntry(entry.id, { isPaid }, true))
+        }
       }
-      return Promise.resolve()
-    })
+    }
+
     await Promise.all(updatePromises)
     // Single refresh after all updates complete
     await refreshBudgetSilently()

@@ -38,8 +38,9 @@ export const useBudget = () => {
         body: data
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
 
       return newPayment
     } catch (error: any) {
@@ -61,8 +62,9 @@ export const useBudget = () => {
         body: data
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
 
       return updatedPayment
     } catch (error: any) {
@@ -83,8 +85,9 @@ export const useBudget = () => {
         method: 'DELETE'
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
     } catch (error: any) {
       budgetError.value = error.message || 'Failed to delete fixed payment'
       console.error('Error deleting fixed payment:', error)
@@ -108,8 +111,9 @@ export const useBudget = () => {
         body: data
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
 
       return newCategory
     } catch (error: any) {
@@ -131,8 +135,9 @@ export const useBudget = () => {
         body: data
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
 
       return updatedCategory
     } catch (error: any) {
@@ -153,8 +158,9 @@ export const useBudget = () => {
         method: 'DELETE'
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
     } catch (error: any) {
       budgetError.value = error.message || 'Failed to delete category'
       console.error('Error deleting category:', error)
@@ -178,8 +184,9 @@ export const useBudget = () => {
         body: data
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
 
       return newTransaction
     } catch (error: any) {
@@ -201,8 +208,9 @@ export const useBudget = () => {
         body: data
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
 
       return updatedTransaction
     } catch (error: any) {
@@ -223,8 +231,9 @@ export const useBudget = () => {
         method: 'DELETE'
       })
 
-      // Refresh current month to get updated data
+      // Refresh current month and summary to get updated data
       await refreshCurrentMonth()
+      await refreshSummary()
     } catch (error: any) {
       budgetError.value = error.message || 'Failed to delete transaction'
       console.error('Error deleting transaction:', error)

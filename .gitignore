@@ -32,3 +32,4 @@ prisma/*.db-journal
 
 .playwright-mcp
 .claude/settings.local.json
+.mcp.json
