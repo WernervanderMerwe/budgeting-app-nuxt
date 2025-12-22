@@ -46,8 +46,8 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      include: ['/transaction/*', '/yearly/*'],
-      exclude: ['/'],
+      include: ['/', '/transaction/*', '/yearly/*'],
+      exclude: [],
     },
     cookieOptions: {
       maxAge: 60 * 60 * 8, // 8 hours
@@ -60,6 +60,7 @@ export default defineNuxtConfig({
     public: {
       // Client-side config
       appName: 'Basic Budget App',
+      nodeEnv: process.env.NODE_ENV || 'development',
     },
   },
 
