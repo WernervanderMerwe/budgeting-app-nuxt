@@ -6,7 +6,7 @@
         <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
           <span class="text-4xl font-bold text-white">B</span>
         </div>
-        <h1 class="text-4xl font-bold text-white">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">
           Budget App
         </h1>
       </div>
@@ -60,27 +60,27 @@
 
     <!-- Privacy & Security Section -->
     <div class="mt-16 max-w-3xl mx-auto">
-      <div class="bg-gradient-to-r from-green-900/20 to-emerald-900/20 rounded-2xl p-8 border border-green-800/30">
+      <div class="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 border border-green-200 dark:border-green-800/30">
         <div class="flex items-center justify-center gap-2 mb-4">
-          <UIcon name="i-heroicons-shield-check" class="w-6 h-6 text-green-500" />
-          <h3 class="text-xl font-semibold text-white">Your Privacy Matters</h3>
+          <UIcon name="i-heroicons-shield-check" class="w-6 h-6 text-green-600 dark:text-green-500" />
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Your Privacy Matters</h3>
         </div>
-        <p class="text-gray-400 mb-6 max-w-xl mx-auto">
+        <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-xl mx-auto">
           We use bank-grade privacy measures to keep your financial data safe and separate from your identity.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           <div class="flex items-start space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-              <UIcon name="i-heroicons-finger-print" class="w-5 h-5 text-green-400" />
+            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-200 dark:bg-green-500/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-finger-print" class="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h4 class="font-medium text-white">Pseudonymized Data</h4>
-              <p class="text-sm text-gray-400">Your financial data is stored separately from your identity using random tokens</p>
+              <h4 class="font-medium text-gray-900 dark:text-white">Pseudonymized Data</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Your financial data is stored separately from your identity using random tokens</p>
               <a
                 href="https://en.wikipedia.org/wiki/Pseudonymization"
                 target="_blank"
-                class="text-xs text-green-500 hover:text-green-400 inline-flex items-center gap-1 mt-1"
+                class="text-xs text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 inline-flex items-center gap-1 mt-1"
               >
                 Learn more
                 <UIcon name="i-heroicons-arrow-top-right-on-square" class="w-3 h-3" />
@@ -89,29 +89,29 @@
           </div>
 
           <div class="flex items-start space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-              <UIcon name="i-heroicons-building-library" class="w-5 h-5 text-green-400" />
+            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-200 dark:bg-green-500/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-building-library" class="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h4 class="font-medium text-white">No Bank Access Needed</h4>
-              <p class="text-sm text-gray-400">Manual entry means your bank credentials stay with your bank</p>
+              <h4 class="font-medium text-gray-900 dark:text-white">No Bank Access Needed</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Manual entry means your bank credentials stay with your bank</p>
             </div>
           </div>
 
           <div class="flex items-start space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-              <UIcon name="i-heroicons-eye-slash" class="w-5 h-5 text-green-400" />
+            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-200 dark:bg-green-500/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-eye-slash" class="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h4 class="font-medium text-white">We Never Sell Data</h4>
-              <p class="text-sm text-gray-400">Your information is never shared with third parties or advertisers</p>
+              <h4 class="font-medium text-gray-900 dark:text-white">We Never Sell Data</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Your information is never shared with third parties or advertisers</p>
             </div>
           </div>
         </div>
 
         <!-- Additional protection note -->
-        <div class="mt-6 pt-4 border-t border-green-800/30 flex items-center justify-center gap-2 text-sm text-gray-400">
-          <UIcon name="i-heroicons-cpu-chip" class="w-4 h-4 text-green-500" />
+        <div class="mt-6 pt-4 border-t border-green-200 dark:border-green-800/30 flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <UIcon name="i-heroicons-cpu-chip" class="w-4 h-4 text-green-600 dark:text-green-500" />
           <span>AI scraping blocked - your data won't be used for AI training</span>
         </div>
       </div>
@@ -151,11 +151,17 @@
     </div>
 
     <!-- Footer -->
-    <div class="mt-16">
+    <div class="mt-16 space-y-2">
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Built by
         <a href="https://wernerbuildsapps.co.za" target="_blank" class="text-green-500 hover:text-green-400">
           Werner Builds Apps
+        </a>
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Report any issues or suggestions
+        <a href="mailto:wernerbuildsapps@gmail.com" class="text-green-500 hover:text-green-400">
+          here
         </a>
       </p>
     </div>
