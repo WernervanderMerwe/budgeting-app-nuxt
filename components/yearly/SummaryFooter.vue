@@ -55,7 +55,7 @@ function handleKeydown(event: KeyboardEvent) {
         <div
           v-for="(summary, index) in monthlySummaries"
           :key="index"
-          class="flex-1 min-w-[100px] px-2 py-2 text-right border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+          class="flex-1 min-w-[100px] px-1 py-2 text-right border-r border-gray-100 dark:border-gray-800 last:border-r-0"
         >
           <input
             v-if="isEditingTarget === summary.month"
@@ -89,7 +89,7 @@ function handleKeydown(event: KeyboardEvent) {
         <div
           v-for="(summary, index) in monthlySummaries"
           :key="index"
-          class="flex-1 min-w-[100px] px-2 py-2 text-right text-sm font-bold border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+          class="flex-1 min-w-[100px] px-1 py-2 text-right text-sm font-bold border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           :class="getLeftoverClass(summary.leftover)"
         >
           {{ formatCurrency(summary.leftover) }}

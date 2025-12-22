@@ -268,11 +268,11 @@ async function handleAddIncomeSource() {
                 title="Drag to resize"
               ></div>
             </div>
-            <div class="flex flex-1">
+            <div class="flex flex-1 overflow-hidden">
               <div
                 v-for="(month, index) in MONTH_NAMES_SHORT"
                 :key="index"
-                class="flex-1 min-w-[100px] px-2 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+                class="flex-1 min-w-[100px] px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0 overflow-hidden"
               >
                 {{ month }}
               </div>

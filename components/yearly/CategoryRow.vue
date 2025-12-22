@@ -151,9 +151,9 @@ function handleEditKeydown(event: KeyboardEvent) {
     >
       <!-- Category Name (sticky) -->
       <div
-        class="sticky left-0 z-10 relative flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700"
+        class="sticky left-0 z-10 relative flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-hidden"
         :class="{ 'pl-6': isChild }"
-        :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
+        :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }"
       >
         <!-- Expand/Collapse -->
         <button
@@ -236,14 +236,14 @@ function handleEditKeydown(event: KeyboardEvent) {
           v-for="month in 12"
           :key="month"
           class="flex-1 min-w-[100px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
-          :class="{
-            'bg-green-50 dark:bg-green-900/20': hasChildren && areAllChildrenPaidForMonth(month),
-          }"
         >
           <!-- Parent category with children - show aggregate checkbox -->
           <div
             v-if="hasChildren"
-            class="relative flex items-center gap-1 px-1 py-0.5 min-w-[100px] h-full"
+            class="relative flex items-center gap-1 px-1 py-1 w-full h-full"
+            :class="{
+              'bg-green-50 dark:bg-green-900/20': areAllChildrenPaidForMonth(month),
+            }"
           >
             <button
               @click="!isCategorySyncing && handleParentCheckboxClick(month)"

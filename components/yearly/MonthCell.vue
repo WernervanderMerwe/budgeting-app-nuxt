@@ -85,7 +85,7 @@ function togglePaid() {
 
 <template>
   <div
-    class="relative flex items-center gap-1 px-1 py-0.5 min-w-[100px] h-full"
+    class="relative flex items-center gap-1 px-1 py-1 w-full h-full"
     :class="{
       'bg-green-50 dark:bg-green-900/20': isPaid && showCheckbox,
       'bg-yellow-50 dark:bg-yellow-900/20': highlight && !isPaid,

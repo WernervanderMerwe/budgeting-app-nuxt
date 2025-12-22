@@ -392,7 +392,7 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
           <div
             v-for="month in 12"
             :key="month"
-            class="flex-1 min-w-[100px] px-2 py-2 text-right text-sm font-medium text-blue-700 dark:text-blue-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+            class="flex-1 min-w-[100px] px-1 py-2 text-right text-sm font-medium text-blue-700 dark:text-blue-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
             {{ formatCurrency(centsToRands(getNetForMonth(month))) }}
           </div>
