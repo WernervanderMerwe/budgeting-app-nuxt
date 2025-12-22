@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const user = useSupabaseUser()
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup', '/confirm', '/reset-password']
+  const publicRoutes = ['/login', '/signup', '/confirm', '/reset-password']
 
   // Check if the route is public
   const isPublicRoute = publicRoutes.some(route =>
@@ -19,9 +19,8 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/login')
   }
 
-  // If authenticated and trying to access login/signup, redirect to yearly
+  // If authenticated and trying to access login/signup, redirect to home
   if (user.value && (to.path === '/login' || to.path === '/signup')) {
-    const currentYear = new Date().getFullYear()
-    return navigateTo(`/yearly/${currentYear}`)
+    return navigateTo('/')
   }
 })

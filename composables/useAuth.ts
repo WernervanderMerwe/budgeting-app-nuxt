@@ -57,8 +57,8 @@ export const useAuth = () => {
       throw new Error(error.message)
     }
 
-    // Redirect to home after sign out
-    await navigateTo('/')
+    // Redirect to login after sign out
+    await navigateTo('/login')
   }
 
   const resetPassword = async (email: string) => {
