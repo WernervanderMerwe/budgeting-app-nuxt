@@ -2,6 +2,7 @@ import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { categorySchema } from '~/server/utils/validation'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,10 +16,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!month) {
-      throw createError({
-        statusCode: 404,
-        message: 'Month not found',
-      })
+      return errors.notFound(event, 'Month not found')
     }
 
     const now = getCurrentTimestamp()
@@ -40,10 +38,6 @@ export default defineEventHandler(async (event) => {
       transactions: [],
     }
   } catch (error) {
-    console.error('Error creating category:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create category',
-    })
+    return errors.serverError(event, 'Failed to create category', error as Error)
   }
 })

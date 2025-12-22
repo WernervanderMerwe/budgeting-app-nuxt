@@ -3,6 +3,7 @@ import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { transactionSchema } from '~/server/utils/validation'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { simulateTestError } from '~/server/utils/testError'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -22,10 +23,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!category) {
-      throw createError({
-        statusCode: 404,
-        message: 'Category not found',
-      })
+      return errors.notFound(event, 'Category not found')
     }
 
     const now = getCurrentTimestamp()
@@ -44,10 +42,6 @@ export default defineEventHandler(async (event) => {
     // Return as-is (values in cents) to match GET endpoint
     return transaction
   } catch (error) {
-    console.error('Error creating transaction:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create transaction',
-    })
+    return errors.serverError(event, 'Failed to create transaction', error as Error)
   }
 })

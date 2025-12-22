@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 // DELETE /api/yearly/deductions/[id] - Delete a deduction
 export default defineEventHandler(async (event) => {
@@ -7,10 +8,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid deduction ID',
-      })
+      return errors.badRequest(event, 'Invalid deduction ID')
     }
 
     // Verify ownership through parent chain
@@ -26,10 +24,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Deduction not found',
-      })
+      return errors.notFound(event, 'Deduction not found')
     }
 
     await prisma.yearlyDeduction.delete({
@@ -37,13 +32,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error deleting deduction:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to delete deduction',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to delete deduction', error as Error)
   }
 })

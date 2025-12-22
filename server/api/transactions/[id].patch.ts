@@ -2,6 +2,7 @@ import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { simulateTestError } from '~/server/utils/testError'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -23,10 +24,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Transaction not found',
-      })
+      return errors.notFound(event, 'Transaction not found')
     }
 
     const updateData: any = {
@@ -44,10 +42,6 @@ export default defineEventHandler(async (event) => {
     // Return as-is (values in cents) to match GET endpoint
     return transaction
   } catch (error) {
-    console.error('Error updating transaction:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update transaction',
-    })
+    return errors.serverError(event, 'Failed to update transaction', error as Error)
   }
 })

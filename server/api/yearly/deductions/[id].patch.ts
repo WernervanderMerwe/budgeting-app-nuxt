@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // PATCH /api/yearly/deductions/[id] - Update a deduction
 export default defineEventHandler(async (event) => {
@@ -9,10 +10,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid deduction ID',
-      })
+      return errors.badRequest(event, 'Invalid deduction ID')
     }
 
     // Verify ownership through parent chain
@@ -28,10 +26,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Deduction not found',
-      })
+      return errors.notFound(event, 'Deduction not found')
     }
 
     const updateData: any = {
@@ -48,13 +43,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return deduction
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error updating deduction:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update deduction',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to update deduction', error as Error)
   }
 })

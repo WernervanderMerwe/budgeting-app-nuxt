@@ -1,10 +1,6 @@
 import { serverSupabaseUser } from '#supabase/server'
 import prisma from '~/server/utils/db'
 
-// Cache profile tokens to avoid repeated DB lookups within the same process
-const profileTokenCache = new Map<string, { token: string; timestamp: number }>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/api/_nuxt',
@@ -19,9 +15,6 @@ function isPublicRoute(path: string): boolean {
 /**
  * Server middleware that hydrates event.context with profileToken
  * for all authenticated API requests.
- *
- * This implements the DRY principle - profile token is fetched once
- * and made available to all API handlers via event.context.profileToken
  */
 export default defineEventHandler(async (event) => {
   const path = event.path
@@ -41,66 +34,35 @@ export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event)
 
     if (!user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Unauthorized',
-        message: 'You must be logged in to access this resource',
-      })
+      setResponseStatus(event, 401)
+      return { error: 'Unauthorized', message: 'You must be logged in' }
     }
 
     // JWT claims use 'sub' for user ID, not 'id'
-    const userId = user.sub as string
+    const userId = (user as any).sub as string
 
     if (!userId) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Unauthorized',
-        message: 'Invalid authentication token',
-      })
+      setResponseStatus(event, 401)
+      return { error: 'Unauthorized', message: 'Invalid token' }
     }
 
-    // Check cache first
-    const cached = profileTokenCache.get(userId)
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      event.context.profileToken = cached.token
-      event.context.userId = userId
-      return
-    }
-
-    // Fetch profile token from profiles table
+    // Fetch profile token from profiles table (no caching for now)
     const profile = await prisma.profile.findUnique({
       where: { authUserId: userId },
       select: { profileToken: true },
     })
 
     if (!profile) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Profile Not Found',
-        message: 'Your profile could not be found. Please contact support.',
-      })
+      setResponseStatus(event, 404)
+      return { error: 'Profile not found' }
     }
-
-    // Cache the token
-    profileTokenCache.set(userId, {
-      token: profile.profileToken,
-      timestamp: Date.now(),
-    })
 
     // Hydrate event context
     event.context.profileToken = profile.profileToken
     event.context.userId = userId
   } catch (error: any) {
-    // Re-throw HTTP errors
-    if (error.statusCode) {
-      throw error
-    }
-
     console.error('Auth middleware error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Authentication Error',
-      message: 'An error occurred during authentication',
-    })
+    setResponseStatus(event, 500)
+    return { error: 'Authentication error', details: error.message }
   }
 })

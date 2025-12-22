@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,10 +17,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Transaction not found',
-      })
+      return errors.notFound(event, 'Transaction not found')
     }
 
     await prisma.transactionEntry.delete({
@@ -28,10 +26,6 @@ export default defineEventHandler(async (event) => {
 
     return { success: true }
   } catch (error) {
-    console.error('Error deleting transaction:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to delete transaction',
-    })
+    return errors.serverError(event, 'Failed to delete transaction', error as Error)
   }
 })

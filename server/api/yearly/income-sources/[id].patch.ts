@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // PATCH /api/yearly/income-sources/[id] - Update an income source
 export default defineEventHandler(async (event) => {
@@ -9,10 +10,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid income source ID',
-      })
+      return errors.badRequest(event, 'Invalid income source ID')
     }
 
     // Verify ownership through parent budget
@@ -24,10 +22,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Income source not found',
-      })
+      return errors.notFound(event, 'Income source not found')
     }
 
     const updateData: any = {
@@ -43,13 +38,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return incomeSource
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error updating income source:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update income source',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to update income source', error as Error)
   }
 })

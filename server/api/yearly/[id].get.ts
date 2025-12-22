@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 // GET /api/yearly/[id] - Get a yearly budget with all relations
 export default defineEventHandler(async (event) => {
@@ -7,10 +8,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid yearly budget ID',
-      })
+      return errors.badRequest(event, 'Invalid yearly budget ID')
     }
 
     const yearlyBudget = await prisma.yearlyBudget.findFirst({
@@ -54,20 +52,11 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!yearlyBudget) {
-      throw createError({
-        statusCode: 404,
-        message: 'Yearly budget not found',
-      })
+      return errors.notFound(event, 'Yearly budget not found')
     }
 
     return yearlyBudget
   } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error fetching yearly budget:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to fetch yearly budget',
-    })
+    return errors.serverError(event, 'Failed to fetch yearly budget', error)
   }
 })

@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // POST /api/yearly/[id]/copy-month - Copy category amounts, income entries, and deductions from one month to another
 export default defineEventHandler(async (event) => {
@@ -10,31 +11,19 @@ export default defineEventHandler(async (event) => {
     const { sourceMonth, targetMonth, resetPaidStatus = true } = body
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid budget ID',
-      })
+      return errors.badRequest(event, 'Invalid budget ID')
     }
 
     if (!sourceMonth || !targetMonth) {
-      throw createError({
-        statusCode: 400,
-        message: 'sourceMonth and targetMonth are required',
-      })
+      return errors.badRequest(event, 'sourceMonth and targetMonth are required')
     }
 
     if (sourceMonth < 1 || sourceMonth > 12 || targetMonth < 1 || targetMonth > 12) {
-      throw createError({
-        statusCode: 400,
-        message: 'Month values must be between 1 and 12',
-      })
+      return errors.badRequest(event, 'Month values must be between 1 and 12')
     }
 
     if (sourceMonth === targetMonth) {
-      throw createError({
-        statusCode: 400,
-        message: 'Source and target months cannot be the same',
-      })
+      return errors.badRequest(event, 'Source and target months cannot be the same')
     }
 
     // Get the budget with all categories, income sources, and deductions (ownership verified)
@@ -68,10 +57,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!budget) {
-      throw createError({
-        statusCode: 404,
-        message: 'Budget not found',
-      })
+      return errors.notFound(event, 'Budget not found')
     }
 
     const now = getCurrentTimestamp()
@@ -183,12 +169,6 @@ export default defineEventHandler(async (event) => {
       resetPaidStatus,
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error copying month data:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to copy month data',
-    })
+    return errors.serverError(event, 'Failed to copy month data', error)
   }
 })

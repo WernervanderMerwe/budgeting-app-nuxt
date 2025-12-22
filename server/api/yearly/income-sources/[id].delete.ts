@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 // DELETE /api/yearly/income-sources/[id] - Delete an income source
 export default defineEventHandler(async (event) => {
@@ -7,10 +8,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid income source ID',
-      })
+      return errors.badRequest(event, 'Invalid income source ID')
     }
 
     // Verify ownership through parent budget
@@ -22,10 +20,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Income source not found',
-      })
+      return errors.notFound(event, 'Income source not found')
     }
 
     await prisma.yearlyIncomeSource.delete({
@@ -33,13 +28,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error deleting income source:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to delete income source',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to delete income source', error as Error)
   }
 })

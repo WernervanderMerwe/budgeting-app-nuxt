@@ -1,5 +1,6 @@
 import type { TransactionFixedPayment, TransactionCategory, TransactionEntry } from '@prisma/client'
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 interface CategorySpending {
   categoryId: number
@@ -23,16 +24,13 @@ interface MonthSummary {
   categories: CategorySpending[]
 }
 
-export default defineEventHandler(async (event): Promise<MonthSummary> => {
+export default defineEventHandler(async (event): Promise<MonthSummary | ReturnType<typeof errors.badRequest>> => {
   try {
     const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid month ID',
-      })
+      return errors.badRequest(event, 'Invalid month ID')
     }
 
     const month = await prisma.transactionMonth.findFirst({
@@ -48,10 +46,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
     })
 
     if (!month) {
-      throw createError({
-        statusCode: 404,
-        message: 'Month not found',
-      })
+      return errors.notFound(event, 'Month not found')
     }
 
     // Calculate fixed payments total
@@ -103,13 +98,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
       totalRemaining: totalMoneyLeft,
       categories: categorySpending,
     }
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error calculating summary:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to calculate summary',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to calculate summary', error as Error)
   }
 })

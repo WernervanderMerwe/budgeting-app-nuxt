@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 // DELETE /api/yearly/categories/[id] - Delete a category
 export default defineEventHandler(async (event) => {
@@ -7,10 +8,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid category ID',
-      })
+      return errors.badRequest(event, 'Invalid category ID')
     }
 
     // Verify ownership through parent chain
@@ -24,10 +22,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Category not found',
-      })
+      return errors.notFound(event, 'Category not found')
     }
 
     await prisma.yearlyCategory.delete({
@@ -35,13 +30,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error deleting category:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to delete category',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to delete category', error as Error)
   }
 })

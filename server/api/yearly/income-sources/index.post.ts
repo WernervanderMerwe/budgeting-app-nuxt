@@ -1,6 +1,7 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { simulateTestError } from '~/server/utils/testError'
+import { errors } from '~/server/utils/errors'
 
 // POST /api/yearly/income-sources - Create a new income source with 12 month entries
 export default defineEventHandler(async (event) => {
@@ -13,10 +14,7 @@ export default defineEventHandler(async (event) => {
     const { yearlyBudgetId, name, orderIndex = 0 } = body
 
     if (!yearlyBudgetId || !name) {
-      throw createError({
-        statusCode: 400,
-        message: 'yearlyBudgetId and name are required',
-      })
+      return errors.badRequest(event, 'yearlyBudgetId and name are required')
     }
 
     // Verify ownership of the budget
@@ -25,10 +23,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!budget) {
-      throw createError({
-        statusCode: 404,
-        message: 'Budget not found',
-      })
+      return errors.notFound(event, 'Budget not found')
     }
 
     const now = getCurrentTimestamp()
@@ -61,13 +56,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return incomeSource
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error creating income source:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create income source',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to create income source', error as Error)
   }
 })

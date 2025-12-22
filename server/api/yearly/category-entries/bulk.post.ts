@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // POST /api/yearly/category-entries/bulk - Bulk update category entries
 // Used for copying amounts from one month to another
@@ -10,10 +11,7 @@ export default defineEventHandler(async (event) => {
     const { updates } = body
 
     if (!updates || !Array.isArray(updates) || updates.length === 0) {
-      throw createError({
-        statusCode: 400,
-        message: 'updates array is required',
-      })
+      return errors.badRequest(event, 'updates array is required')
     }
 
     // Verify ownership of all entries before updating
@@ -34,10 +32,7 @@ export default defineEventHandler(async (event) => {
     const unauthorizedIds = entryIds.filter((id: number) => !ownedIds.has(id))
 
     if (unauthorizedIds.length > 0) {
-      throw createError({
-        statusCode: 404,
-        message: 'One or more category entries not found',
-      })
+      return errors.notFound(event, 'One or more category entries not found')
     }
 
     const now = getCurrentTimestamp()
@@ -57,13 +52,7 @@ export default defineEventHandler(async (event) => {
     )
 
     return { success: true, updated: results.length }
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error bulk updating category entries:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to bulk update category entries',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to bulk update category entries', error as Error)
   }
 })

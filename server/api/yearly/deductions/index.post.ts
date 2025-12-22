@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // POST /api/yearly/deductions - Create a new deduction
 export default defineEventHandler(async (event) => {
@@ -9,10 +10,7 @@ export default defineEventHandler(async (event) => {
     const { incomeEntryId, name, amount = 0, orderIndex = 0 } = body
 
     if (!incomeEntryId || !name) {
-      throw createError({
-        statusCode: 400,
-        message: 'incomeEntryId and name are required',
-      })
+      return errors.badRequest(event, 'incomeEntryId and name are required')
     }
 
     // Verify ownership through parent chain
@@ -26,10 +24,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!incomeEntry) {
-      throw createError({
-        statusCode: 404,
-        message: 'Income entry not found',
-      })
+      return errors.notFound(event, 'Income entry not found')
     }
 
     const now = getCurrentTimestamp()
@@ -46,13 +41,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return deduction
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error creating deduction:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create deduction',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to create deduction', error as Error)
   }
 })

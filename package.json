@@ -4,11 +4,13 @@
   "description": "A simple budgeting application built with Nuxt 3",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
+    "build": "prisma generate && nuxt build",
+    "dev": "prisma generate && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "prisma:dev": "prisma generate",
+    "prisma:prod": "prisma generate --no-engine",
     "cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
     "cleanup:all": "taskkill /F /IM node.exe"
   },
@@ -16,12 +18,14 @@
     "@nuxt/ui": "^2.22.3",
     "@nuxtjs/color-mode": "^4.0.0",
     "@nuxtjs/supabase": "^2.0.3",
+    "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^6.19.0",
     "@supabase/supabase-js": "^2.87.3",
     "@vueuse/core": "^14.0.0",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "nuxt": "^3.15.4",
+    "pg": "^8.16.3",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.13",
     "zod": "^3.24.1"
@@ -29,6 +33,7 @@
   "devDependencies": {
     "@nuxt/devtools": "^1.6.4",
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.16.0",
     "prisma": "^6.19.0",
     "tsx": "^4.20.6",
     "typescript": "^5.7.2",

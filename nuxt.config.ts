@@ -20,7 +20,19 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'cloudflare_module',
+    preset: 'cloudflare_pages',
+    // Enable WASM support for Prisma driver adapters
+    experimental: {
+      wasm: true,
+    },
+    // Externalize cloudflare sockets for pg driver
+    rollupConfig: {
+      external: ['cloudflare:sockets'],
+    },
+    // Mock pg-native which is optional but causes build errors in edge runtime
+    alias: {
+      'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
+    },
   },
 
   app: {
@@ -41,8 +53,9 @@ export default defineNuxtConfig({
   },
 
   supabase: {
-    url: process.env.SUPABASE_URL,
-    key: process.env.SUPABASE_KEY,
+    // Don't set url/key here - they get baked as undefined at build time
+    // Instead, use NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_KEY env vars at runtime
+    types: '', // Disable Supabase types - using Prisma for DB access
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
@@ -52,7 +65,7 @@ export default defineNuxtConfig({
     cookieOptions: {
       maxAge: 60 * 60 * 8, // 8 hours
       sameSite: 'lax',
-      secure: false, // Set to true in production with HTTPS
+      secure: true,
     },
   },
 

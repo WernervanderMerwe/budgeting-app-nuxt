@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -6,10 +7,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid month ID',
-      })
+      return errors.badRequest(event, 'Invalid month ID')
     }
 
     // Verify ownership
@@ -18,10 +16,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Month not found',
-      })
+      return errors.notFound(event, 'Month not found')
     }
 
     await prisma.transactionMonth.delete({
@@ -29,13 +24,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error deleting month:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to delete month',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to delete month', error as Error)
   }
 })

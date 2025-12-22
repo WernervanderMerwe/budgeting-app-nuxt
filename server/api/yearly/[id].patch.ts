@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // PATCH /api/yearly/[id] - Update yearly budget settings
 export default defineEventHandler(async (event) => {
@@ -9,10 +10,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid yearly budget ID',
-      })
+      return errors.badRequest(event, 'Invalid yearly budget ID')
     }
 
     // Verify ownership before update
@@ -21,10 +19,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Yearly budget not found',
-      })
+      return errors.notFound(event, 'Yearly budget not found')
     }
 
     const updateData: any = {
@@ -41,12 +36,6 @@ export default defineEventHandler(async (event) => {
 
     return yearlyBudget
   } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error updating yearly budget:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update yearly budget',
-    })
+    return errors.serverError(event, 'Failed to update yearly budget', error)
   }
 })

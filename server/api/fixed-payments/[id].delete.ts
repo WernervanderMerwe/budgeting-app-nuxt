@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,10 +15,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Fixed payment not found',
-      })
+      return errors.notFound(event, 'Fixed payment not found')
     }
 
     await prisma.transactionFixedPayment.delete({
@@ -26,10 +24,6 @@ export default defineEventHandler(async (event) => {
 
     return { success: true }
   } catch (error) {
-    console.error('Error deleting fixed payment:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to delete fixed payment',
-    })
+    return errors.serverError(event, 'Failed to delete fixed payment', error as Error)
   }
 })

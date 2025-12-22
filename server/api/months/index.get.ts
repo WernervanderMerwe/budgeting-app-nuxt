@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -23,10 +24,6 @@ export default defineEventHandler(async (event) => {
     // Return as-is (values in cents)
     return months
   } catch (error) {
-    console.error('Error fetching months:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to fetch months',
-    })
+    return errors.serverError(event, 'Failed to fetch months', error as Error)
   }
 })

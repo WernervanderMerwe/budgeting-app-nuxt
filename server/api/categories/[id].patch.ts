@@ -1,6 +1,7 @@
 import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,10 +18,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Category not found',
-      })
+      return errors.notFound(event, 'Category not found')
     }
 
     const updateData: any = {
@@ -40,10 +38,6 @@ export default defineEventHandler(async (event) => {
     // Return as-is (values in cents) to match GET endpoint
     return category
   } catch (error) {
-    console.error('Error updating category:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update category',
-    })
+    return errors.serverError(event, 'Failed to update category', error as Error)
   }
 })

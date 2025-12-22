@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -6,10 +7,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid month ID',
-      })
+      return errors.badRequest(event, 'Invalid month ID')
     }
 
     const month = await prisma.transactionMonth.findFirst({
@@ -30,21 +28,12 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!month) {
-      throw createError({
-        statusCode: 404,
-        message: 'Month not found',
-      })
+      return errors.notFound(event, 'Month not found')
     }
 
     // Return as-is (values in cents)
     return month
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error fetching month:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to fetch month',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to fetch month', error as Error)
   }
 })

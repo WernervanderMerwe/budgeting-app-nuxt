@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // POST /api/yearly/[id]/clear-month - Reset all values for a month to zero
 export default defineEventHandler(async (event) => {
@@ -10,17 +11,11 @@ export default defineEventHandler(async (event) => {
     const { month, resetPaidStatus = true } = body
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid budget ID',
-      })
+      return errors.badRequest(event, 'Invalid budget ID')
     }
 
     if (!month || month < 1 || month > 12) {
-      throw createError({
-        statusCode: 400,
-        message: 'Month must be between 1 and 12',
-      })
+      return errors.badRequest(event, 'Month must be between 1 and 12')
     }
 
     // Get the budget with all categories, income sources, and deductions (ownership verified)
@@ -54,10 +49,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!budget) {
-      throw createError({
-        statusCode: 404,
-        message: 'Budget not found',
-      })
+      return errors.notFound(event, 'Budget not found')
     }
 
     const now = getCurrentTimestamp()
@@ -144,12 +136,6 @@ export default defineEventHandler(async (event) => {
       resetPaidStatus,
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error clearing month data:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to clear month data',
-    })
+    return errors.serverError(event, 'Failed to clear month data', error)
   }
 })

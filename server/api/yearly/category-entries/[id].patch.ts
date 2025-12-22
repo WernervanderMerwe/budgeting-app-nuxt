@@ -1,6 +1,7 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { simulateTestError } from '~/server/utils/testError'
+import { errors } from '~/server/utils/errors'
 
 // PATCH /api/yearly/category-entries/[id] - Update a category entry (amount or isPaid)
 export default defineEventHandler(async (event) => {
@@ -13,10 +14,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid category entry ID',
-      })
+      return errors.badRequest(event, 'Invalid category entry ID')
     }
 
     // Verify ownership through parent chain
@@ -32,10 +30,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Category entry not found',
-      })
+      return errors.notFound(event, 'Category entry not found')
     }
 
     const updateData: any = {
@@ -51,13 +46,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return entry
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error updating category entry:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update category entry',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to update category entry', error as Error)
   }
 })

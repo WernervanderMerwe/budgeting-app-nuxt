@@ -1,6 +1,7 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { simulateTestError } from '~/server/utils/testError'
+import { errors } from '~/server/utils/errors'
 
 // POST /api/yearly/categories - Create a new category with 12 month entries
 export default defineEventHandler(async (event) => {
@@ -13,10 +14,7 @@ export default defineEventHandler(async (event) => {
     const { sectionId, name, parentId = null, orderIndex = 0 } = body
 
     if (!sectionId || !name) {
-      throw createError({
-        statusCode: 400,
-        message: 'sectionId and name are required',
-      })
+      return errors.badRequest(event, 'sectionId and name are required')
     }
 
     // Verify ownership through parent section -> budget
@@ -28,10 +26,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!section) {
-      throw createError({
-        statusCode: 404,
-        message: 'Section not found',
-      })
+      return errors.notFound(event, 'Section not found')
     }
 
     const now = getCurrentTimestamp()
@@ -71,13 +66,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return category
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error creating category:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create category',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to create category', error as Error)
   }
 })

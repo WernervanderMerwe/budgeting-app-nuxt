@@ -1,6 +1,7 @@
 import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,10 +18,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Fixed payment not found',
-      })
+      return errors.notFound(event, 'Fixed payment not found')
     }
 
     const updateData: any = {
@@ -38,10 +36,6 @@ export default defineEventHandler(async (event) => {
     // Return as-is (values in cents) to match GET endpoint
     return fixedPayment
   } catch (error) {
-    console.error('Error updating fixed payment:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update fixed payment',
-    })
+    return errors.serverError(event, 'Failed to update fixed payment', error as Error)
   }
 })

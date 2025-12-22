@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 // GET /api/yearly - List all yearly budgets
 export default defineEventHandler(async (event) => {
@@ -18,11 +19,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return yearlyBudgets
-  } catch (error) {
-    console.error('Error fetching yearly budgets:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to fetch yearly budgets',
-    })
+  } catch (error: any) {
+    return errors.serverError(event, 'Failed to fetch yearly budgets', error)
   }
 })

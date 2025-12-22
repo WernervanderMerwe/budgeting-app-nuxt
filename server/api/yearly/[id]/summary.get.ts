@@ -1,4 +1,5 @@
 import prisma from '~/server/utils/db'
+import { errors } from '~/server/utils/errors'
 
 // GET /api/yearly/[id]/summary - Calculate budget summary with totals and percentages
 export default defineEventHandler(async (event) => {
@@ -7,10 +8,7 @@ export default defineEventHandler(async (event) => {
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid budget ID',
-      })
+      return errors.badRequest(event, 'Invalid budget ID')
     }
 
     // Get the budget with all relations (ownership verified by profileToken)
@@ -50,10 +48,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!budget) {
-      throw createError({
-        statusCode: 404,
-        message: 'Budget not found',
-      })
+      return errors.notFound(event, 'Budget not found')
     }
 
     // Calculate monthly summaries (1-12)
@@ -146,12 +141,6 @@ export default defineEventHandler(async (event) => {
       yearly: yearlyTotals,
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error calculating budget summary:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to calculate budget summary',
-    })
+    return errors.serverError(event, 'Failed to calculate budget summary', error)
   }
 })

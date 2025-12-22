@@ -33,3 +33,6 @@ prisma/*.db-journal
 .playwright-mcp
 .claude/settings.local.json
 .mcp.json
+
+# Windows reserved device names (artifacts)
+nul

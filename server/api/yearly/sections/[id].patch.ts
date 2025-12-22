@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // PATCH /api/yearly/sections/[id] - Update a section
 export default defineEventHandler(async (event) => {
@@ -9,10 +10,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     if (isNaN(id)) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid section ID',
-      })
+      return errors.badRequest(event, 'Invalid section ID')
     }
 
     // Verify ownership through parent budget
@@ -24,10 +22,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!existing) {
-      throw createError({
-        statusCode: 404,
-        message: 'Section not found',
-      })
+      return errors.notFound(event, 'Section not found')
     }
 
     const updateData: any = {
@@ -44,13 +39,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return section
-  } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error updating section:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to update section',
-    })
+  } catch (error) {
+    return errors.serverError(event, 'Failed to update section', error as Error)
   }
 })

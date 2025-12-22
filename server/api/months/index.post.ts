@@ -2,6 +2,7 @@ import prisma from '~/server/utils/db'
 import { randsToCents } from '~/server/utils/currency'
 import { monthSchema } from '~/server/utils/validation'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 import { z } from 'zod'
 
 export default defineEventHandler(async (event) => {
@@ -35,10 +36,7 @@ export default defineEventHandler(async (event) => {
       })
 
       if (!sourceMonth) {
-        throw createError({
-          statusCode: 404,
-          message: 'Source month not found',
-        })
+        return errors.notFound(event, 'Source month not found')
       }
 
       // Copy fixed payments
@@ -85,19 +83,10 @@ export default defineEventHandler(async (event) => {
       income: validatedData.income,
     }
   } catch (error) {
-    console.error('Error creating month:', error)
-
     if (error instanceof z.ZodError) {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid input data',
-        data: error.issues,
-      })
+      return errors.badRequest(event, 'Invalid input data')
     }
 
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create month',
-    })
+    return errors.serverError(event, 'Failed to create month', error as Error)
   }
 })

@@ -1,5 +1,6 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { errors } from '~/server/utils/errors'
 
 // Default sections for 70/20/10 rule
 const DEFAULT_SECTIONS = [
@@ -16,10 +17,7 @@ export default defineEventHandler(async (event) => {
     const { year, spendTarget = 500000, showWarnings = true } = body
 
     if (!year || typeof year !== 'number') {
-      throw createError({
-        statusCode: 400,
-        message: 'Year is required and must be a number',
-      })
+      return errors.badRequest(event, 'Year is required and must be a number')
     }
 
     // Check if budget already exists for this year for this user
@@ -28,10 +26,8 @@ export default defineEventHandler(async (event) => {
     })
 
     if (existing) {
-      throw createError({
-        statusCode: 409,
-        message: `Budget for year ${year} already exists`,
-      })
+      setResponseStatus(event, 409)
+      return { error: true, statusCode: 409, message: `Budget for year ${year} already exists` }
     }
 
     const now = getCurrentTimestamp()
@@ -62,12 +58,6 @@ export default defineEventHandler(async (event) => {
 
     return yearlyBudget
   } catch (error: any) {
-    if (error.statusCode) throw error
-
-    console.error('Error creating yearly budget:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to create yearly budget',
-    })
+    return errors.serverError(event, 'Failed to create yearly budget', error)
   }
 })
