@@ -1,9 +1,13 @@
 import prisma from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { simulateTestError } from '~/server/utils/testError'
 
 export default defineEventHandler(async (event) => {
   try {
+    // DEV ONLY: Simulate errors for testing optimistic updates
+    await simulateTestError(event)
+
     const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)

@@ -23,6 +23,7 @@
           required
           :disabled="isAdding"
           @keydown.enter.prevent="handleAdd"
+          @keydown.escape.prevent="cancelAdd"
         />
         <CurrencyInput
           v-model="newTransaction.amount"
@@ -31,6 +32,7 @@
           required
           :disabled="isAdding"
           @enter="handleAdd"
+          @escape="cancelAdd"
         />
       </div>
       <div class="mb-2">
@@ -125,7 +127,13 @@
         </template>
 
         <!-- Edit Mode -->
-        <form v-else @submit.prevent="handleUpdate(transaction.id)" class="flex-1 space-y-2">
+        <form
+          v-else
+          :ref="el => setEditFormRef(transaction.id, el as HTMLFormElement | null)"
+          @submit.prevent="handleUpdate(transaction.id)"
+          @focusout="(e) => handleEditFormFocusOut(transaction.id, e)"
+          class="flex-1 space-y-2"
+        >
           <div class="flex items-center space-x-2">
             <input
               v-model="editedTransaction.description"
@@ -135,6 +143,7 @@
               required
               :disabled="isUpdating"
               @keydown.enter.prevent="handleUpdate(transaction.id)"
+              @keydown.escape.prevent="cancelEditing"
             />
             <CurrencyInput
               v-model="editedTransaction.amount"
@@ -143,6 +152,7 @@
               required
               :disabled="isUpdating"
               @enter="handleUpdate(transaction.id)"
+              @escape="cancelEditing"
             />
             <button
               type="submit"
@@ -203,6 +213,15 @@ const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
 const isAdding = ref(false)
 const isUpdating = ref(false)
+const editFormRefs = new Map<number, HTMLFormElement | null>()
+
+const setEditFormRef = (id: number, el: HTMLFormElement | null) => {
+  if (el) {
+    editFormRefs.set(id, el)
+  } else {
+    editFormRefs.delete(id)
+  }
+}
 
 const newTransaction = ref({
   description: '',
@@ -274,6 +293,17 @@ const startEditing = (transaction: Transaction) => {
 const cancelEditing = () => {
   editingId.value = null
   editedTransaction.value = { description: '', amount: 0, date: '' }
+}
+
+const handleEditFormFocusOut = (transactionId: number, event: FocusEvent) => {
+  // Don't cancel if focus is moving to another element within the form
+  const relatedTarget = event.relatedTarget as HTMLElement | null
+  const formRef = editFormRefs.get(transactionId)
+  if (formRef && relatedTarget && formRef.contains(relatedTarget)) {
+    return
+  }
+  // Focus left the form, cancel editing
+  cancelEditing()
 }
 
 const handleUpdate = async (id: number) => {

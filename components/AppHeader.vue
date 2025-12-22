@@ -65,12 +65,8 @@
           </template>
         </ClientOnly>
 
-        <!-- User Menu (placeholder for future auth) -->
-        <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-            U
-          </div>
-        </div>
+        <!-- User Menu -->
+        <UserWidget />
       </div>
     </div>
   </header>

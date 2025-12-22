@@ -57,7 +57,7 @@ export const useBudget = () => {
         categoryName: cat.name,
         allocated: cat.allocatedAmount,
         spent,
-        remaining: Math.max(0, cat.allocatedAmount - spent)
+        remaining: cat.allocatedAmount - spent
       }
     })
 
@@ -148,7 +148,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to create fixed payment')
-      budgetError.value = error.message || 'Failed to create fixed payment'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -207,7 +207,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to update fixed payment')
-      budgetError.value = error.message || 'Failed to update fixed payment'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -245,7 +245,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to delete fixed payment')
-      budgetError.value = error.message || 'Failed to delete fixed payment'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -314,7 +314,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to create category')
-      budgetError.value = error.message || 'Failed to create category'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -372,7 +372,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to update category')
-      budgetError.value = error.message || 'Failed to update category'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -409,7 +409,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to delete category')
-      budgetError.value = error.message || 'Failed to delete category'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -489,7 +489,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to create transaction')
-      budgetError.value = error.message || 'Failed to create transaction'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -554,7 +554,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to update transaction')
-      budgetError.value = error.message || 'Failed to update transaction'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }
@@ -595,7 +595,7 @@ export const useBudget = () => {
       }
       removePendingOperation(operationId)
       showErrorToast(error.message || 'Failed to delete transaction')
-      budgetError.value = error.message || 'Failed to delete transaction'
+      // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
   }

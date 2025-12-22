@@ -1,9 +1,13 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { simulateTestError } from '~/server/utils/testError'
 
 // POST /api/yearly/income-sources - Create a new income source with 12 month entries
 export default defineEventHandler(async (event) => {
   try {
+    // DEV ONLY: Simulate errors for testing optimistic updates
+    await simulateTestError(event)
+
     const { profileToken } = event.context
     const body = await readBody(event)
     const { yearlyBudgetId, name, orderIndex = 0 } = body

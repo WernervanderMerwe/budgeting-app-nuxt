@@ -14,6 +14,14 @@ const selectedYear = ref<number>(getCurrentYear())
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+// Memoized readonly wrappers - ensures all composables share the same reactive reference
+// This fixes reactivity issues where changes wouldn't propagate across composables
+const readonlyBudgets = readonly(budgets)
+const readonlyCurrentBudget = readonly(currentBudget)
+const readonlySelectedYear = readonly(selectedYear)
+const readonlyLoading = readonly(loading)
+const readonlyError = readonly(error)
+
 // Helper to get writable currentBudget for optimistic updates
 export function getWritableYearlyBudget() {
   return currentBudget
@@ -206,12 +214,12 @@ export function useYearlyBudget() {
   })
 
   return {
-    // State
-    budgets: readonly(budgets),
-    currentBudget: readonly(currentBudget),
-    selectedYear: readonly(selectedYear),
-    loading: readonly(loading),
-    error: readonly(error),
+    // State (using memoized readonly wrappers for proper reactivity across composables)
+    budgets: readonlyBudgets,
+    currentBudget: readonlyCurrentBudget,
+    selectedYear: readonlySelectedYear,
+    loading: readonlyLoading,
+    error: readonlyError,
 
     // Actions
     fetchBudgets,

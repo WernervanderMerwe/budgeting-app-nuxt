@@ -1,11 +1,23 @@
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-        Fixed Payments
-      </h2>
       <button
-        @click="showAddForm = true"
+        @click="isExpanded = !isExpanded"
+        class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300"
+      >
+        <svg
+          class="w-5 h-5 transition-transform"
+          :class="{ 'rotate-90': isExpanded }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        Fixed Payments
+      </button>
+      <button
+        @click="handleAddClick"
         class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center space-x-1"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,8 +27,10 @@
       </button>
     </div>
 
-    <!-- Add Form -->
-    <form v-if="showAddForm" @submit.prevent="handleAdd" class="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+    <!-- Collapsible Content -->
+    <div v-show="isExpanded">
+      <!-- Add Form -->
+      <form v-if="showAddForm" @submit.prevent="handleAdd" class="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
       <div class="flex gap-3 mb-3">
         <input
           v-model="newPayment.name"
@@ -55,26 +69,26 @@
           <span>{{ isAdding ? 'Adding...' : 'Add' }}</span>
         </button>
       </div>
-    </form>
+      </form>
 
-    <!-- Payments List -->
-    <div v-if="fixedPayments.length === 0 && !showAddForm" class="text-center py-10">
-      <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">No fixed payments yet</p>
-      <p class="text-gray-500 dark:text-gray-500 text-xs mt-1">Add recurring payments like rent or subscriptions</p>
-    </div>
+      <!-- Payments List -->
+      <div v-if="fixedPayments.length === 0 && !showAddForm" class="text-center py-10">
+        <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">No fixed payments yet</p>
+        <p class="text-gray-500 dark:text-gray-500 text-xs mt-1">Add recurring payments like rent or subscriptions</p>
+      </div>
 
-    <ul v-else class="space-y-2">
-      <li
-        v-for="payment in fixedPayments"
-        :key="payment.id"
-        :class="[
-          'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-opacity',
-          { 'animate-pulse opacity-70': isTempId(payment.id) }
-        ]"
-      >
+      <ul v-else class="space-y-2">
+        <li
+          v-for="payment in fixedPayments"
+          :key="payment.id"
+          :class="[
+            'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-opacity',
+            { 'animate-pulse opacity-70': isTempId(payment.id) }
+          ]"
+        >
         <!-- Display Mode -->
         <template v-if="editingId !== payment.id">
           <div class="flex-1">
@@ -114,13 +128,21 @@
         </template>
 
         <!-- Edit Mode -->
-        <form v-else @submit.prevent="handleUpdate(payment.id)" class="flex-1 flex items-center space-x-2">
+        <form
+          v-else
+          ref="editFormRef"
+          @submit.prevent="handleUpdate(payment.id)"
+          @focusout="handleEditFormFocusOut"
+          class="flex-1 flex items-center space-x-2"
+        >
           <input
             v-model="editedPayment.name"
             type="text"
             class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm disabled:opacity-50"
             required
             :disabled="isUpdating"
+            @keydown.enter.prevent="handleUpdate(payment.id)"
+            @keydown.escape.prevent="cancelEditing"
           />
           <CurrencyInput
             v-model="editedPayment.amount"
@@ -128,6 +150,8 @@
             class="w-24 text-sm"
             required
             :disabled="isUpdating"
+            @enter="handleUpdate(payment.id)"
+            @escape="cancelEditing"
           />
           <button
             type="submit"
@@ -158,13 +182,14 @@
       </li>
     </ul>
 
-    <!-- Total -->
-    <div v-if="fixedPayments.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Fixed Payments</span>
-        <span class="text-lg font-bold text-gray-900 dark:text-white">
-          {{ formatCurrency(totalFixedPayments) }}
-        </span>
+      <!-- Total -->
+      <div v-if="fixedPayments.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Fixed Payments</span>
+          <span class="text-lg font-bold text-gray-900 dark:text-white">
+            {{ formatCurrency(totalFixedPayments) }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -188,7 +213,9 @@ const { openDialog } = useConfirmDialog()
 const showAddForm = ref(false)
 const editingId = ref<number | null>(null)
 const isAdding = ref(false)
+const isExpanded = ref(true)
 const isUpdating = ref(false)
+const editFormRef = ref<HTMLFormElement | null>(null)
 
 const newPayment = ref({
   name: '',
@@ -204,6 +231,11 @@ const totalFixedPayments = computed(() => {
   const total = props.fixedPayments.reduce((sum, payment) => sum + payment.amount, 0)
   return centsToRands(total)
 })
+
+const handleAddClick = () => {
+  isExpanded.value = true
+  showAddForm.value = true
+}
 
 const handleAdd = async () => {
   if (isAdding.value) return // Prevent double submission
@@ -242,6 +274,16 @@ const startEditing = (payment: FixedPayment) => {
 const cancelEditing = () => {
   editingId.value = null
   editedPayment.value = { name: '', amount: 0 }
+}
+
+const handleEditFormFocusOut = (event: FocusEvent) => {
+  // Don't cancel if focus is moving to another element within the form
+  const relatedTarget = event.relatedTarget as HTMLElement | null
+  if (editFormRef.value && relatedTarget && editFormRef.value.contains(relatedTarget)) {
+    return
+  }
+  // Focus left the form, cancel editing
+  cancelEditing()
 }
 
 const handleUpdate = async (id: number) => {

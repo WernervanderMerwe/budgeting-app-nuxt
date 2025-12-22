@@ -21,11 +21,19 @@
     </div>
 
     <!-- Edit Mode -->
-    <form v-else @submit.prevent="handleSave" class="space-y-4">
+    <form
+      v-else
+      ref="editFormRef"
+      @submit.prevent="handleSave"
+      @focusout="handleEditFormFocusOut"
+      class="space-y-4"
+    >
       <CurrencyInput
         v-model="editedIncome"
         label="Income Amount (R)"
         required
+        @enter="handleSave"
+        @escape="cancelEditing"
       />
 
       <div class="flex justify-end space-x-3">
@@ -59,10 +67,12 @@ interface Props {
 const props = defineProps<Props>()
 
 const { updateMonth } = useMonths()
+const { refreshSummary } = useBudget()
 
 const isEditing = ref(false)
 const isSaving = ref(false)
 const editedIncome = ref(0)
+const editFormRef = ref<HTMLFormElement | null>(null)
 
 const startEditing = () => {
   editedIncome.value = centsToRands(props.month.income)
@@ -74,17 +84,36 @@ const cancelEditing = () => {
   editedIncome.value = 0
 }
 
+const handleEditFormFocusOut = (event: FocusEvent) => {
+  // Don't cancel if focus is moving to another element within the form
+  const relatedTarget = event.relatedTarget as HTMLElement | null
+  if (editFormRef.value && relatedTarget && editFormRef.value.contains(relatedTarget)) {
+    return
+  }
+  // Focus left the form, cancel editing
+  cancelEditing()
+}
+
 const handleSave = async () => {
-  isSaving.value = true
+  // Close form immediately (optimistic)
+  isEditing.value = false
+
+  // Start the update - optimistic update happens synchronously, then API call runs async
+  const updatePromise = updateMonth(props.month.id, {
+    income: editedIncome.value,
+  })
+
+  // Immediately recalculate summary based on optimistic update
+  // This runs synchronously after the optimistic state change in updateMonth
+  refreshSummary()
+
+  // Wait for API to complete
   try {
-    await updateMonth(props.month.id, {
-      income: editedIncome.value,
-    })
-    isEditing.value = false
+    await updatePromise
   } catch (error) {
+    // Rollback happened in updateMonth, refresh summary to reflect rollback
+    refreshSummary()
     console.error('Failed to update income:', error)
-  } finally {
-    isSaving.value = false
   }
 }
 </script>

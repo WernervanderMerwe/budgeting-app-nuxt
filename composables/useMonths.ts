@@ -8,6 +8,7 @@ import type {
 } from '~/types/budget'
 import { generateTempId } from './useOptimisticUpdates'
 import { getCurrentTimestamp } from '~/utils/date'
+import { randsToCents } from '~/utils/currency'
 
 export const useMonths = () => {
   const { showErrorToast } = useOptimisticUpdates()
@@ -154,13 +155,18 @@ export const useMonths = () => {
     const previousMonths = JSON.parse(JSON.stringify(months.value))
     const previousCurrentMonth = currentMonth.value ? JSON.parse(JSON.stringify(currentMonth.value)) : null
 
+    // Convert income to cents for optimistic update (API receives Rands, but state stores cents)
+    const optimisticData = monthData.income !== undefined
+      ? { ...monthData, income: randsToCents(monthData.income) }
+      : monthData
+
     // Apply optimistic update
     const index = months.value.findIndex(m => m.id === id)
     if (index !== -1) {
-      months.value[index] = { ...months.value[index], ...monthData, updatedAt: getCurrentTimestamp() }
+      months.value[index] = { ...months.value[index], ...optimisticData, updatedAt: getCurrentTimestamp() }
     }
     if (currentMonth.value && currentMonth.value.id === id) {
-      currentMonth.value = { ...currentMonth.value, ...monthData, updatedAt: getCurrentTimestamp() }
+      currentMonth.value = { ...currentMonth.value, ...optimisticData, updatedAt: getCurrentTimestamp() }
     }
 
     try {

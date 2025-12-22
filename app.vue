@@ -3,7 +3,8 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <UNotifications />
+    <UNotifications :ui="{ position: 'top-0 bottom-[unset] right-0' }" />
+    <DevTestPanel />
   </div>
 </template>
 

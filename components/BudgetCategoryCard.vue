@@ -25,18 +25,28 @@
           </svg>
 
           <template v-if="editingCategory">
-            <form @submit.prevent="handleUpdateCategory" @click.stop class="flex-1 flex items-center space-x-2">
+            <form
+              ref="editFormRef"
+              @submit.prevent="handleUpdateCategory"
+              @click.stop
+              @focusout="handleEditFormFocusOut"
+              class="flex-1 flex items-center space-x-2"
+            >
               <input
                 v-model="editedCategory.name"
                 type="text"
                 class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 required
+                @keydown.enter.prevent="handleUpdateCategory"
+                @keydown.escape.prevent="cancelEditCategory"
               />
               <CurrencyInput
                 v-model="editedCategory.allocatedAmount"
                 placeholder="e.g., 5000.00"
                 class="w-28 text-sm"
                 required
+                @enter="handleUpdateCategory"
+                @escape="cancelEditCategory"
               />
               <button
                 type="submit"
@@ -145,6 +155,7 @@ const { openDialog } = useConfirmDialog()
 
 const isExpanded = ref(false) // Start collapsed by default
 const editingCategory = ref(false)
+const editFormRef = ref<HTMLFormElement | null>(null)
 const editedCategory = ref({
   name: '',
   allocatedAmount: 0,
@@ -182,6 +193,16 @@ const startEditCategory = () => {
 const cancelEditCategory = () => {
   editingCategory.value = false
   editedCategory.value = { name: '', allocatedAmount: 0 }
+}
+
+const handleEditFormFocusOut = (event: FocusEvent) => {
+  // Don't cancel if focus is moving to another element within the form
+  const relatedTarget = event.relatedTarget as HTMLElement | null
+  if (editFormRef.value && relatedTarget && editFormRef.value.contains(relatedTarget)) {
+    return
+  }
+  // Focus left the form, cancel editing
+  cancelEditCategory()
 }
 
 const handleUpdateCategory = async () => {

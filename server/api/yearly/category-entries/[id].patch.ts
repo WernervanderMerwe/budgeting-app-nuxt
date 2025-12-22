@@ -1,9 +1,13 @@
 import prisma from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
+import { simulateTestError } from '~/server/utils/testError'
 
 // PATCH /api/yearly/category-entries/[id] - Update a category entry (amount or isPaid)
 export default defineEventHandler(async (event) => {
   try {
+    // DEV ONLY: Simulate errors for testing optimistic updates
+    await simulateTestError(event)
+
     const { profileToken } = event.context
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)

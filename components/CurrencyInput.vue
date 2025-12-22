@@ -15,6 +15,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: number): void
   (e: 'enter'): void
+  (e: 'escape'): void
+  (e: 'blur', event: FocusEvent): void
 }>()
 
 const inputValue = ref('')
@@ -53,16 +55,20 @@ function handleInput(event: Event) {
   emit('update:modelValue', Math.round(parsed * 100) / 100)
 }
 
-function handleBlur() {
+function handleBlur(event: FocusEvent) {
   // Format on blur
   const parsed = parseFloat(inputValue.value.replace(',', '.')) || 0
   inputValue.value = parsed === 0 ? '' : parsed.toFixed(2)
+  emit('blur', event)
 }
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
     event.preventDefault() // Prevent form submission, let parent handle it
     emit('enter')
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    emit('escape')
   }
 }
 </script>

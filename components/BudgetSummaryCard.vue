@@ -104,7 +104,7 @@
                     : 'text-red-600 dark:text-red-400'
                 ]"
               >
-                {{ formatCurrency(centsToRands(Math.abs(category.remaining))) }}
+                {{ category.remaining >= 0 ? '' : '-' }}{{ formatCurrency(centsToRands(Math.abs(category.remaining))) }}
               </span>
             </div>
           </li>

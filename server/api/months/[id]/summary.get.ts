@@ -76,7 +76,7 @@ export default defineEventHandler(async (event): Promise<MonthSummary> => {
         categoryName: cat.name,
         allocated: cat.allocatedAmount,
         spent: spent,
-        remaining: remaining > 0 ? remaining : 0,
+        remaining: remaining, // Can be negative when overspent
         overBudget: remaining < 0 ? Math.abs(remaining) : 0,
       }
     })
