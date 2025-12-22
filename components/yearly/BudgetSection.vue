@@ -92,7 +92,7 @@ function handleSectionCheckboxClick(month: number, event: MouseEvent) {
 </script>
 
 <template>
-  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg mb-4">
     <!-- Section Header -->
     <div
       class="flex items-stretch bg-gray-100 dark:bg-gray-800 cursor-pointer"
@@ -119,11 +119,11 @@ function handleSectionCheckboxClick(month: number, event: MouseEvent) {
       </div>
 
       <!-- Month Totals with Section Checkboxes -->
-      <div class="flex flex-1">
+      <div class="flex flex-1 overflow-hidden">
         <div
           v-for="month in 12"
           :key="month"
-          class="flex-1 min-w-[100px] px-1 py-2 flex items-center gap-1 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+          class="flex-1 min-w-[115px] px-1 py-2 flex items-center gap-1 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
           :class="[getWarningClass(month), { 'bg-green-100/50 dark:bg-green-900/30': areAllCategoriesPaidForMonth(month) }]"
         >
           <button

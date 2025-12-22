@@ -267,11 +267,11 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
       </div>
 
       <!-- Gross Income Cells -->
-      <div class="flex flex-1">
+      <div class="flex flex-1 overflow-hidden">
         <div
           v-for="month in 12"
           :key="month"
-          class="flex-1 min-w-[100px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+          class="flex-1 min-w-[115px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
         >
           <!-- Convert cents to rands for display -->
           <YearlyMonthCell
@@ -290,11 +290,11 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
       <div
         v-for="deductionName in uniqueDeductionNames"
         :key="deductionName"
-        class="group/deduction flex items-stretch border-b border-gray-100 dark:border-gray-800 bg-red-50/30 dark:bg-red-900/10"
+        class="group/deduction flex items-stretch border-b border-gray-100 dark:border-gray-800 bg-red-50 dark:bg-red-900"
       >
         <!-- Deduction Name (sticky) -->
         <div
-          class="sticky left-0 z-10 relative flex items-center gap-1 pl-8 pr-2 py-1 bg-red-50/50 dark:bg-red-900/20 border-r border-gray-200 dark:border-gray-700"
+          class="sticky left-0 z-10 relative flex items-center gap-1 pl-8 pr-2 py-1 bg-red-50 dark:bg-red-900 border-r border-gray-200 dark:border-gray-700"
           :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
         >
           <!-- Edit Mode for deduction name -->
@@ -328,11 +328,11 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
           </button>
         </div>
         <!-- Deduction Amount Cells (editable) -->
-        <div class="flex flex-1">
+        <div class="flex flex-1 overflow-hidden">
           <div
             v-for="month in 12"
             :key="month"
-            class="flex-1 min-w-[100px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+            class="flex-1 min-w-[115px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
             <!-- Convert cents to rands for display -->
             <YearlyMonthCell
@@ -347,9 +347,9 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
       </div>
 
       <!-- Add Deduction Button/Input -->
-      <div class="flex items-stretch border-b border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/20">
+      <div class="flex items-stretch border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
         <div
-          class="sticky left-0 z-10 flex items-center gap-1 pl-8 pr-2 py-1 bg-gray-50/50 dark:bg-gray-800/30 border-r border-gray-200 dark:border-gray-700"
+          class="sticky left-0 z-10 flex items-center gap-1 pl-8 pr-2 py-1 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
           :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
         >
           <!-- Input mode for adding deduction -->
@@ -381,18 +381,18 @@ function handleDeductionNameKeydown(event: KeyboardEvent) {
       </div>
 
       <!-- Net Income Row -->
-      <div class="flex items-stretch border-b border-gray-200 dark:border-gray-700 bg-blue-50/50 dark:bg-blue-900/20">
+      <div class="flex items-stretch border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900">
         <div
-          class="sticky left-0 z-10 flex items-center gap-2 pl-8 pr-3 py-2 bg-blue-50 dark:bg-blue-900/30 border-r border-gray-200 dark:border-gray-700"
+          class="sticky left-0 z-10 flex items-center gap-2 pl-8 pr-3 py-2 bg-blue-50 dark:bg-blue-900 border-r border-gray-200 dark:border-gray-700"
           :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
         >
           <span class="text-sm font-medium text-blue-700 dark:text-blue-300">= Net</span>
         </div>
-        <div class="flex flex-1">
+        <div class="flex flex-1 overflow-hidden">
           <div
             v-for="month in 12"
             :key="month"
-            class="flex-1 min-w-[100px] px-1 py-2 text-right text-sm font-medium text-blue-700 dark:text-blue-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+            class="flex-1 min-w-[115px] px-1 py-2 text-right text-sm font-medium text-blue-700 dark:text-blue-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
             {{ formatCurrency(centsToRands(getNetForMonth(month))) }}
           </div>

@@ -198,7 +198,7 @@ async function handleAddIncomeSource() {
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+  <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900 min-w-0">
     <!-- Header -->
     <YearlyHeader
       @open-copy-modal="showCopyModal = true"
@@ -206,7 +206,7 @@ async function handleAddIncomeSource() {
     />
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-auto">
+    <div class="flex-1 min-h-0 overflow-auto">
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center">
@@ -252,12 +252,12 @@ async function handleAddIncomeSource() {
       </div>
 
       <!-- Budget View -->
-      <div v-else class="overflow-x-auto p-4">
+      <div v-else class="p-4 min-w-max">
         <!-- Month Headers -->
         <div class="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-4">
           <div class="flex">
             <div
-              class="relative px-3 py-2 border-r border-gray-200 dark:border-gray-700 flex-shrink-0"
+              class="sticky left-0 z-10 relative px-3 py-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0"
               :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
             >
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Category</span>
@@ -272,7 +272,7 @@ async function handleAddIncomeSource() {
               <div
                 v-for="(month, index) in MONTH_NAMES_SHORT"
                 :key="index"
-                class="flex-1 min-w-[100px] px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0 overflow-hidden"
+                class="flex-1 min-w-[115px] px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0 overflow-hidden"
               >
                 {{ month }}
               </div>
@@ -304,7 +304,7 @@ async function handleAddIncomeSource() {
           <YearlySummaryFooter />
         </div>
       </div>
-    </main>
+    </div>
 
     <!-- Copy Month Modal -->
     <YearlyCopyMonthModal

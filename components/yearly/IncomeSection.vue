@@ -111,15 +111,15 @@ async function handleRenameDeduction(oldName: string, newName: string, sourceId:
 </script>
 
 <template>
-  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg mb-4">
     <!-- Section Header -->
     <div
-      class="flex items-stretch bg-green-100 dark:bg-green-900/30 cursor-pointer"
+      class="flex items-stretch bg-green-100 dark:bg-green-800 cursor-pointer"
       @click="isExpanded = !isExpanded"
     >
       <!-- Section Name (sticky) -->
       <div
-        class="sticky left-0 z-10 flex items-center gap-2 px-2 py-2 bg-green-100 dark:bg-green-900/30 border-r border-gray-200 dark:border-gray-700"
+        class="sticky left-0 z-10 flex items-center gap-2 px-2 py-2 bg-green-100 dark:bg-green-800 border-r border-gray-200 dark:border-gray-700"
         :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
       >
         <button class="p-0.5">
@@ -137,11 +137,11 @@ async function handleRenameDeduction(oldName: string, newName: string, sourceId:
       </div>
 
       <!-- Month Headers -->
-      <div class="flex flex-1">
+      <div class="flex flex-1 overflow-hidden">
         <div
           v-for="(total, index) in monthlyIncomeTotals"
           :key="index"
-          class="flex-1 min-w-[100px] px-1 py-2 text-right text-sm font-medium text-green-700 dark:text-green-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+          class="flex-1 min-w-[115px] px-1 py-2 text-right text-sm font-medium text-green-700 dark:text-green-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
         >
           {{ formatCurrency(centsToRands(total.net)) }}
         </div>
@@ -164,18 +164,18 @@ async function handleRenameDeduction(oldName: string, newName: string, sourceId:
       />
 
       <!-- Total Bruto Row -->
-      <div class="flex items-stretch border-t border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20">
+      <div class="flex items-stretch border-t border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-800">
         <div
-          class="sticky left-0 z-10 flex items-center px-2 py-1 bg-green-50 dark:bg-green-900/20 border-r border-gray-200 dark:border-gray-700"
+          class="sticky left-0 z-10 flex items-center px-2 py-1 bg-green-50 dark:bg-green-800 border-r border-gray-200 dark:border-gray-700"
           :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
         >
           <span class="font-semibold text-green-700 dark:text-green-300">TOTAL NET</span>
         </div>
-        <div class="flex flex-1">
+        <div class="flex flex-1 overflow-hidden">
           <div
             v-for="(total, index) in monthlyIncomeTotals"
             :key="index"
-            class="flex-1 min-w-[100px] px-1 py-1 text-right text-sm font-bold text-green-700 dark:text-green-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+            class="flex-1 min-w-[115px] px-1 py-1 text-right text-sm font-bold text-green-700 dark:text-green-300 border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           >
             {{ formatCurrency(centsToRands(total.net)) }}
           </div>

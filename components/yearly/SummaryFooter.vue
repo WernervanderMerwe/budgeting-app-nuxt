@@ -42,20 +42,20 @@ function handleKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
     <!-- Spend Target Row -->
-    <div class="flex items-stretch border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900/20">
+    <div class="flex items-stretch border-b border-gray-200 dark:border-gray-700 bg-orange-50 dark:bg-orange-900">
       <div
-        class="sticky left-0 z-10 flex items-center px-3 py-2 bg-orange-50 dark:bg-orange-900/20 border-r border-gray-200 dark:border-gray-700"
+        class="sticky left-0 z-10 flex items-center px-3 py-2 bg-orange-50 dark:bg-orange-900 border-r border-gray-200 dark:border-gray-700"
         :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
       >
         <span class="font-semibold text-orange-700 dark:text-orange-300">Spend Target</span>
       </div>
-      <div class="flex flex-1">
+      <div class="flex flex-1 overflow-hidden">
         <div
           v-for="(summary, index) in monthlySummaries"
           :key="index"
-          class="flex-1 min-w-[100px] px-1 py-2 text-right border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+          class="flex-1 min-w-[115px] px-1 py-2 text-right border-r border-gray-100 dark:border-gray-800 last:border-r-0"
         >
           <input
             v-if="isEditingTarget === summary.month"
@@ -78,18 +78,18 @@ function handleKeydown(event: KeyboardEvent) {
     </div>
 
     <!-- Monthly Leftover Row -->
-    <div class="flex items-stretch bg-purple-50 dark:bg-purple-900/20">
+    <div class="flex items-stretch bg-purple-50 dark:bg-purple-900">
       <div
-        class="sticky left-0 z-10 flex items-center px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border-r border-gray-200 dark:border-gray-700"
+        class="sticky left-0 z-10 flex items-center px-3 py-2 bg-purple-50 dark:bg-purple-900 border-r border-gray-200 dark:border-gray-700"
         :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
       >
         <span class="font-semibold text-purple-700 dark:text-purple-300">Monthly Leftover</span>
       </div>
-      <div class="flex flex-1">
+      <div class="flex flex-1 overflow-hidden">
         <div
           v-for="(summary, index) in monthlySummaries"
           :key="index"
-          class="flex-1 min-w-[100px] px-1 py-2 text-right text-sm font-bold border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+          class="flex-1 min-w-[115px] px-1 py-2 text-right text-sm font-bold border-r border-gray-100 dark:border-gray-800 last:border-r-0"
           :class="getLeftoverClass(summary.leftover)"
         >
           {{ formatCurrency(summary.leftover) }}

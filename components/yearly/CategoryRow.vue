@@ -231,11 +231,11 @@ function handleEditKeydown(event: KeyboardEvent) {
       </div>
 
       <!-- Month Cells -->
-      <div class="flex flex-1">
+      <div class="flex flex-1 overflow-hidden">
         <div
           v-for="month in 12"
           :key="month"
-          class="flex-1 min-w-[100px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
+          class="flex-1 min-w-[115px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
         >
           <!-- Parent category with children - show aggregate checkbox -->
           <div
