@@ -1,4 +1,4 @@
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { errors } from '~/server/utils/errors'
 
@@ -6,6 +6,7 @@ import { errors } from '~/server/utils/errors'
 export default defineEventHandler(async (event) => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
     const body = await readBody(event)
     const { sectionId, name, parentId = null, orderIndex = 0 } = body
 

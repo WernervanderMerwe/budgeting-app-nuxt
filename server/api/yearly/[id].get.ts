@@ -1,10 +1,11 @@
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { errors } from '~/server/utils/errors'
 
 // GET /api/yearly/[id] - Get a yearly budget with all relations
 export default defineEventHandler(async (event) => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {

@@ -1,4 +1,4 @@
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { categorySchema } from '~/server/utils/validation'
 import { getCurrentTimestamp } from '~/server/utils/date'
@@ -7,6 +7,7 @@ import { errors } from '~/server/utils/errors'
 export default defineEventHandler(async (event) => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
     const body = await readBody(event)
     const validatedData = categorySchema.parse(body)
 

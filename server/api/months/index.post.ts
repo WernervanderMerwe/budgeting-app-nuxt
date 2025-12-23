@@ -1,4 +1,4 @@
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { randsToCents } from '~/server/utils/currency'
 import { monthSchema } from '~/server/utils/validation'
 import { getCurrentTimestamp } from '~/server/utils/date'
@@ -8,6 +8,7 @@ import { z } from 'zod'
 export default defineEventHandler(async (event) => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
     const body = await readBody(event)
 
     // Validate input

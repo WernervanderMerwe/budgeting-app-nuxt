@@ -1,5 +1,5 @@
 import type { TransactionFixedPayment, TransactionCategory, TransactionEntry } from '@prisma/client'
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { errors } from '~/server/utils/errors'
 
 interface CategorySpending {
@@ -27,6 +27,7 @@ interface MonthSummary {
 export default defineEventHandler(async (event): Promise<MonthSummary | ReturnType<typeof errors.badRequest>> => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
     const id = parseInt(getRouterParam(event, 'id')!)
 
     if (isNaN(id)) {

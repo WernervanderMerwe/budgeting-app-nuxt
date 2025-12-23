@@ -5,3 +5,7 @@ pages_build_output_dir = "dist"
 
 [vars]
 NODE_ENV = "production"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0588de2028054413a9f8d7dba56bbbe5"

@@ -1,9 +1,10 @@
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { errors } from '~/server/utils/errors'
 
 export default defineEventHandler(async (event) => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
     const id = parseInt(getRouterParam(event, 'id')!)
 
     // Verify ownership through parent month

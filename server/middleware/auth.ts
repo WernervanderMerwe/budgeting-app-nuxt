@@ -1,5 +1,5 @@
 import { serverSupabaseUser } from '#supabase/server'
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Fetch profile token from profiles table (no caching for now)
+    const prisma = getPrisma(event)
     const profile = await prisma.profile.findUnique({
       where: { authUserId: userId },
       select: { profileToken: true },

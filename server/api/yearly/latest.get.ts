@@ -1,10 +1,11 @@
-import prisma from '~/server/utils/db'
+import { getPrisma } from '~/server/utils/db'
 import { errors } from '~/server/utils/errors'
 
 // GET /api/yearly/latest - Get the latest yearly budget year
 export default defineEventHandler(async (event) => {
   try {
     const { profileToken } = event.context
+    const prisma = getPrisma(event)
 
     const latestBudget = await prisma.yearlyBudget.findFirst({
       where: { profileToken },
