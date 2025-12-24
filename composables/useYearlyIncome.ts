@@ -16,7 +16,7 @@ import { getCurrentTimestamp } from '~/utils/date'
 // NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyIncome() {
-  const { currentBudget, refreshBudgetSilently } = useYearlyBudget()
+  const { currentBudget } = useYearlyBudget()
   const { showErrorToast } = useOptimisticUpdates()
 
   // Helper to get writable budget state
@@ -63,8 +63,15 @@ export function useYearlyIncome() {
         method: 'POST',
         body: dto,
       })
-      // Replace temp with real data via silent refresh
-      await refreshBudgetSilently()
+      // Replace temp income source with real one (don't refresh to avoid race conditions)
+      if (budgetState.value) {
+        budgetState.value = {
+          ...budgetState.value,
+          incomeSources: budgetState.value.incomeSources.map(source =>
+            source.id === tempId ? data : source
+          ),
+        }
+      }
       return data
     } catch (e: any) {
       // Rollback
@@ -100,7 +107,7 @@ export function useYearlyIncome() {
         method: 'PATCH',
         body: dto,
       })
-      await refreshBudgetSilently()
+      // Optimistic update already applied - no refresh needed
       return data
     } catch (e: any) {
       if (previousBudget) {
@@ -146,9 +153,6 @@ export function useYearlyIncome() {
       ? JSON.parse(JSON.stringify(budgetState.value))
       : null
 
-    // Use dto directly - component already converted to cents
-    const optimisticDto = dto
-
     // Apply optimistic update
     if (budgetState.value) {
       budgetState.value = {
@@ -157,7 +161,7 @@ export function useYearlyIncome() {
           ...source,
           entries: source.entries.map(entry =>
             entry.id === id
-              ? { ...entry, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+              ? { ...entry, ...dto, updatedAt: getCurrentTimestamp() }
               : entry
           ),
         })),
@@ -169,7 +173,7 @@ export function useYearlyIncome() {
         method: 'PATCH',
         body: dto,
       })
-      await refreshBudgetSilently()
+      // Optimistic update already applied - no refresh needed
       return data
     } catch (e: any) {
       if (previousBudget) {
@@ -221,7 +225,20 @@ export function useYearlyIncome() {
         method: 'POST',
         body: dto,
       })
-      await refreshBudgetSilently()
+      // Replace temp deduction with real one (don't refresh to avoid race conditions)
+      if (budgetState.value) {
+        budgetState.value = {
+          ...budgetState.value,
+          incomeSources: budgetState.value.incomeSources.map(source => ({
+            ...source,
+            entries: source.entries.map(entry =>
+              entry.id === dto.incomeEntryId
+                ? { ...entry, deductions: entry.deductions.map(ded => ded.id === tempId ? data : ded) }
+                : entry
+            ),
+          })),
+        }
+      }
       return data
     } catch (e: any) {
       if (previousBudget) {
@@ -240,9 +257,6 @@ export function useYearlyIncome() {
       ? JSON.parse(JSON.stringify(budgetState.value))
       : null
 
-    // Use dto directly - component already converted to cents
-    const optimisticDto = dto
-
     // Apply optimistic update
     if (budgetState.value) {
       budgetState.value = {
@@ -253,7 +267,7 @@ export function useYearlyIncome() {
             ...entry,
             deductions: entry.deductions.map(ded =>
               ded.id === id
-                ? { ...ded, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+                ? { ...ded, ...dto, updatedAt: getCurrentTimestamp() }
                 : ded
             ),
           })),
@@ -266,7 +280,7 @@ export function useYearlyIncome() {
         method: 'PATCH',
         body: dto,
       })
-      await refreshBudgetSilently()
+      // Optimistic update already applied - no refresh needed
       return data
     } catch (e: any) {
       if (previousBudget) {

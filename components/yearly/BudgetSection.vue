@@ -40,26 +40,25 @@ function getWarningClass(month: number): string {
 
 // Check if all categories in section are paid for a given month
 function areAllCategoriesPaidForMonth(month: number): boolean {
-  // Return false if no categories exist (empty array .every() returns true)
+  // Return false if no categories exist
   if (props.section.categories.length === 0) return false
 
-  // Get IDs of categories that have children (parent categories)
-  const parentIdsWithChildren = new Set(
-    props.section.categories
-      .map(c => c.parentId)
-      .filter((id): id is number => id !== null)
-  )
+  // Check all leaf entries (categories without children, or children of parent categories)
+  for (const category of props.section.categories) {
+    if (category.children && category.children.length > 0) {
+      // Parent category: check all children's entries
+      for (const child of category.children) {
+        const entry = child.entries.find(e => e.month === month)
+        if (!entry?.isPaid) return false
+      }
+    } else {
+      // Leaf category: check its own entry
+      const entry = category.entries.find(e => e.month === month)
+      if (!entry?.isPaid) return false
+    }
+  }
 
-  // Only check leaf categories (those without children)
-  // Parent categories don't have their own isPaid - they compute from children
-  const leafCategories = props.section.categories.filter(c => !parentIdsWithChildren.has(c.id))
-
-  if (leafCategories.length === 0) return false
-
-  return leafCategories.every(category => {
-    const entry = category.entries.find(e => e.month === month)
-    return entry?.isPaid ?? false
-  })
+  return true
 }
 
 // Handle section checkbox click - show dialog and check all categories

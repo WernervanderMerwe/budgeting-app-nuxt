@@ -17,7 +17,7 @@ import { getCurrentTimestamp } from '~/utils/date'
 // NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyCategories() {
-  const { currentBudget, fetchBudgetById, refreshBudgetSilently } = useYearlyBudget()
+  const { currentBudget, fetchBudgetById } = useYearlyBudget()
   const { showErrorToast } = useOptimisticUpdates()
 
   // Helper to get writable budget state
@@ -47,7 +47,7 @@ export function useYearlyCategories() {
         method: 'PATCH',
         body: dto,
       })
-      await refreshBudgetSilently()
+      // Optimistic update already applied - no refresh needed
       return data
     } catch (e: any) {
       if (previousBudget) {
@@ -120,7 +120,35 @@ export function useYearlyCategories() {
         method: 'POST',
         body: dto,
       })
-      await refreshBudgetSilently()
+
+      // Replace temp category with real one (don't do full refresh to avoid race conditions)
+      if (budgetState.value) {
+        budgetState.value = {
+          ...budgetState.value,
+          sections: budgetState.value.sections.map(section => {
+            if (section.id !== dto.sectionId) return section
+
+            if (dto.parentId) {
+              // Child category: replace in parent's children array
+              return {
+                ...section,
+                categories: section.categories.map(cat =>
+                  cat.id === dto.parentId
+                    ? { ...cat, children: cat.children.map(child => child.id === tempId ? data : child) }
+                    : cat
+                ),
+              }
+            } else {
+              // Top-level category: replace in categories array
+              return {
+                ...section,
+                categories: section.categories.map(cat => cat.id === tempId ? data : cat),
+              }
+            }
+          }),
+        }
+      }
+
       return data
     } catch (e: any) {
       if (previousBudget) {
@@ -167,7 +195,7 @@ export function useYearlyCategories() {
         method: 'PATCH',
         body: dto,
       })
-      await refreshBudgetSilently()
+      // Optimistic update already applied - no refresh needed
       return data
     } catch (e: any) {
       if (previousBudget) {
@@ -214,16 +242,12 @@ export function useYearlyCategories() {
   }
 
   // Update a category entry (amount or isPaid) - optimistic
-  // Set skipRefresh=true when doing batch updates to avoid multiple refreshes
   // NOTE: Component already converts RANDS→CENTS before calling, so we use dto directly
-  async function updateCategoryEntry(id: number, dto: UpdateCategoryEntryDTO, skipRefresh = false) {
+  async function updateCategoryEntry(id: number, dto: UpdateCategoryEntryDTO) {
     const budgetState = getBudgetState()
-    const previousBudget = !skipRefresh && budgetState.value
+    const previousBudget = budgetState.value
       ? JSON.parse(JSON.stringify(budgetState.value))
       : null
-
-    // Use dto directly - component already converted to cents
-    const optimisticDto = dto
 
     // Apply optimistic update
     if (budgetState.value) {
@@ -235,14 +259,14 @@ export function useYearlyCategories() {
             ...cat,
             entries: cat.entries.map(entry =>
               entry.id === id
-                ? { ...entry, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+                ? { ...entry, ...dto, updatedAt: getCurrentTimestamp() }
                 : entry
             ),
             children: cat.children.map(child => ({
               ...child,
               entries: child.entries.map(entry =>
                 entry.id === id
-                  ? { ...entry, ...optimisticDto, updatedAt: getCurrentTimestamp() }
+                  ? { ...entry, ...dto, updatedAt: getCurrentTimestamp() }
                   : entry
               ),
             })),
@@ -256,17 +280,13 @@ export function useYearlyCategories() {
         method: 'PATCH',
         body: dto,
       })
-      if (!skipRefresh) {
-        await refreshBudgetSilently()
-      }
+      // Optimistic update already applied - no refresh needed
       return data
     } catch (e: any) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      if (!skipRefresh) {
-        showErrorToast(e.message || 'Failed to update category entry')
-      }
+      showErrorToast(e.message || 'Failed to update category entry')
       throw e
     }
   }
@@ -277,30 +297,27 @@ export function useYearlyCategories() {
   }
 
   // Check/uncheck all children of a category for a specific month
-  // Uses skipRefresh to avoid multiple refreshes, then refreshes once at the end
   async function checkAllChildrenForCategory(categoryId: number, month: number, isPaid: boolean) {
     // Find the category and its children
     for (const section of sections.value) {
       const category = section.categories.find(c => c.id === categoryId)
       if (category && category.children.length > 0) {
-        // Update all children's entries for this month (skip individual refreshes)
+        // Update all children's entries for this month
         const updatePromises = category.children.map(child => {
           const entry = child.entries.find(e => e.month === month)
           if (entry) {
-            return updateCategoryEntry(entry.id, { isPaid }, true)
+            return updateCategoryEntry(entry.id, { isPaid })
           }
           return Promise.resolve()
         })
         await Promise.all(updatePromises)
-        // Single refresh after all updates complete
-        await refreshBudgetSilently()
+        // Each update applies optimistic changes - no refresh needed
         return
       }
     }
   }
 
   // Check/uncheck all categories in a section for a specific month
-  // Uses skipRefresh to avoid multiple refreshes, then refreshes once at the end
   async function checkAllCategoriesForSection(sectionId: number, month: number, isPaid: boolean) {
     const section = sections.value.find(s => s.id === sectionId)
     if (!section) return
@@ -314,21 +331,20 @@ export function useYearlyCategories() {
         for (const child of category.children) {
           const entry = child.entries.find(e => e.month === month)
           if (entry) {
-            updatePromises.push(updateCategoryEntry(entry.id, { isPaid }, true))
+            updatePromises.push(updateCategoryEntry(entry.id, { isPaid }))
           }
         }
       } else {
         // Leaf category: update its own entry
         const entry = category.entries.find(e => e.month === month)
         if (entry) {
-          updatePromises.push(updateCategoryEntry(entry.id, { isPaid }, true))
+          updatePromises.push(updateCategoryEntry(entry.id, { isPaid }))
         }
       }
     }
 
     await Promise.all(updatePromises)
-    // Single refresh after all updates complete
-    await refreshBudgetSilently()
+    // Each update applies optimistic changes - no refresh needed
   }
 
   // Copy category amounts from one month to another
