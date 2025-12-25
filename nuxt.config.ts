@@ -10,7 +10,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/ui',
     '@nuxtjs/supabase',
-    '@nuxt/content',
   ],
 
   css: [],
@@ -34,10 +33,9 @@ export default defineNuxtConfig({
     alias: {
       'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
     },
-    // Disable prerendering - content API and dynamic routes require runtime
+    // Disable prerendering - dynamic routes require runtime
     prerender: {
       crawlLinks: false,
-      ignore: ['/api/_content'],
     },
   },
 
@@ -66,7 +64,7 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       include: ['/', '/transaction/*', '/yearly/*'],
-      exclude: ['/guide', '/api/_content/*'],
+      exclude: ['/guide'],
     },
     cookieOptions: {
       maxAge: 60 * 60 * 8, // 8 hours
