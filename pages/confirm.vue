@@ -91,9 +91,8 @@ onMounted(async () => {
 
     // Check if user is now authenticated
     if (user.value) {
-      // Redirect to yearly view
-      const currentYear = new Date().getFullYear()
-      await navigateTo(`/yearly/${currentYear}`)
+      // Redirect to home/landing page
+      await navigateTo('/')
     } else {
       // If no user after processing, something went wrong
       error.value = 'Unable to verify your account. Please try again.'

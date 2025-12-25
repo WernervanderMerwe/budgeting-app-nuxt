@@ -107,8 +107,7 @@ const handleSubmit = async () => {
 
   try {
     await signIn(email.value, password.value)
-    const currentYear = new Date().getFullYear()
-    await navigateTo(`/yearly/${currentYear}`)
+    await navigateTo('/')
   } catch (e: any) {
     error.value = e.message || 'Failed to sign in'
   } finally {
