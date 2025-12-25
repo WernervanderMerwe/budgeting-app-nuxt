@@ -66,4 +66,3 @@ NUXT_PUBLIC_SUPABASE_KEY
 
 ---
 
-**Note:** Always use Context7 MCP for library docs, code generation, and bug fixes.
