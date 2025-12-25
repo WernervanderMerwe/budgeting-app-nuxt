@@ -442,6 +442,91 @@ export function useYearlyCategories() {
     }
   }
 
+  // Clear all values for a month (optimistic)
+  async function clearMonth(dto: { month: number; resetPaidStatus: boolean }) {
+    if (!currentBudget.value) return null
+
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    const { month, resetPaidStatus } = dto
+    const now = getCurrentTimestamp()
+
+    // Apply optimistic update - set all amounts to 0
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        // Clear category entries
+        sections: budgetState.value.sections.map(section => ({
+          ...section,
+          categories: section.categories.map(cat => ({
+            ...cat,
+            entries: cat.entries.map(entry => {
+              if (entry.month === month) {
+                return {
+                  ...entry,
+                  amount: 0,
+                  isPaid: resetPaidStatus ? false : entry.isPaid,
+                  updatedAt: now,
+                }
+              }
+              return entry
+            }),
+            children: cat.children.map(child => ({
+              ...child,
+              entries: child.entries.map(entry => {
+                if (entry.month === month) {
+                  return {
+                    ...entry,
+                    amount: 0,
+                    isPaid: resetPaidStatus ? false : entry.isPaid,
+                    updatedAt: now,
+                  }
+                }
+                return entry
+              }),
+            })),
+          })),
+        })),
+        // Clear income entries and their deductions
+        incomeSources: budgetState.value.incomeSources?.map(source => ({
+          ...source,
+          entries: source.entries.map(entry => {
+            if (entry.month === month) {
+              return {
+                ...entry,
+                grossAmount: 0,
+                updatedAt: now,
+                deductions: entry.deductions.map(deduction => ({
+                  ...deduction,
+                  amount: 0,
+                  updatedAt: now,
+                })),
+              }
+            }
+            return entry
+          }),
+        })) ?? [],
+      }
+    }
+
+    try {
+      const result = await $fetch(`/api/yearly/${currentBudget.value.id}/clear-month`, {
+        method: 'POST',
+        body: dto,
+      })
+      return result
+    } catch (e: any) {
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
+      showErrorToast(e.message || 'Failed to clear month')
+      throw e
+    }
+  }
+
   // Computed: All sections from current budget
   const sections = computed(() => {
     return [...(currentBudget.value?.sections ?? [])] as YearlySectionWithCategories[]
@@ -538,6 +623,7 @@ export function useYearlyCategories() {
     updateCategoryEntry,
     togglePaid,
     copyFromMonth,
+    clearMonth,
     checkAllChildrenForCategory,
     checkAllCategoriesForSection,
 

@@ -7,7 +7,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'copy', sourceMonth: number, targetMonth: number, resetPaidStatus: boolean): void
 }>()
 
 const { copyFromMonth, getTotalExpensesForMonth } = useYearlyCategories()
@@ -16,6 +15,8 @@ const { getTotalGrossForMonth } = useYearlyIncome()
 const sourceMonth = ref(1)
 const targetMonth = ref(2)
 const resetPaidStatus = ref(true)
+const isLoading = ref(false)
+const errorMessage = ref('')
 
 // Find the last month that has any values (expenses or income)
 function findLastMonthWithValues(): number {
@@ -36,13 +37,14 @@ const targetMonthHasValues = computed(() => {
   return expenses > 0 || income > 0
 })
 
-// Set smart defaults when modal opens
+// Set smart defaults and reset state when modal opens
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     const lastMonthWithValues = findLastMonthWithValues()
     sourceMonth.value = lastMonthWithValues
     // Target is next month, or same month if December
     targetMonth.value = lastMonthWithValues < 12 ? lastMonthWithValues + 1 : 12
+    errorMessage.value = ''
   }
 })
 
@@ -51,25 +53,36 @@ watch(targetMonth, (newTarget) => {
   if (newTarget > 1) {
     sourceMonth.value = newTarget - 1
   }
+  errorMessage.value = ''
 })
 
-function handleCopy() {
+async function handleCopy() {
   if (sourceMonth.value === targetMonth.value) {
-    return // Already showing inline validation message
+    return
   }
 
-  // Fire and close - optimistic update happens immediately, API runs in background
-  // Errors are handled via toast in the composable
-  copyFromMonth({
-    sourceMonth: sourceMonth.value,
-    targetMonth: targetMonth.value,
-    resetPaidStatus: resetPaidStatus.value,
-  })
-  emit('close')
+  errorMessage.value = ''
+  isLoading.value = true
+
+  try {
+    // Optimistic update happens immediately in composable, then awaits API
+    await copyFromMonth({
+      sourceMonth: sourceMonth.value,
+      targetMonth: targetMonth.value,
+      resetPaidStatus: resetPaidStatus.value,
+    })
+    // Success - close modal (optimistic update already applied)
+    emit('close')
+  } catch (error) {
+    // Error already handled in composable (rollback + toast), just show in modal too
+    errorMessage.value = 'Failed to copy month data. Please try again.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 function handleBackdropClick(event: MouseEvent) {
-  if (event.target === event.currentTarget) {
+  if (event.target === event.currentTarget && !isLoading.value) {
     emit('close')
   }
 }
@@ -88,7 +101,8 @@ function handleBackdropClick(event: MouseEvent) {
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Copy Month Data</h2>
           <button
             @click="emit('close')"
-            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+            :disabled="isLoading"
+            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -169,22 +183,30 @@ function handleBackdropClick(event: MouseEvent) {
             </p>
           </div>
 
+          <!-- API Error Message -->
+          <p
+            v-if="errorMessage"
+            class="text-sm text-red-500"
+          >
+            {{ errorMessage }}
+          </p>
         </div>
 
         <!-- Footer -->
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <button
             @click="emit('close')"
-            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+            :disabled="isLoading"
+            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             @click="handleCopy"
-            :disabled="sourceMonth === targetMonth"
+            :disabled="isLoading || sourceMonth === targetMonth"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg"
           >
-            Copy Month
+            {{ isLoading ? 'Copying...' : 'Copy Month' }}
           </button>
         </div>
       </div>

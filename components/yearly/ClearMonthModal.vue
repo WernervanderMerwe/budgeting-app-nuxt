@@ -10,8 +10,7 @@ const emit = defineEmits<{
   (e: 'cleared'): void
 }>()
 
-const { currentBudget, fetchBudgetById } = useYearlyBudget()
-const { getTotalExpensesForMonth } = useYearlyCategories()
+const { getTotalExpensesForMonth, clearMonth } = useYearlyCategories()
 const { getTotalGrossForMonth } = useYearlyIncome()
 
 const selectedMonth = ref(1)
@@ -26,31 +25,34 @@ const monthHasValues = computed(() => {
   return expenses > 0 || income > 0
 })
 
-// Clear error when month changes
+// Reset error when modal opens or month changes
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    errorMessage.value = ''
+  }
+})
+
 watch(selectedMonth, () => {
   errorMessage.value = ''
 })
 
 async function handleClear() {
+  if (!monthHasValues.value) return
+
   errorMessage.value = ''
-
-  if (!currentBudget.value) return
-
   isLoading.value = true
+
   try {
-    await $fetch(`/api/yearly/${currentBudget.value.id}/clear-month`, {
-      method: 'POST',
-      body: {
-        month: selectedMonth.value,
-        resetPaidStatus: resetPaidStatus.value,
-      },
+    // Optimistic update happens immediately in composable, then awaits API
+    await clearMonth({
+      month: selectedMonth.value,
+      resetPaidStatus: resetPaidStatus.value,
     })
-    // Refresh the budget data
-    await fetchBudgetById(currentBudget.value.id, false)
+    // Success - close modal (optimistic update already applied)
     emit('cleared')
     emit('close')
   } catch (error) {
-    console.error('Error clearing month:', error)
+    // Error already handled in composable (rollback + toast), just show in modal too
     errorMessage.value = 'Failed to clear month data. Please try again.'
   } finally {
     isLoading.value = false
@@ -58,7 +60,7 @@ async function handleClear() {
 }
 
 function handleBackdropClick(event: MouseEvent) {
-  if (event.target === event.currentTarget) {
+  if (event.target === event.currentTarget && !isLoading.value) {
     emit('close')
   }
 }
@@ -77,7 +79,8 @@ function handleBackdropClick(event: MouseEvent) {
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Clear Month Data</h2>
           <button
             @click="emit('close')"
-            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+            :disabled="isLoading"
+            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -156,7 +159,8 @@ function handleBackdropClick(event: MouseEvent) {
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <button
             @click="emit('close')"
-            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+            :disabled="isLoading"
+            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
