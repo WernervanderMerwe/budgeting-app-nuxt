@@ -34,8 +34,9 @@ export default defineNuxtConfig({
     alias: {
       'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
     },
-    // Skip prerendering content API routes (they require runtime)
+    // Disable prerendering - content API and dynamic routes require runtime
     prerender: {
+      crawlLinks: false,
       ignore: ['/api/_content'],
     },
   },
