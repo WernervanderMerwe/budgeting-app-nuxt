@@ -408,13 +408,16 @@ export function useYearlyCategories() {
     for (const category of section.categories) {
       // Only count parent-level categories
       if (!category.parentId) {
-        const entry = category.entries.find(e => e.month === month)
-        if (entry) total += entry.amount
-
-        // Add children amounts
-        for (const child of category.children) {
-          const childEntry = child.entries.find(e => e.month === month)
-          if (childEntry) total += childEntry.amount
+        if (category.children && category.children.length > 0) {
+          // Parent with children: only count children's amounts (parent's entry is ignored)
+          for (const child of category.children) {
+            const childEntry = child.entries.find(e => e.month === month)
+            if (childEntry) total += childEntry.amount
+          }
+        } else {
+          // Leaf category (no children): count its own amount
+          const entry = category.entries.find(e => e.month === month)
+          if (entry) total += entry.amount
         }
       }
     }

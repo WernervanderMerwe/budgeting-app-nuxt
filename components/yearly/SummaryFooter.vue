@@ -21,22 +21,28 @@ function startEditingTarget(month: number) {
   })
 }
 
-async function finishEditingTarget() {
+async function saveTarget() {
   if (!currentBudget.value || isEditingTarget.value === null) return
   // Parse rands and convert to cents for storage
   const newTargetInRands = parseCurrency(editTargetValue.value)
   const newTargetInCents = randsToCents(newTargetInRands)
+  isEditingTarget.value = null
   if (newTargetInCents !== currentBudget.value.spendTarget) {
     await updateBudget(currentBudget.value.id, { spendTarget: newTargetInCents })
   }
+}
+
+function cancelEditing() {
   isEditingTarget.value = null
 }
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
-    finishEditingTarget()
+    event.preventDefault()
+    saveTarget()
   } else if (event.key === 'Escape') {
-    isEditingTarget.value = null
+    event.preventDefault()
+    cancelEditing()
   }
 }
 </script>
@@ -63,7 +69,7 @@ function handleKeydown(event: KeyboardEvent) {
             v-model="editTargetValue"
             type="text"
             class="w-full text-right text-sm bg-white dark:bg-gray-700 border border-blue-500 rounded px-1 py-0.5 focus:outline-none"
-            @blur="finishEditingTarget"
+            @blur="cancelEditing"
             @keydown="handleKeydown"
           />
           <span

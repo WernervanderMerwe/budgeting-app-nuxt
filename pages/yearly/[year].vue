@@ -208,12 +208,12 @@ async function handleAddIncomeSource() {
     <!-- Main Content -->
     <div class="flex-1 min-h-0 overflow-auto">
       <!-- Loading State -->
-      <div v-if="loading" class="flex items-center justify-center min-h-[60vh]">
-        <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p class="text-gray-600 dark:text-gray-400">Loading budget...</p>
-        </div>
-      </div>
+      <LoadingSpinner
+        v-if="loading"
+        size="lg"
+        text="Loading budget..."
+        container-class="min-h-[60vh]"
+      />
 
       <!-- Error State -->
       <div v-else-if="error" class="flex items-center justify-center min-h-[60vh]">
@@ -263,10 +263,13 @@ async function handleAddIncomeSource() {
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Category</span>
               <!-- Resize Handle -->
               <div
-                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 transition-colors"
+                class="absolute right-0 top-0 bottom-0 w-3 cursor-col-resize flex items-center justify-center gap-px group"
                 @mousedown="startResize"
                 title="Drag to resize"
-              ></div>
+              >
+                <div class="w-px h-4 bg-gray-400 dark:bg-gray-500 group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors"></div>
+                <div class="w-px h-4 bg-gray-400 dark:bg-gray-500 group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors"></div>
+              </div>
             </div>
             <div class="flex flex-1 overflow-hidden">
               <div
