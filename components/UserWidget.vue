@@ -128,6 +128,15 @@ const menuItems = computed(() => {
     }
   }
 
+  // Add user guide link
+  items.push([
+    {
+      label: 'User Guide',
+      icon: 'i-heroicons-book-open',
+      to: '/guide'
+    }
+  ])
+
   // Always add sign out
   items.push([
     {
