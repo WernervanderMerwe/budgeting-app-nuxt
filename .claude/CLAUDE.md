@@ -5,7 +5,9 @@ Personal budgeting app with transaction tracking and yearly overview modes.
 ## Tech Stack
 - **Framework:** Nuxt 3 + Vue 3 + TypeScript
 - **Styling:** TailwindCSS + dark mode
-- **Database:** SQLite + Prisma ORM (migrating to Supabase)
+- **Database:** PostgreSQL + Prisma ORM (via Supabase)
+- **Auth:** Supabase Auth
+- **Deployment:** Cloudflare Pages with Hyperdrive
 - **Dates:** dayjs (unix timestamps in DB)
 
 ## Quick Commands
@@ -13,8 +15,9 @@ Personal budgeting app with transaction tracking and yearly overview modes.
 npm run dev              # Start dev server
 npm run build            # Production build
 npx prisma studio        # DB GUI
-npx prisma migrate dev   # Apply migrations
-npm run cleanup          # Kill leftover node processes (Playwright)
+npx prisma migrate dev   # Create migration (local)
+npx prisma migrate deploy # Apply migrations (prod)
+npm run cleanup          # Kill leftover node processes
 ```
 
 ## Key Conventions
@@ -22,34 +25,44 @@ npm run cleanup          # Kill leftover node processes (Playwright)
 - **Dates:** Unix timestamps (seconds) - use dayjs
 - **API:** RESTful endpoints in `server/api/`
 - **State:** Vue composables (no Vuex/Pinia)
+- **Auth:** profileToken links data to user accounts
 
 ## Project Structure
 ```
-server/api/           # 39 API endpoints
+server/api/           # API endpoints
   months/             # Transaction mode
   yearly/             # Yearly overview mode
   categories/, fixed-payments/, transactions/
-components/           # 21 Vue components
+components/           # Vue components
   yearly/             # Yearly-specific components
-composables/          # 9 state composables
+composables/          # State composables
 pages/                # Route pages
   transaction/        # /transaction/[year]/[month]
   yearly/             # /yearly/[year]
-prisma/schema.prisma  # 12 models (Transaction + Yearly modes)
+prisma/schema.prisma  # Database models
 ```
 
 ## Database Models
 **Transaction Mode:** TransactionMonth, TransactionFixedPayment, TransactionCategory, TransactionEntry
 **Yearly Mode:** YearlyBudget, YearlyIncomeSource, YearlyIncomeEntry, YearlyDeduction, YearlySection, YearlyCategory, YearlyCategoryEntry
 
+## Environment Variables
+```env
+DATABASE_URL          # Supabase pooler connection (with ?pgbouncer=true)
+DIRECT_URL            # Direct Supabase connection (for migrations)
+NUXT_PUBLIC_SUPABASE_URL
+NUXT_PUBLIC_SUPABASE_KEY
+```
+
 ## Current Status
-- Core app complete and functional
-- Next: Cloudflare Pages + Supabase migration (see `plans/wobbly-humming-stallman.md`)
+- Core app complete and deployed to Cloudflare Pages
+- Authentication working via Supabase
+- Both Transaction and Yearly modes functional
 
 ## References
+- User guide: `docs/user-guide.md`
 - Build history: `.claude/CLAUDE-PHASES.md`
 - Full guide: `.claude/CLAUDE-FULL.md`
-- Migration plan: `~/.claude/plans/wobbly-humming-stallman.md`
 
 ---
 
