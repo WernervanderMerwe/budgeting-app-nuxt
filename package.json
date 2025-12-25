@@ -11,6 +11,7 @@
     "postinstall": "nuxt prepare",
     "prisma:dev": "prisma generate",
     "prisma:prod": "prisma generate --no-engine",
+    "wrangler:dev": ". ./.dev.vars.sh && wrangler pages dev dist --port 3050",
     "cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
     "cleanup:all": "taskkill /F /IM node.exe"
   },

@@ -17,7 +17,7 @@ import { getCurrentTimestamp } from '~/utils/date'
 // NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyCategories() {
-  const { currentBudget, fetchBudgetById } = useYearlyBudget()
+  const { currentBudget } = useYearlyBudget()
   const { showErrorToast } = useOptimisticUpdates()
 
   // Helper to get writable budget state
@@ -347,19 +347,96 @@ export function useYearlyCategories() {
     // Each update applies optimistic changes - no refresh needed
   }
 
-  // Copy category amounts from one month to another
-  // Uses full loading state since this is a larger operation affecting multiple entries
+  // Copy category amounts from one month to another (optimistic)
   async function copyFromMonth(dto: CopyMonthDTO) {
     if (!currentBudget.value) return null
+
+    const budgetState = getBudgetState()
+    const previousBudget = budgetState.value
+      ? JSON.parse(JSON.stringify(budgetState.value))
+      : null
+
+    const { sourceMonth, targetMonth, resetPaidStatus } = dto
+    const now = getCurrentTimestamp()
+
+    // Apply optimistic update
+    if (budgetState.value) {
+      budgetState.value = {
+        ...budgetState.value,
+        // Copy category entries
+        sections: budgetState.value.sections.map(section => ({
+          ...section,
+          categories: section.categories.map(cat => ({
+            ...cat,
+            entries: cat.entries.map(entry => {
+              if (entry.month === targetMonth) {
+                const sourceEntry = cat.entries.find(e => e.month === sourceMonth)
+                return {
+                  ...entry,
+                  amount: sourceEntry?.amount ?? entry.amount,
+                  isPaid: resetPaidStatus ? false : entry.isPaid,
+                  updatedAt: now,
+                }
+              }
+              return entry
+            }),
+            children: cat.children.map(child => ({
+              ...child,
+              entries: child.entries.map(entry => {
+                if (entry.month === targetMonth) {
+                  const sourceEntry = child.entries.find(e => e.month === sourceMonth)
+                  return {
+                    ...entry,
+                    amount: sourceEntry?.amount ?? entry.amount,
+                    isPaid: resetPaidStatus ? false : entry.isPaid,
+                    updatedAt: now,
+                  }
+                }
+                return entry
+              }),
+            })),
+          })),
+        })),
+        // Copy income entries and their deductions
+        incomeSources: budgetState.value.incomeSources?.map(source => ({
+          ...source,
+          entries: source.entries.map(entry => {
+            if (entry.month === targetMonth) {
+              const sourceEntry = source.entries.find(e => e.month === sourceMonth)
+              return {
+                ...entry,
+                grossAmount: sourceEntry?.grossAmount ?? entry.grossAmount,
+                updatedAt: now,
+                // Copy deductions from source month
+                deductions: entry.deductions.map(deduction => {
+                  const sourceDeduction = sourceEntry?.deductions?.find(
+                    d => d.name === deduction.name
+                  )
+                  return {
+                    ...deduction,
+                    amount: sourceDeduction?.amount ?? deduction.amount,
+                    updatedAt: now,
+                  }
+                }),
+              }
+            }
+            return entry
+          }),
+        })) ?? [],
+      }
+    }
+
     try {
       const result = await $fetch(`/api/yearly/${currentBudget.value.id}/copy-month`, {
         method: 'POST',
         body: dto,
       })
-      // Use regular fetch with loading state (not silent) for large operations
-      await fetchBudgetById(currentBudget.value.id, false)
+      // Optimistic update already applied - no refresh needed
       return result
     } catch (e: any) {
+      if (previousBudget) {
+        budgetState.value = previousBudget
+      }
       showErrorToast(e.message || 'Failed to copy month')
       throw e
     }

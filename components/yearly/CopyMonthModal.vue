@@ -16,8 +16,18 @@ const { getTotalGrossForMonth } = useYearlyIncome()
 const sourceMonth = ref(1)
 const targetMonth = ref(2)
 const resetPaidStatus = ref(true)
-const isLoading = ref(false)
-const errorMessage = ref('')
+
+// Find the last month that has any values (expenses or income)
+function findLastMonthWithValues(): number {
+  for (let month = 12; month >= 1; month--) {
+    const expenses = getTotalExpensesForMonth(month)
+    const income = getTotalGrossForMonth(month)
+    if (expenses > 0 || income > 0) {
+      return month
+    }
+  }
+  return 1 // Default to January if no values found
+}
 
 // Check if target month has any values
 const targetMonthHasValues = computed(() => {
@@ -26,40 +36,36 @@ const targetMonthHasValues = computed(() => {
   return expenses > 0 || income > 0
 })
 
+// Set smart defaults when modal opens
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    const lastMonthWithValues = findLastMonthWithValues()
+    sourceMonth.value = lastMonthWithValues
+    // Target is next month, or same month if December
+    targetMonth.value = lastMonthWithValues < 12 ? lastMonthWithValues + 1 : 12
+  }
+})
+
 // Auto-set source to previous month of target
 watch(targetMonth, (newTarget) => {
   if (newTarget > 1) {
     sourceMonth.value = newTarget - 1
   }
-  errorMessage.value = ''
 })
 
-// Clear error when source changes
-watch(sourceMonth, () => {
-  errorMessage.value = ''
-})
-
-async function handleCopy() {
-  errorMessage.value = ''
-
+function handleCopy() {
   if (sourceMonth.value === targetMonth.value) {
     return // Already showing inline validation message
   }
 
-  isLoading.value = true
-  try {
-    await copyFromMonth({
-      sourceMonth: sourceMonth.value,
-      targetMonth: targetMonth.value,
-      resetPaidStatus: resetPaidStatus.value,
-    })
-    emit('close')
-  } catch (error) {
-    console.error('Error copying month:', error)
-    errorMessage.value = 'Failed to copy month data. Please try again.'
-  } finally {
-    isLoading.value = false
-  }
+  // Fire and close - optimistic update happens immediately, API runs in background
+  // Errors are handled via toast in the composable
+  copyFromMonth({
+    sourceMonth: sourceMonth.value,
+    targetMonth: targetMonth.value,
+    resetPaidStatus: resetPaidStatus.value,
+  })
+  emit('close')
 }
 
 function handleBackdropClick(event: MouseEvent) {
@@ -163,13 +169,6 @@ function handleBackdropClick(event: MouseEvent) {
             </p>
           </div>
 
-          <!-- API Error Message -->
-          <p
-            v-if="errorMessage"
-            class="text-sm text-red-500"
-          >
-            {{ errorMessage }}
-          </p>
         </div>
 
         <!-- Footer -->
@@ -182,10 +181,10 @@ function handleBackdropClick(event: MouseEvent) {
           </button>
           <button
             @click="handleCopy"
-            :disabled="isLoading || sourceMonth === targetMonth"
+            :disabled="sourceMonth === targetMonth"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg"
           >
-            {{ isLoading ? 'Copying...' : 'Copy Month' }}
+            Copy Month
           </button>
         </div>
       </div>
