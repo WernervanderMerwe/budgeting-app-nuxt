@@ -139,7 +139,7 @@
               v-model="editedTransaction.description"
               type="text"
               placeholder="e.g., Woolworths, Pick n Pay"
-              class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs disabled:opacity-50"
+              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
               required
               :disabled="isUpdating"
               @keydown.enter.prevent="handleUpdate(transaction.id)"
@@ -148,7 +148,7 @@
             <CurrencyInput
               v-model="editedTransaction.amount"
               placeholder=""
-              class="w-20 text-xs"
+              class="w-24 text-xs"
               required
               :disabled="isUpdating"
               @enter="handleUpdate(transaction.id)"
@@ -302,8 +302,38 @@ const handleEditFormFocusOut = (transactionId: number, event: FocusEvent) => {
   if (formRef && relatedTarget && formRef.contains(relatedTarget)) {
     return
   }
-  // Focus left the form, cancel editing
-  cancelEditing()
+  // Don't cancel if focus is moving to a popover/modal (date picker)
+  // Check for HeadlessUI popover, v-calendar, or NuxtUI popover panel
+  if (relatedTarget?.closest('[data-headlessui-state]') ||
+      relatedTarget?.closest('.vc-container') ||
+      relatedTarget?.closest('[data-headlessui-portal]')) {
+    return
+  }
+  // Check if any popover is currently open in the document
+  const openPopover = document.querySelector('[data-headlessui-state="open"]')
+  if (openPopover) {
+    return
+  }
+  // Longer delay to allow date picker to update the model and close popover
+  setTimeout(() => {
+    // Only cancel if we're still in edit mode and focus truly left
+    if (editingId.value === transactionId) {
+      const activeElement = document.activeElement
+      const formRefCurrent = editFormRefs.get(transactionId)
+      // Check if there's still an open popover
+      const stillOpenPopover = document.querySelector('[data-headlessui-state="open"]')
+      if (stillOpenPopover) {
+        return
+      }
+      // Check if focus is still within form or in a popover
+      if (formRefCurrent && !formRefCurrent.contains(activeElement) &&
+          !activeElement?.closest('[data-headlessui-state]') &&
+          !activeElement?.closest('.vc-container') &&
+          !activeElement?.closest('[data-headlessui-portal]')) {
+        cancelEditing()
+      }
+    }
+  }, 250)
 }
 
 const handleUpdate = async (id: number) => {

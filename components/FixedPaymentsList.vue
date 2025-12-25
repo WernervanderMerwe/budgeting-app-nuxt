@@ -39,6 +39,8 @@
           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           required
           :disabled="isAdding"
+          @keydown.enter.prevent="handleAdd"
+          @keydown.escape.prevent="cancelAdd"
         />
         <CurrencyInput
           v-model="newPayment.amount"
@@ -46,6 +48,8 @@
           class="w-32 text-sm"
           required
           :disabled="isAdding"
+          @enter="handleAdd"
+          @escape="cancelAdd"
         />
       </div>
       <div class="flex justify-end space-x-2">

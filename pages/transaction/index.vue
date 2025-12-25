@@ -26,12 +26,12 @@ const { hasMonths, isLoadingMonths } = useMonths()
 <template>
   <div>
     <!-- Loading State -->
-    <div v-if="isLoadingMonths" class="flex items-center justify-center min-h-[60vh]">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p class="text-gray-600 dark:text-gray-400">Loading...</p>
-      </div>
-    </div>
+    <LoadingSpinner
+      v-if="isLoadingMonths"
+      size="lg"
+      text="Loading..."
+      container-class="min-h-[60vh]"
+    />
 
     <!-- Welcome / No Month State -->
     <div v-else class="flex items-center justify-center min-h-[60vh]">

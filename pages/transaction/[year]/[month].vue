@@ -110,12 +110,12 @@ const cancelAddCategory = () => {
 <template>
   <div>
     <!-- Loading State -->
-    <div v-if="isLoadingMonths || !currentMonth" class="flex items-center justify-center min-h-[60vh]">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p class="text-gray-600 dark:text-gray-400">Loading...</p>
-      </div>
-    </div>
+    <LoadingSpinner
+      v-if="isLoadingMonths || !currentMonth"
+      size="lg"
+      text="Loading..."
+      container-class="min-h-[60vh]"
+    />
 
     <!-- Month Content -->
     <div v-else>
@@ -173,6 +173,8 @@ const cancelAddCategory = () => {
                     placeholder="e.g., Groceries"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
+                    @keydown.enter.prevent="handleAddCategory"
+                    @keydown.escape.prevent="cancelAddCategory"
                   />
                 </div>
                 <div class="w-40">
@@ -181,6 +183,8 @@ const cancelAddCategory = () => {
                     label="Amount (R)"
                     placeholder="e.g., 5000.00"
                     required
+                    @enter="handleAddCategory"
+                    @escape="cancelAddCategory"
                   />
                 </div>
               </div>
