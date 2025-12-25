@@ -34,6 +34,10 @@ export default defineNuxtConfig({
     alias: {
       'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
     },
+    // Skip prerendering content API routes (they require runtime)
+    prerender: {
+      ignore: ['/api/_content'],
+    },
   },
 
   app: {
@@ -61,7 +65,7 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       include: ['/', '/transaction/*', '/yearly/*'],
-      exclude: [],
+      exclude: ['/guide', '/api/_content/*'],
     },
     cookieOptions: {
       maxAge: 60 * 60 * 8, // 8 hours

@@ -20,6 +20,13 @@
             Sign up for free
           </NuxtLink>
         </p>
+        <NuxtLink
+          to="/guide"
+          class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
+        >
+          <UIcon name="i-heroicons-book-open" class="w-4 h-4" />
+          <span>Check out the User Guide first</span>
+        </NuxtLink>
       </div>
 
       <UCard>

@@ -5,6 +5,7 @@ import { getPrisma } from '~/server/utils/db'
 const PUBLIC_ROUTES = [
   '/api/_nuxt',
   '/api/__nuxt',
+  '/api/_content', // @nuxt/content documentation routes
 ]
 
 // Check if a route is public (doesn't require auth)

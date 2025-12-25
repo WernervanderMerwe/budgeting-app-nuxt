@@ -1,5 +1,21 @@
 <template>
+  <!-- Unauthenticated: Simple login button -->
+  <NuxtLink
+    v-if="!isAuthenticated"
+    to="/login"
+    class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+    title="Sign in"
+  >
+    <div
+      class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
+    >
+      U
+    </div>
+  </NuxtLink>
+
+  <!-- Authenticated: Full dropdown menu -->
   <UDropdown
+    v-else
     :items="menuItems"
     :popper="{ placement: 'bottom-end' }"
     :ui="{
@@ -63,6 +79,7 @@ const props = defineProps<{
 
 const { user, signOut } = useAuth()
 
+const isAuthenticated = computed(() => !!user.value)
 const userEmail = computed(() => user.value?.email || 'User')
 const userInitial = computed(() => {
   const email = user.value?.email

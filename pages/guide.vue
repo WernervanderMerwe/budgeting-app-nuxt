@@ -33,7 +33,24 @@
 
     <!-- Guide Content -->
     <main ref="contentRef" class="container mx-auto max-w-4xl px-4 py-8">
-      <ContentDoc path="/guide" class="prose prose-gray dark:prose-invert max-w-none prose-headings:scroll-mt-20 prose-img:rounded-lg prose-img:shadow-lg prose-img:border prose-img:border-gray-200 dark:prose-img:border-gray-700 prose-img:cursor-zoom-in prose-img:hover:opacity-90 prose-img:transition-opacity prose-table:text-sm prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border-gray-200 dark:prose-td:border-gray-700" />
+      <ContentDoc path="/guide" class="prose prose-gray dark:prose-invert max-w-none prose-headings:scroll-mt-20 prose-img:rounded-lg prose-img:shadow-lg prose-img:border prose-img:border-gray-200 dark:prose-img:border-gray-700 prose-img:cursor-zoom-in prose-img:hover:opacity-90 prose-img:transition-opacity prose-table:text-sm prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border-gray-200 dark:prose-td:border-gray-700">
+        <template #not-found>
+          <div class="text-center py-16">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <UIcon name="i-heroicons-document-magnifying-glass" class="w-8 h-8 text-gray-400" />
+            </div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Guide Not Available</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">The user guide content could not be loaded.</p>
+            <NuxtLink
+              to="/login"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
+              <span>Sign in to continue</span>
+            </NuxtLink>
+          </div>
+        </template>
+      </ContentDoc>
     </main>
 
     <!-- Footer -->
