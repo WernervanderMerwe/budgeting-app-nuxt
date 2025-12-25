@@ -72,6 +72,8 @@ const calendarAttrs = {
       </UButton>
 
       <template #panel>
+        <!-- TODO: Replace v-calendar with Nuxt UI DatePicker - v-calendar has dayIndex bug with Vue 3.5 -->
+        <!-- See: https://github.com/nathanreyes/v-calendar/issues/1498 -->
         <VCalendarDatePicker
           v-model="dateValue"
           v-bind="calendarAttrs"
