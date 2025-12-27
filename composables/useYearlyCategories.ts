@@ -14,6 +14,7 @@ import type {
 import { generateTempId, useOptimisticUpdates } from './useOptimisticUpdates'
 import { getWritableYearlyBudget } from './useYearlyBudget'
 import { getCurrentTimestamp } from '~/utils/date'
+import { extractErrorMessage } from '~/utils/api-error'
 // NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyCategories() {
@@ -49,11 +50,11 @@ export function useYearlyCategories() {
       })
       // Optimistic update already applied - no refresh needed
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to update section')
+      showErrorToast(extractErrorMessage(e, 'Failed to update section'))
       throw e
     }
   }
@@ -150,11 +151,11 @@ export function useYearlyCategories() {
       }
 
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to create category')
+      showErrorToast(extractErrorMessage(e, 'Failed to create category'))
       throw e
     }
   }
@@ -197,11 +198,11 @@ export function useYearlyCategories() {
       })
       // Optimistic update already applied - no refresh needed
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to update category')
+      showErrorToast(extractErrorMessage(e, 'Failed to update category'))
       throw e
     }
   }
@@ -232,11 +233,11 @@ export function useYearlyCategories() {
     try {
       await $fetch(`/api/yearly/categories/${id}`, { method: 'DELETE' })
       return true
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to delete category')
+      showErrorToast(extractErrorMessage(e, 'Failed to delete category'))
       throw e
     }
   }
@@ -282,11 +283,11 @@ export function useYearlyCategories() {
       })
       // Optimistic update already applied - no refresh needed
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to update category entry')
+      showErrorToast(extractErrorMessage(e, 'Failed to update category entry'))
       throw e
     }
   }
@@ -433,11 +434,11 @@ export function useYearlyCategories() {
       })
       // Optimistic update already applied - no refresh needed
       return result
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to copy month')
+      showErrorToast(extractErrorMessage(e, 'Failed to copy month'))
       throw e
     }
   }
@@ -518,11 +519,11 @@ export function useYearlyCategories() {
         body: dto,
       })
       return result
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to clear month')
+      showErrorToast(extractErrorMessage(e, 'Failed to clear month'))
       throw e
     }
   }

@@ -9,6 +9,7 @@ import type {
 import { generateTempId } from './useOptimisticUpdates'
 import { getCurrentTimestamp } from '~/utils/date'
 import { randsToCents } from '~/utils/currency'
+import { extractErrorMessage } from '~/utils/api-error'
 
 export const useMonths = () => {
   const { showErrorToast } = useOptimisticUpdates()
@@ -75,8 +76,8 @@ export const useMonths = () => {
     try {
       const data = await $fetch<Month[]>('/api/months')
       months.value = data
-    } catch (error: any) {
-      monthsError.value = error.message || 'Failed to fetch months'
+    } catch (error: unknown) {
+      monthsError.value = extractErrorMessage(error, 'Failed to fetch months')
       console.error('Error fetching months:', error)
       throw error
     } finally {
@@ -95,8 +96,8 @@ export const useMonths = () => {
       currentMonth.value = data
       selectedMonthId.value = id
       return data
-    } catch (error: any) {
-      monthsError.value = error.message || 'Failed to fetch month'
+    } catch (error: unknown) {
+      monthsError.value = extractErrorMessage(error, 'Failed to fetch month')
       console.error('Error fetching month:', error)
       throw error
     }
@@ -135,11 +136,12 @@ export const useMonths = () => {
       // Replace temp with real month
       months.value = months.value.map(m => m.id === tempId ? newMonth : m)
       return newMonth
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback on error
       months.value = previousMonths
-      monthsError.value = error.message || 'Failed to create month'
-      showErrorToast(error.message || 'Failed to create month')
+      const msg = extractErrorMessage(error, 'Failed to create month')
+      monthsError.value = msg
+      showErrorToast(msg)
       console.error('Error creating month:', error)
       throw error
     }
@@ -185,14 +187,15 @@ export const useMonths = () => {
       }
 
       return updatedMonth
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback on error
       months.value = previousMonths
       if (previousCurrentMonth) {
         currentMonth.value = previousCurrentMonth
       }
-      monthsError.value = error.message || 'Failed to update month'
-      showErrorToast(error.message || 'Failed to update month')
+      const msg = extractErrorMessage(error, 'Failed to update month')
+      monthsError.value = msg
+      showErrorToast(msg)
       console.error('Error updating month:', error)
       throw error
     }
@@ -220,15 +223,16 @@ export const useMonths = () => {
       await $fetch(`/api/months/${id}`, {
         method: 'DELETE'
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback on error
       months.value = previousMonths
       if (previousCurrentMonth) {
         currentMonth.value = previousCurrentMonth
         selectedMonthId.value = previousSelectedMonthId
       }
-      monthsError.value = error.message || 'Failed to delete month'
-      showErrorToast(error.message || 'Failed to delete month')
+      const msg = extractErrorMessage(error, 'Failed to delete month')
+      monthsError.value = msg
+      showErrorToast(msg)
       console.error('Error deleting month:', error)
       throw error
     }

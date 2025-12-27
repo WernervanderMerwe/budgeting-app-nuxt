@@ -5,7 +5,7 @@ import type {
   UpdateYearlyBudgetDTO,
 } from '~/types/yearly'
 import { getCurrentYear, getCurrentTimestamp } from '~/utils/date'
-import { generateTempId } from './useOptimisticUpdates'
+import { extractErrorMessage } from '~/utils/api-error'
 
 // State is shared across components
 const budgets = ref<YearlyBudget[]>([])
@@ -36,8 +36,8 @@ export function useYearlyBudget() {
     try {
       const data = await $fetch<YearlyBudget[]>('/api/yearly')
       budgets.value = data
-    } catch (e: any) {
-      error.value = e.message || 'Failed to fetch budgets'
+    } catch (e: unknown) {
+      error.value = extractErrorMessage(e, 'Failed to fetch budgets')
       console.error('Error fetching budgets:', e)
     } finally {
       loading.value = false
@@ -56,8 +56,8 @@ export function useYearlyBudget() {
       currentBudget.value = data
       selectedYear.value = data.year
       return data
-    } catch (e: any) {
-      error.value = e.message || 'Failed to fetch budget'
+    } catch (e: unknown) {
+      error.value = extractErrorMessage(e, 'Failed to fetch budget')
       console.error('Error fetching budget:', e)
       return null
     } finally {
@@ -82,13 +82,14 @@ export function useYearlyBudget() {
       currentBudget.value = data
       selectedYear.value = year
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       // 404 is expected if no budget exists for the year
-      if (e.statusCode === 404) {
+      const err = e as { statusCode?: number }
+      if (err.statusCode === 404) {
         currentBudget.value = null
         return null
       }
-      error.value = e.message || 'Failed to fetch budget'
+      error.value = extractErrorMessage(e, 'Failed to fetch budget')
       console.error('Error fetching budget by year:', e)
       return null
     } finally {
@@ -109,8 +110,8 @@ export function useYearlyBudget() {
       currentBudget.value = data
       selectedYear.value = data.year
       return data
-    } catch (e: any) {
-      error.value = e.message || 'Failed to create budget'
+    } catch (e: unknown) {
+      error.value = extractErrorMessage(e, 'Failed to create budget')
       console.error('Error creating budget:', e)
       return null
     } finally {
@@ -149,14 +150,15 @@ export function useYearlyBudget() {
         currentBudget.value = { ...currentBudget.value, ...data }
       }
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Rollback on error
       budgets.value = previousBudgets
       if (previousCurrentBudget) {
         currentBudget.value = previousCurrentBudget
       }
-      error.value = e.message || 'Failed to update budget'
-      showErrorToast(e.message || 'Failed to update budget')
+      const msg = extractErrorMessage(e, 'Failed to update budget')
+      error.value = msg
+      showErrorToast(msg)
       console.error('Error updating budget:', e)
       return null
     }
@@ -179,14 +181,15 @@ export function useYearlyBudget() {
     try {
       await $fetch(`/api/yearly/${id}`, { method: 'DELETE' })
       return true
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Rollback on error
       budgets.value = previousBudgets
       if (previousCurrentBudget) {
         currentBudget.value = previousCurrentBudget
       }
-      error.value = e.message || 'Failed to delete budget'
-      showErrorToast(e.message || 'Failed to delete budget')
+      const msg = extractErrorMessage(e, 'Failed to delete budget')
+      error.value = msg
+      showErrorToast(msg)
       console.error('Error deleting budget:', e)
       return false
     }

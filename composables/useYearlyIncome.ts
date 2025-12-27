@@ -13,6 +13,7 @@ import type {
 import { generateTempId, useOptimisticUpdates } from './useOptimisticUpdates'
 import { getWritableYearlyBudget } from './useYearlyBudget'
 import { getCurrentTimestamp } from '~/utils/date'
+import { extractErrorMessage } from '~/utils/api-error'
 // NOTE: randsToCents not needed here - components convert before calling composable
 
 export function useYearlyIncome() {
@@ -73,12 +74,12 @@ export function useYearlyIncome() {
         }
       }
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Rollback
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to create income source')
+      showErrorToast(extractErrorMessage(e, 'Failed to create income source'))
       throw e
     }
   }
@@ -109,11 +110,11 @@ export function useYearlyIncome() {
       })
       // Optimistic update already applied - no refresh needed
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to update income source')
+      showErrorToast(extractErrorMessage(e, 'Failed to update income source'))
       throw e
     }
   }
@@ -136,11 +137,11 @@ export function useYearlyIncome() {
     try {
       await $fetch(`/api/yearly/income-sources/${id}`, { method: 'DELETE' })
       return true
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to delete income source')
+      showErrorToast(extractErrorMessage(e, 'Failed to delete income source'))
       throw e
     }
   }
@@ -175,11 +176,11 @@ export function useYearlyIncome() {
       })
       // Optimistic update already applied - no refresh needed
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to update income entry')
+      showErrorToast(extractErrorMessage(e, 'Failed to update income entry'))
       throw e
     }
   }
@@ -240,11 +241,11 @@ export function useYearlyIncome() {
         }
       }
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to create deduction')
+      showErrorToast(extractErrorMessage(e, 'Failed to create deduction'))
       throw e
     }
   }
@@ -282,11 +283,11 @@ export function useYearlyIncome() {
       })
       // Optimistic update already applied - no refresh needed
       return data
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to update deduction')
+      showErrorToast(extractErrorMessage(e, 'Failed to update deduction'))
       throw e
     }
   }
@@ -315,11 +316,11 @@ export function useYearlyIncome() {
     try {
       await $fetch(`/api/yearly/deductions/${id}`, { method: 'DELETE' })
       return true
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (previousBudget) {
         budgetState.value = previousBudget
       }
-      showErrorToast(e.message || 'Failed to delete deduction')
+      showErrorToast(extractErrorMessage(e, 'Failed to delete deduction'))
       throw e
     }
   }

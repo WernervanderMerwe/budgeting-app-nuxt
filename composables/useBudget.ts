@@ -19,6 +19,7 @@ import { useMonths } from './useMonths'
 import { generateTempId } from './useOptimisticUpdates'
 import { getCurrentTimestamp } from '~/utils/date'
 import { randsToCents } from '~/utils/currency'
+import { extractErrorMessage } from '~/utils/api-error'
 
 export const useBudget = () => {
   // State
@@ -140,14 +141,14 @@ export const useBudget = () => {
 
       removePendingOperation(operationId)
       return newPayment
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to create fixed payment')
+      showErrorToast(extractErrorMessage(error, 'Failed to create fixed payment'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -200,13 +201,13 @@ export const useBudget = () => {
 
       removePendingOperation(operationId)
       return updatedPayment
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to update fixed payment')
+      showErrorToast(extractErrorMessage(error, 'Failed to update fixed payment'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -238,13 +239,13 @@ export const useBudget = () => {
     try {
       await $fetch(`/api/fixed-payments/${id}`, { method: 'DELETE' })
       removePendingOperation(operationId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to delete fixed payment')
+      showErrorToast(extractErrorMessage(error, 'Failed to delete fixed payment'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -307,13 +308,13 @@ export const useBudget = () => {
 
       removePendingOperation(operationId)
       return newCategory
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to create category')
+      showErrorToast(extractErrorMessage(error, 'Failed to create category'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -365,13 +366,13 @@ export const useBudget = () => {
 
       removePendingOperation(operationId)
       return updatedCategory
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to update category')
+      showErrorToast(extractErrorMessage(error, 'Failed to update category'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -402,13 +403,13 @@ export const useBudget = () => {
     try {
       await $fetch(`/api/categories/${id}`, { method: 'DELETE' })
       removePendingOperation(operationId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to delete category')
+      showErrorToast(extractErrorMessage(error, 'Failed to delete category'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -482,13 +483,13 @@ export const useBudget = () => {
 
       removePendingOperation(operationId)
       return newTransaction
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to create transaction')
+      showErrorToast(extractErrorMessage(error, 'Failed to create transaction'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -547,13 +548,13 @@ export const useBudget = () => {
 
       removePendingOperation(operationId)
       return updatedTransaction
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to update transaction')
+      showErrorToast(extractErrorMessage(error, 'Failed to update transaction'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -588,13 +589,13 @@ export const useBudget = () => {
     try {
       await $fetch(`/api/transactions/${id}`, { method: 'DELETE' })
       removePendingOperation(operationId)
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (previousMonth) {
         monthState.value = previousMonth
         summary.value = recalculateSummary()
       }
       removePendingOperation(operationId)
-      showErrorToast(error.message || 'Failed to delete transaction')
+      showErrorToast(extractErrorMessage(error, 'Failed to delete transaction'))
       // Don't set budgetError for mutations - toast is enough, summary should remain visible
       throw error
     }
@@ -617,8 +618,8 @@ export const useBudget = () => {
       const data = await $fetch<MonthSummary>(`/api/months/${monthId}/summary`)
       summary.value = data
       return data
-    } catch (error: any) {
-      budgetError.value = error.message || 'Failed to fetch summary'
+    } catch (error: unknown) {
+      budgetError.value = extractErrorMessage(error, 'Failed to fetch summary')
       console.error('Error fetching summary:', error)
       throw error
     } finally {

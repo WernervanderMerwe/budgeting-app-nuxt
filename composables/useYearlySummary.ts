@@ -5,6 +5,7 @@ import type {
   SectionType,
 } from '~/types/yearly'
 import { centsToRands } from '~/utils/currency'
+import { extractErrorMessage } from '~/utils/api-error'
 
 // Cached summary state
 const summary = ref<YearlySummary | null>(null)
@@ -29,8 +30,8 @@ export function useYearlySummary() {
       const data = await $fetch<YearlySummary>(`/api/yearly/${currentBudget.value.id}/summary`)
       summary.value = data
       return data
-    } catch (e: any) {
-      summaryError.value = e.message || 'Failed to fetch summary'
+    } catch (e: unknown) {
+      summaryError.value = extractErrorMessage(e, 'Failed to fetch summary')
       console.error('Error fetching summary:', e)
       return null
     } finally {

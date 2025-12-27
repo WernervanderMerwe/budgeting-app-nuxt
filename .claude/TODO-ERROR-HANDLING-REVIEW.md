@@ -13,117 +13,38 @@ Based on the `error-handling-patterns` skill guidelines. Review and apply as nee
 
 ---
 
-## Priority: Medium - Zod Validation Error Details
+## Priority: Medium - Zod Validation Error Details (COMPLETED)
 
-### Current: Generic error message
-```typescript
-// server/api/months/index.post.ts
-if (error instanceof z.ZodError) {
-  return errors.badRequest(event, 'Invalid input data')  // No field details!
-}
-```
-
-### Recommended: Expose field-level errors
-```typescript
-// server/utils/errors.ts - add validation error helper
-validationError: (event: H3Event, zodError: z.ZodError) => {
-  const fieldErrors = zodError.errors.map(err => ({
-    field: err.path.join('.'),
-    message: err.message,
-  }))
-  return errorResponse(event, 422, 'Validation failed', { fields: fieldErrors })
-}
-
-// Usage in API handler
-if (error instanceof z.ZodError) {
-  return errors.validationError(event, error)
-}
-```
-
-**Response would be:**
+Added `errors.validationError(event, zodError)` to `server/utils/errors.ts`.
+Returns 422 with field-level errors:
 ```json
 {
   "error": true,
   "statusCode": 422,
   "message": "Validation failed",
-  "details": {
-    "fields": [
-      { "field": "income", "message": "Expected number, received string" }
-    ]
-  }
+  "fields": [{ "field": "income", "message": "Expected number, received string" }]
 }
 ```
 
 ---
 
-## Priority: Medium - Inconsistent ZodError Handling
+## Priority: Medium - Inconsistent ZodError Handling (COMPLETED)
 
-Only `months/index.post.ts` checks for `z.ZodError`. Other endpoints let it fall through to generic 500 error.
-
-### Files missing ZodError handling:
-- `server/api/categories/index.post.ts`
-- `server/api/transactions/index.post.ts`
-- `server/api/fixed-payments/index.post.ts`
-
-### Solution: Create a wrapper or add consistent handling
-```typescript
-// Option 1: Add to each endpoint (quick fix)
-} catch (error) {
-  if (error instanceof z.ZodError) {
-    return errors.validationError(event, error)
-  }
-  return errors.serverError(event, 'Failed to create X', error as Error)
-}
-
-// Option 2: Create a utility wrapper (cleaner)
-export async function handleApiRequest<T>(
-  event: H3Event,
-  handler: () => Promise<T>,
-  errorMessage: string
-): Promise<T | ErrorResponse> {
-  try {
-    return await handler()
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return errors.validationError(event, error)
-    }
-    return errors.serverError(event, errorMessage, error as Error)
-  }
-}
-```
+All POST endpoints now have consistent ZodError handling using `errors.validationError()`.
 
 ---
 
-## Priority: Low - Frontend Error Message Extraction
+## Priority: Low - Frontend Error Message Extraction (COMPLETED)
 
-### Current: May not extract API error message correctly
-```typescript
-// useYearlyBudget.ts
-} catch (e: any) {
-  error.value = e.message || 'Failed to fetch budgets'  // e.message may not be API response
-}
-```
+Created `utils/api-error.ts` with `extractErrorMessage(error, fallback)`.
+Updated `useYearlyBudget.ts` to use it with proper `catch (e: unknown)` typing.
 
-### The issue:
-`$fetch` throws an error object where the API response is in `e.data`, not `e.message`.
-
-### Recommended: Extract error properly
-```typescript
-// utils/api-error.ts
-export function extractErrorMessage(error: any, fallback: string): string {
-  // $fetch puts response body in error.data
-  if (error?.data?.message) return error.data.message
-  if (error?.message) return error.message
-  return fallback
-}
-
-// Usage
-} catch (e: any) {
-  const message = extractErrorMessage(e, 'Failed to fetch budgets')
-  error.value = message
-  showErrorToast(message)
-}
-```
+All composables updated:
+- `useBudget.ts` ✓
+- `useMonths.ts` ✓
+- `useYearlyCategories.ts` ✓
+- `useYearlyIncome.ts` ✓
+- `useYearlySummary.ts` ✓
 
 ---
 
@@ -213,10 +134,11 @@ These patterns from the skill are overkill:
 
 ## Quick Wins Checklist
 
-- [ ] Add `validationError` helper to `errors.ts` with field details
-- [ ] Add `z.ZodError` check to all POST endpoints that use Zod
-- [ ] Create `extractErrorMessage` utility for frontend
-- [ ] Consider typing errors instead of `any`
+- [x] Add `validationError` helper to `errors.ts` with field details
+- [x] Add `z.ZodError` check to all POST endpoints that use Zod
+- [x] Create `extractErrorMessage` utility for frontend
+- [x] Update `useYearlyBudget.ts` with proper error typing
+- [x] Apply same pattern to all other composables
 
 ---
 
