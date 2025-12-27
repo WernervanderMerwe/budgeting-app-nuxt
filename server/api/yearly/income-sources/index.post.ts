@@ -52,6 +52,7 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    setResponseStatus(event, 201)
     return incomeSource
   } catch (error) {
     return errors.serverError(event, 'Failed to create income source', error as Error)

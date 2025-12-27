@@ -3,6 +3,7 @@ import { randsToCents, centsToRands } from '~/server/utils/currency'
 import { transactionSchema } from '~/server/utils/validation'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { errors } from '~/server/utils/errors'
+import { z } from 'zod'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -37,8 +38,12 @@ export default defineEventHandler(async (event) => {
     })
 
     // Return as-is (values in cents) to match GET endpoint
+    setResponseStatus(event, 201)
     return transaction
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return errors.validationError(event, error)
+    }
     return errors.serverError(event, 'Failed to create transaction', error as Error)
   }
 })

@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import { setResponseStatus } from 'h3'
+import type { ZodError } from 'zod'
 
 /**
  * Create an error response that works with Cloudflare Workers.
@@ -32,6 +33,20 @@ export const errors = {
 
   notFound: (event: H3Event, message: string) =>
     errorResponse(event, 404, message),
+
+  validationError: (event: H3Event, zodError: ZodError) => {
+    const fields = zodError.errors.map((err) => ({
+      field: err.path.join('.'),
+      message: err.message,
+    }))
+    setResponseStatus(event, 422)
+    return {
+      error: true,
+      statusCode: 422,
+      message: 'Validation failed',
+      fields,
+    }
+  },
 
   serverError: (event: H3Event, message: string, error?: Error) => {
     if (error) {

@@ -79,13 +79,14 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    setResponseStatus(event, 201)
     return {
       ...month,
       income: validatedData.income,
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.badRequest(event, 'Invalid input data')
+      return errors.validationError(event, error)
     }
 
     return errors.serverError(event, 'Failed to create month', error as Error)

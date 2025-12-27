@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    setResponseStatus(event, 201)
     return deduction
   } catch (error) {
     return errors.serverError(event, 'Failed to create deduction', error as Error)

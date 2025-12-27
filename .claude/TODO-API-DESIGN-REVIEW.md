@@ -17,28 +17,21 @@ Based on the `api-design-principles` skill guidelines. Review and apply as neede
 
 ---
 
-## Priority: Medium - Status Codes
+## Priority: Medium - Status Codes (COMPLETED)
 
 ### POST should return 201 Created
-```typescript
-// Current - returns 200 implicitly
-return transaction
-
-// Recommended
-setResponseStatus(event, 201)
-return transaction
-```
-
-Affects: All `index.post.ts` files
+All POST endpoints now use `setResponseStatus(event, 201)` before returning.
 
 ### Validation errors should return 422
-```typescript
-// Current - uses 400 for everything
-errors.badRequest(event, 'Invalid data')
-
-// Recommended - add to errors.ts
-validationError: (event: H3Event, message: string, fields?: Record<string, string>) =>
-  errorResponse(event, 422, message, fields)
+Added `errors.validationError(event, zodError)` to `server/utils/errors.ts`.
+Returns field-level validation errors:
+```json
+{
+  "error": true,
+  "statusCode": 422,
+  "message": "Validation failed",
+  "fields": [{ "field": "name", "message": "Required" }]
+}
 ```
 
 ---
@@ -184,8 +177,8 @@ These recommendations from the skill don't apply:
 
 ## Quick Wins Checklist
 
-- [ ] Add `setResponseStatus(event, 201)` to POST endpoints
-- [ ] Add `validationError` (422) to errors utility
+- [x] Add `setResponseStatus(event, 201)` to POST endpoints
+- [x] Add `validationError` (422) to errors utility
 - [ ] Consider adding error codes to error responses
 - [ ] Optional: Add pagination to list endpoints if performance becomes an issue
 

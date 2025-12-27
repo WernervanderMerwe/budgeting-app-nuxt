@@ -62,6 +62,7 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    setResponseStatus(event, 201)
     return category
   } catch (error) {
     return errors.serverError(event, 'Failed to create category', error as Error)
