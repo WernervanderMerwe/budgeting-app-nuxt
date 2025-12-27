@@ -59,6 +59,12 @@ NUXT_PUBLIC_SUPABASE_KEY
 - Authentication working via Supabase
 - Both Transaction and Yearly modes functional
 
+## Pending Review TODOs
+Review these files before implementing improvements:
+- `.claude/TODO-POSTGRESQL-REVIEW.md` - FK indexes, data type considerations
+- `.claude/TODO-API-DESIGN-REVIEW.md` - Status codes, error response format
+- `.claude/TODO-ERROR-HANDLING-REVIEW.md` - Zod validation errors, error extraction
+
 ## References
 - User guide: `docs/user-guide.md`
 - Build history: `.claude/CLAUDE-PHASES.md`
