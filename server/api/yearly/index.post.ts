@@ -1,12 +1,13 @@
 import { getPrisma } from '~/server/utils/db'
 import { getCurrentTimestamp } from '~/server/utils/date'
 import { errors } from '~/server/utils/errors'
+import { SectionType } from '@prisma/client'
 
 // Default sections for 70/20/10 rule
 const DEFAULT_SECTIONS = [
-  { type: 'LIVING', name: 'Living Essentials', targetPercent: 70, orderIndex: 0 },
-  { type: 'NON_ESSENTIAL', name: 'Non-Essentials', targetPercent: 20, orderIndex: 1 },
-  { type: 'SAVINGS', name: 'Savings', targetPercent: 10, orderIndex: 2 },
+  { type: SectionType.LIVING, name: 'Living Essentials', targetPercent: 70, orderIndex: 0 },
+  { type: SectionType.NON_ESSENTIAL, name: 'Non-Essentials', targetPercent: 20, orderIndex: 1 },
+  { type: SectionType.SAVINGS, name: 'Savings', targetPercent: 10, orderIndex: 2 },
 ]
 
 // POST /api/yearly - Create a new yearly budget with default sections
@@ -57,6 +58,7 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    setResponseStatus(event, 201)
     return yearlyBudget
   } catch (error: any) {
     return errors.serverError(event, 'Failed to create yearly budget', error)

@@ -2,19 +2,21 @@
 
 Based on the `postgresql` skill guidelines. Review and apply as needed.
 
-## Priority: High - Missing FK Indexes
+## Priority: High - Missing FK Indexes (COMPLETED)
 
 PostgreSQL does NOT auto-index foreign key columns. These are critical for join performance and preventing lock contention.
 
-- [ ] `TransactionFixedPayment` - add `@@index([monthId])`
-- [ ] `TransactionCategory` - add `@@index([monthId])`
-- [ ] `TransactionEntry` - add `@@index([categoryId])`
-- [ ] `YearlyIncomeSource` - add `@@index([yearlyBudgetId])`
-- [ ] `YearlyIncomeEntry` - add `@@index([incomeSourceId])`
-- [ ] `YearlyDeduction` - add `@@index([incomeEntryId])`
-- [ ] `YearlySection` - add `@@index([yearlyBudgetId])`
-- [ ] `YearlyCategory` - add `@@index([sectionId])` and `@@index([parentId])`
-- [ ] `YearlyCategoryEntry` - add `@@index([categoryId])`
+- [x] `TransactionFixedPayment` - add `@@index([monthId])`
+- [x] `TransactionCategory` - add `@@index([monthId])`
+- [x] `TransactionEntry` - add `@@index([categoryId])`
+- [x] `YearlyIncomeSource` - add `@@index([yearlyBudgetId])`
+- [x] `YearlyIncomeEntry` - add `@@index([incomeSourceId])`
+- [x] `YearlyDeduction` - add `@@index([incomeEntryId])`
+- [x] `YearlySection` - add `@@index([yearlyBudgetId])`
+- [x] `YearlyCategory` - add `@@index([sectionId])` and `@@index([parentId])`
+- [x] `YearlyCategoryEntry` - add `@@index([categoryId])`
+
+> Applied via migration `20251227000000_add_fk_indexes`
 
 ## Priority: Medium - Data Type Considerations
 
@@ -51,14 +53,20 @@ Alternative: `Decimal @db.Decimal(10,2)` for exact arithmetic
 
 Your approach is actually common and avoids floating point issues. No change needed.
 
-### Section Type Enum
-Current: `type String // LIVING, NON_ESSENTIAL, SAVINGS`
-Alternative: PostgreSQL enum or CHECK constraint
+### Section Type Enum (COMPLETED)
+~~Current: `type String // LIVING, NON_ESSENTIAL, SAVINGS`~~
 
+Now uses proper PostgreSQL enum via Prisma:
 ```prisma
-// Option 1: Keep as String with validation in app (current - fine)
-// Option 2: Add CHECK constraint via raw SQL migration
+enum SectionType {
+  LIVING
+  NON_ESSENTIAL
+  SAVINGS
+  @@schema("budgeting")
+}
 ```
+
+> Applied via migration `20251227000001_add_section_type_enum`
 
 ## Questions to Consider
 

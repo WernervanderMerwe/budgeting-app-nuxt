@@ -62,6 +62,7 @@ model TransactionFixedPayment {
 
   month TransactionMonth @relation(fields: [monthId], references: [id], onDelete: Cascade)
 
+  @@index([monthId])
   @@map("transaction_fixed_payments")
   @@schema("budgeting")
 }
@@ -78,6 +79,7 @@ model TransactionCategory {
   month        TransactionMonth   @relation(fields: [monthId], references: [id], onDelete: Cascade)
   transactions TransactionEntry[]
 
+  @@index([monthId])
   @@map("transaction_categories")
   @@schema("budgeting")
 }
@@ -93,6 +95,7 @@ model TransactionEntry {
 
   category TransactionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  @@index([categoryId])
   @@map("transaction_entries")
   @@schema("budgeting")
 }
@@ -100,6 +103,14 @@ model TransactionEntry {
 // ============================================
 // YEARLY OVERVIEW MODE MODELS
 // ============================================
+
+enum SectionType {
+  LIVING
+  NON_ESSENTIAL
+  SAVINGS
+
+  @@schema("budgeting")
+}
 
 // Yearly budget for a specific year
 model YearlyBudget {
@@ -132,6 +143,7 @@ model YearlyIncomeSource {
   yearlyBudget YearlyBudget        @relation(fields: [yearlyBudgetId], references: [id], onDelete: Cascade)
   entries      YearlyIncomeEntry[]
 
+  @@index([yearlyBudgetId])
   @@map("yearly_income_sources")
   @@schema("budgeting")
 }
@@ -148,6 +160,7 @@ model YearlyIncomeEntry {
   incomeSource YearlyIncomeSource @relation(fields: [incomeSourceId], references: [id], onDelete: Cascade)
   deductions   YearlyDeduction[]
 
+  @@index([incomeSourceId])
   @@unique([incomeSourceId, month])
   @@map("yearly_income_entries")
   @@schema("budgeting")
@@ -165,6 +178,7 @@ model YearlyDeduction {
 
   incomeEntry YearlyIncomeEntry @relation(fields: [incomeEntryId], references: [id], onDelete: Cascade)
 
+  @@index([incomeEntryId])
   @@map("yearly_deductions")
   @@schema("budgeting")
 }
@@ -173,7 +187,7 @@ model YearlyDeduction {
 model YearlySection {
   id             Int    @id @default(autoincrement())
   yearlyBudgetId Int    @map("yearly_budget_id")
-  type           String // LIVING, NON_ESSENTIAL, SAVINGS
+  type           SectionType
   name           String // Display name
   targetPercent  Int    @default(70) @map("target_percent") // 70, 20, or 10
   orderIndex     Int    @default(0) @map("order_index")
@@ -183,6 +197,7 @@ model YearlySection {
   yearlyBudget YearlyBudget     @relation(fields: [yearlyBudgetId], references: [id], onDelete: Cascade)
   categories   YearlyCategory[]
 
+  @@index([yearlyBudgetId])
   @@map("yearly_sections")
   @@schema("budgeting")
 }
@@ -202,6 +217,8 @@ model YearlyCategory {
   children YearlyCategory[]      @relation("CategoryHierarchy")
   entries  YearlyCategoryEntry[]
 
+  @@index([sectionId])
+  @@index([parentId])
   @@map("yearly_categories")
   @@schema("budgeting")
 }
@@ -218,6 +235,7 @@ model YearlyCategoryEntry {
 
   category YearlyCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  @@index([categoryId])
   @@unique([categoryId, month])
   @@map("yearly_category_entries")
   @@schema("budgeting")
