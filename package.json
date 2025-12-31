@@ -5,15 +5,16 @@
   "private": true,
   "scripts": {
     "build": "prisma generate && nuxt build",
-    "dev": "prisma generate && nuxt dev",
+    "dev": "fuser -k 3000/tcp 2>/dev/null; prisma generate && nuxt dev",
+    "dev:kill": "fuser -k 3000/tcp",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "prisma:dev": "prisma generate",
     "prisma:prod": "prisma generate --no-engine",
     "wrangler:dev": ". ./.dev.vars.sh && wrangler pages dev dist --port 3050",
-    "cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
-    "cleanup:all": "taskkill /F /IM node.exe",
+    "windows:cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
+    "windows:cleanup:all": "taskkill /F /IM node.exe",
     "cf:deploy": "npm run build && npx wrangler pages deploy dist --project-name=budgeting-app"
   },
   "dependencies": {
