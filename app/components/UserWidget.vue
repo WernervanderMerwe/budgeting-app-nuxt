@@ -14,13 +14,11 @@
   </NuxtLink>
 
   <!-- Authenticated: Full dropdown menu -->
-  <UDropdown
+  <UDropdownMenu
     v-else
     :items="menuItems"
-    :popper="{ placement: 'bottom-end' }"
-    :ui="{
-      width: 'w-56'
-    }"
+    :content="{ align: 'end' }"
+    :ui="{ content: 'w-56' }"
   >
     <button
       class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
@@ -44,27 +42,7 @@
         />
       </svg>
     </button>
-
-    <!-- Account header -->
-    <template #header>
-      <div class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-          {{ userEmail }}
-        </p>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          Signed in
-        </p>
-      </div>
-    </template>
-
-    <!-- Sign out item -->
-    <template #item="{ item }">
-      <div class="flex items-center gap-2">
-        <UIcon v-if="item.icon" :name="item.icon" class="w-4 h-4" />
-        <span>{{ item.label }}</span>
-      </div>
-    </template>
-  </UDropdown>
+  </UDropdownMenu>
 </template>
 
 <script setup lang="ts">
@@ -112,6 +90,14 @@ const handleSignOut = async () => {
 const menuItems = computed(() => {
   const items: any[][] = []
 
+  // User label header
+  items.push([
+    {
+      label: userEmail.value,
+      type: 'label' as const
+    }
+  ])
+
   // Add yearly actions only on small screens when they're provided
   if (isSmallScreen.value && props.yearlyActions) {
     const yearlyItems: any[] = []
@@ -120,7 +106,7 @@ const menuItems = computed(() => {
       yearlyItems.push({
         label: 'Copy Month',
         icon: 'i-heroicons-document-duplicate',
-        click: props.yearlyActions.onCopyMonth
+        onClick: props.yearlyActions.onCopyMonth
       })
     }
 
@@ -128,7 +114,7 @@ const menuItems = computed(() => {
       yearlyItems.push({
         label: 'Clear Month',
         icon: 'i-heroicons-arrow-path',
-        click: props.yearlyActions.onClearMonth
+        onClick: props.yearlyActions.onClearMonth
       })
     }
 
@@ -136,7 +122,7 @@ const menuItems = computed(() => {
       yearlyItems.push({
         label: props.yearlyActions.showWarnings ? 'Hide Warnings' : 'Show Warnings',
         icon: 'i-heroicons-exclamation-triangle',
-        click: props.yearlyActions.onToggleWarnings
+        onClick: props.yearlyActions.onToggleWarnings
       })
     }
 
@@ -159,7 +145,7 @@ const menuItems = computed(() => {
     {
       label: 'Sign out',
       icon: 'i-heroicons-arrow-right-on-rectangle',
-      click: handleSignOut
+      onClick: handleSignOut
     }
   ])
 
