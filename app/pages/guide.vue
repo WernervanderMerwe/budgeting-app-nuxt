@@ -45,34 +45,36 @@
     </footer>
 
     <!-- Image Lightbox Modal -->
-    <UModal v-model="lightboxOpen" fullscreen :ui="{ base: 'flex items-center justify-center', padding: 'p-0' }">
-      <!-- Click outside wrapper -->
-      <div class="fixed inset-0 flex items-center justify-center p-4 sm:p-8" @click="lightboxOpen = false">
-        <div
-          class="relative bg-gray-900 rounded-xl overflow-hidden max-w-[95vw] max-h-[95vh] border border-gray-600 shadow-2xl shadow-black/50"
-          @click.stop
-        >
-          <!-- Close button -->
-          <button
-            @click="lightboxOpen = false"
-            class="absolute top-3 right-3 z-10 w-10 h-10 flex items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors border border-gray-500"
+    <UModal v-model:open="lightboxOpen" fullscreen>
+      <template #content>
+        <!-- Click outside wrapper -->
+        <div class="fixed inset-0 flex items-center justify-center p-4 sm:p-8" @click="lightboxOpen = false">
+          <div
+            class="relative bg-gray-900 rounded-xl overflow-hidden max-w-[95vw] max-h-[95vh] border border-gray-600 shadow-2xl shadow-black/50"
+            @click.stop
           >
-            <UIcon name="i-heroicons-x-mark" class="w-5 h-5" />
-          </button>
+            <!-- Close button -->
+            <button
+              @click="lightboxOpen = false"
+              class="absolute top-3 right-3 z-10 w-10 h-10 flex items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors border border-gray-500"
+            >
+              <UIcon name="i-heroicons-x-mark" class="w-5 h-5" />
+            </button>
 
-          <!-- Full-size image -->
-          <img
-            :src="lightboxSrc"
-            :alt="lightboxAlt"
-            class="max-w-[90vw] max-h-[85vh] object-contain"
-          />
+            <!-- Full-size image -->
+            <img
+              :src="lightboxSrc"
+              :alt="lightboxAlt"
+              class="max-w-[90vw] max-h-[85vh] object-contain"
+            />
 
-          <!-- Caption -->
-          <div v-if="lightboxAlt" class="p-4 text-center text-gray-300 bg-gray-900 border-t border-gray-700">
-            {{ lightboxAlt }}
+            <!-- Caption -->
+            <div v-if="lightboxAlt" class="p-4 text-center text-gray-300 bg-gray-900 border-t border-gray-700">
+              {{ lightboxAlt }}
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </UModal>
   </div>
 </template>
