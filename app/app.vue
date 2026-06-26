@@ -1,10 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-    <UNotifications :ui="{ position: 'top-0 bottom-[unset] right-0' }" />
-  </div>
+  <UApp>
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </div>
+  </UApp>
 </template>
 
 <script setup lang="ts">
