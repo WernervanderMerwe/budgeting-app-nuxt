@@ -15,32 +15,34 @@
     "wrangler:dev": ". ./.dev.vars.sh && wrangler pages dev dist --port 3050",
     "windows:cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
     "windows:cleanup:all": "taskkill /F /IM node.exe",
-    "cf:deploy": "npm run build && npx wrangler pages deploy dist --project-name=budgeting-app"
+    "cf:deploy": "npm run build && npx wrangler pages deploy dist --project-name=budgeting-app",
+    "cleanup": "fuser -k 3000/tcp 2>/dev/null || true"
   },
   "dependencies": {
-    "@nuxt/ui": "^2.22.3",
+    "@iconify-json/heroicons": "^1.2.3",
+    "@nuxt/ui": "^4.4.0",
     "@nuxtjs/color-mode": "^4.0.0",
     "@nuxtjs/supabase": "^2.0.3",
     "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^7.2.0",
     "@supabase/supabase-js": "^2.87.3",
     "@vueuse/core": "^14.0.0",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "marked": "^17.0.1",
-    "nuxt": "^3.15.4",
+    "nuxt": "^4.3.1",
     "pg": "^8.16.3",
+    "tailwindcss": "^4.1.18",
     "v-calendar": "^3.1.2",
-    "vue": "^3.5.13",
+    "vue": "^3.5.26",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^1.6.4",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.16.0",
-    "prisma": "^6.19.0",
+    "prisma": "^7.2.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.7.2",
-    "vue-tsc": "^3.1.5"
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.4"
   }
 }
