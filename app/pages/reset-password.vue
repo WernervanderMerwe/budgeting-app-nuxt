@@ -20,7 +20,7 @@
           </p>
 
           <form @submit.prevent="handleRequestReset" class="space-y-6">
-            <UFormGroup label="Email address" name="email">
+            <UFormField label="Email address" name="email">
               <UInput
                 v-model="email"
                 type="email"
@@ -28,7 +28,7 @@
                 required
                 :disabled="isLoading"
               />
-            </UFormGroup>
+            </UFormField>
 
             <UAlert
               v-if="error"
@@ -69,7 +69,7 @@
           </p>
 
           <form @submit.prevent="handleUpdatePassword" class="space-y-6">
-            <UFormGroup label="New Password" name="password" hint="Minimum 6 characters">
+            <UFormField label="New Password" name="password" hint="Minimum 6 characters">
               <UInput
                 v-model="newPassword"
                 type="password"
@@ -77,9 +77,9 @@
                 required
                 :disabled="isLoading"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Confirm Password" name="confirmPassword">
+            <UFormField label="Confirm Password" name="confirmPassword">
               <UInput
                 v-model="confirmPassword"
                 type="password"
@@ -87,7 +87,7 @@
                 required
                 :disabled="isLoading"
               />
-            </UFormGroup>
+            </UFormField>
 
             <UAlert
               v-if="error"

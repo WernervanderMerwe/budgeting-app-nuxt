@@ -22,7 +22,7 @@
       <UCard>
         <template v-if="!success">
           <form @submit.prevent="handleSubmit" class="space-y-6">
-            <UFormGroup label="Email address" name="email">
+            <UFormField label="Email address" name="email">
               <UInput
                 v-model="email"
                 type="email"
@@ -31,9 +31,9 @@
                 :disabled="isLoading"
                 icon="i-heroicons-envelope"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Password" name="password" hint="Min 8 chars, 1 number, 1 special character">
+            <UFormField label="Password" name="password" hint="Min 8 chars, 1 number, 1 special character">
               <UInput
                 v-model="password"
                 type="password"
@@ -42,9 +42,9 @@
                 :disabled="isLoading"
                 icon="i-heroicons-lock-closed"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Confirm Password" name="confirmPassword">
+            <UFormField label="Confirm Password" name="confirmPassword">
               <UInput
                 v-model="confirmPassword"
                 type="password"
@@ -53,7 +53,7 @@
                 :disabled="isLoading"
                 icon="i-heroicons-lock-closed"
               />
-            </UFormGroup>
+            </UFormField>
 
             <UAlert
               v-if="error"

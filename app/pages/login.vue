@@ -31,7 +31,7 @@
 
       <UCard>
         <form @submit.prevent="handleSubmit" class="space-y-6">
-          <UFormGroup label="Email address" name="email">
+          <UFormField label="Email address" name="email">
             <UInput
               v-model="email"
               type="email"
@@ -40,9 +40,9 @@
               :disabled="isLoading"
               icon="i-heroicons-envelope"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Password" name="password">
+          <UFormField label="Password" name="password">
             <UInput
               v-model="password"
               type="password"
@@ -51,7 +51,7 @@
               :disabled="isLoading"
               icon="i-heroicons-lock-closed"
             />
-          </UFormGroup>
+          </UFormField>
 
           <div class="flex items-center justify-end">
             <NuxtLink to="/reset-password" class="text-sm font-medium text-primary-600 hover:text-primary-500">
