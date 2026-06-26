@@ -1,5 +1,5 @@
-import { getPrisma } from '~/server/utils/db'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { errors } from '~~/server/utils/errors'
 
 // GET /api/yearly/latest - Get the latest yearly budget year
 export default defineEventHandler(async (event) => {

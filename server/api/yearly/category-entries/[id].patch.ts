@@ -1,6 +1,6 @@
-import { getPrisma } from '~/server/utils/db'
-import { getCurrentTimestamp } from '~/server/utils/date'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { getCurrentTimestamp } from '~~/server/utils/date'
+import { errors } from '~~/server/utils/errors'
 
 // PATCH /api/yearly/category-entries/[id] - Update a category entry (amount or isPaid)
 export default defineEventHandler(async (event) => {

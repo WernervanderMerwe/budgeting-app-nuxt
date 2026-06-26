@@ -1,5 +1,5 @@
 import { serverSupabaseUser } from '#supabase/server'
-import { getPrisma } from '~/server/utils/db'
+import { getPrisma } from '~~/server/utils/db'
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [

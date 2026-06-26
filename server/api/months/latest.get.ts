@@ -1,5 +1,5 @@
-import { getPrisma } from '~/server/utils/db'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { errors } from '~~/server/utils/errors'
 
 // GET /api/months/latest - Get the latest transaction month year/month
 export default defineEventHandler(async (event) => {

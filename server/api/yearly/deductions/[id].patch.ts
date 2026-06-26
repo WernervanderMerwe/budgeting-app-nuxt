@@ -1,6 +1,6 @@
-import { getPrisma } from '~/server/utils/db'
-import { getCurrentTimestamp } from '~/server/utils/date'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { getCurrentTimestamp } from '~~/server/utils/date'
+import { errors } from '~~/server/utils/errors'
 
 // PATCH /api/yearly/deductions/[id] - Update a deduction
 export default defineEventHandler(async (event) => {

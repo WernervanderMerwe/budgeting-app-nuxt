@@ -1,6 +1,6 @@
-import { getPrisma } from '~/server/utils/db'
-import { getCurrentTimestamp } from '~/server/utils/date'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { getCurrentTimestamp } from '~~/server/utils/date'
+import { errors } from '~~/server/utils/errors'
 
 // POST /api/yearly/categories - Create a new category with 12 month entries
 export default defineEventHandler(async (event) => {

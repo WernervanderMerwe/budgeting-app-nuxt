@@ -1,6 +1,6 @@
-import { getPrisma } from '~/server/utils/db'
-import { getCurrentTimestamp } from '~/server/utils/date'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { getCurrentTimestamp } from '~~/server/utils/date'
+import { errors } from '~~/server/utils/errors'
 
 // POST /api/yearly/[id]/copy-month - Copy category amounts, income entries, and deductions from one month to another
 export default defineEventHandler(async (event) => {

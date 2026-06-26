@@ -1,5 +1,5 @@
-import { getPrisma } from '~/server/utils/db'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { errors } from '~~/server/utils/errors'
 
 // DELETE /api/yearly/categories/[id] - Delete a category
 export default defineEventHandler(async (event) => {

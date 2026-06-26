@@ -1,5 +1,5 @@
-import { getPrisma } from '~/server/utils/db'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { errors } from '~~/server/utils/errors'
 
 // GET /api/yearly/by-year/[year] - Get a yearly budget by year with all relations
 export default defineEventHandler(async (event) => {

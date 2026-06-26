@@ -1,6 +1,6 @@
-import { getPrisma } from '~/server/utils/db'
-import { getCurrentTimestamp } from '~/server/utils/date'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { getCurrentTimestamp } from '~~/server/utils/date'
+import { errors } from '~~/server/utils/errors'
 
 // POST /api/yearly/category-entries/bulk - Bulk update category entries
 // Used for copying amounts from one month to another
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
       select: { id: true },
     })
 
-    const ownedIds = new Set(ownedEntries.map(e => e.id))
+    const ownedIds = new Set(ownedEntries.map((e: { id: number }) => e.id))
     const unauthorizedIds = entryIds.filter((id: number) => !ownedIds.has(id))
 
     if (unauthorizedIds.length > 0) {

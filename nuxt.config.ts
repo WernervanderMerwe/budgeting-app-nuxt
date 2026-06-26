@@ -1,5 +1,4 @@
 import { config } from 'dotenv'
-import { fileURLToPath, URL } from 'node:url'
 
 // Load environment variables from .env.local
 config({ path: '.env.local' })
@@ -35,7 +34,6 @@ export default defineNuxtConfig({
     // Mock pg-native which is optional but causes build errors in edge runtime
     alias: {
       'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
-      '~': fileURLToPath(new URL('.', import.meta.url)),
     },
     // Disable prerendering - dynamic routes require runtime
     prerender: {

@@ -1,5 +1,5 @@
-import { getPrisma } from '~/server/utils/db'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { errors } from '~~/server/utils/errors'
 
 // GET /api/yearly/[id]/summary - Calculate budget summary with totals and percentages
 export default defineEventHandler(async (event) => {

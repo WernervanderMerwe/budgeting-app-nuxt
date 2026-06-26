@@ -1,6 +1,6 @@
 import type { TransactionFixedPayment, TransactionCategory, TransactionEntry } from '@prisma/client'
-import { getPrisma } from '~/server/utils/db'
-import { errors } from '~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { errors } from '~~/server/utils/errors'
 
 interface CategorySpending {
   categoryId: number
