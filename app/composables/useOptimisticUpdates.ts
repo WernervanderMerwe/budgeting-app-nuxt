@@ -61,9 +61,9 @@ export const useOptimisticUpdates = () => {
     toast.add({
       title: 'Error',
       description: message,
-      color: 'red',
+      color: 'error',
       icon: 'i-heroicons-exclamation-circle',
-      timeout: 5000
+      duration: 5000
     })
   }
 
@@ -72,9 +72,9 @@ export const useOptimisticUpdates = () => {
     toast.add({
       title: 'Success',
       description: message,
-      color: 'green',
+      color: 'success',
       icon: 'i-heroicons-check-circle',
-      timeout: 3000
+      duration: 3000
     })
   }
 

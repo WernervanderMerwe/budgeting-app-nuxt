@@ -48,7 +48,7 @@ export const useMonths = () => {
       if (!grouped[month.year]) {
         grouped[month.year] = []
       }
-      grouped[month.year].push(month)
+      grouped[month.year]!.push(month)
     })
     return grouped
   })
@@ -165,7 +165,7 @@ export const useMonths = () => {
     // Apply optimistic update
     const index = months.value.findIndex(m => m.id === id)
     if (index !== -1) {
-      months.value[index] = { ...months.value[index], ...optimisticData, updatedAt: getCurrentTimestamp() }
+      months.value[index] = { ...months.value[index], ...optimisticData, updatedAt: getCurrentTimestamp() } as Month
     }
     if (currentMonth.value && currentMonth.value.id === id) {
       currentMonth.value = { ...currentMonth.value, ...optimisticData, updatedAt: getCurrentTimestamp() }

@@ -130,7 +130,7 @@ export function useYearlyBudget() {
     // Apply optimistic update
     const index = budgets.value.findIndex(b => b.id === id)
     if (index !== -1) {
-      budgets.value[index] = { ...budgets.value[index], ...dto, updatedAt: getCurrentTimestamp() }
+      budgets.value[index] = { ...budgets.value[index], ...dto, updatedAt: getCurrentTimestamp() } as YearlyBudget
     }
     if (currentBudget.value?.id === id) {
       currentBudget.value = { ...currentBudget.value, ...dto, updatedAt: getCurrentTimestamp() }

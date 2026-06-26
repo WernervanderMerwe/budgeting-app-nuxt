@@ -44,8 +44,8 @@ function handleInput(event: Event) {
   }
 
   // Limit to 2 decimal places
-  if (parts.length === 2 && parts[1].length > 2) {
-    value = parts[0] + '.' + parts[1].slice(0, 2)
+  if (parts.length === 2 && parts[1]!.length > 2) {
+    value = parts[0] + '.' + parts[1]!.slice(0, 2)
   }
 
   inputValue.value = value
