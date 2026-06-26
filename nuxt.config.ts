@@ -1,10 +1,13 @@
 import { config } from 'dotenv'
+import { fileURLToPath, URL } from 'node:url'
 
 // Load environment variables from .env.local
 config({ path: '.env.local' })
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  srcDir: 'app/',
+  serverDir: 'server/',
   devtools: { enabled: true },
 
   modules: [
@@ -12,7 +15,7 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase',
   ],
 
-  css: [],
+  css: ['~/assets/css/main.css'],
 
   typescript: {
     strict: true,
@@ -32,6 +35,7 @@ export default defineNuxtConfig({
     // Mock pg-native which is optional but causes build errors in edge runtime
     alias: {
       'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
+      '~': fileURLToPath(new URL('.', import.meta.url)),
     },
     // Disable prerendering - dynamic routes require runtime
     prerender: {

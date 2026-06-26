@@ -80,7 +80,7 @@
 <script setup lang="ts">
 import { marked } from 'marked'
 import { getCurrentYear } from '~/utils/date'
-import guideContent from '~/content/guide.md?raw'
+import guideContent from '~~/content/guide.md?raw'
 
 definePageMeta({
   layout: false // Use no layout since we're providing our own
