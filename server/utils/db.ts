@@ -54,9 +54,14 @@ export function getPrisma(event: H3Event): PrismaClient {
   }
 
   // Development fallback: reuse single client
-  // This works because in local dev, we're not in Cloudflare's edge environment
+  // This works because in local dev, we're not in Cloudflare's edge environment.
+  // Prisma 7 requires a driver adapter (the schema datasource no longer carries a
+  // url - it lives in prisma.config.ts for CLI/migrations only), so build the same
+  // pg adapter the production path uses, from DATABASE_URL.
   if (!devClient) {
-    devClient = new PrismaClient()
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+    const adapter = new PrismaPg(pool)
+    devClient = new PrismaClient({ adapter })
   }
   return devClient
 }
