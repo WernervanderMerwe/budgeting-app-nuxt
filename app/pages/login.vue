@@ -61,7 +61,7 @@
 
           <UAlert
             v-if="error"
-            color="red"
+            color="error"
             variant="soft"
             :title="error"
             icon="i-heroicons-exclamation-circle"
