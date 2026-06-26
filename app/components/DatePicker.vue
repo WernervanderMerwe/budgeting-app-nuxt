@@ -53,17 +53,13 @@ const calendarAttrs = {
       {{ label }}
     </label>
 
-    <UPopover v-model:open="isOpen" :popper="{ placement: 'bottom-start' }">
+    <UPopover v-model:open="isOpen" :content="{ side: 'bottom', align: 'start' }">
       <UButton
         :disabled="disabled"
         variant="outline"
-        color="white"
+        color="neutral"
         block
         :class="['justify-between', props.class]"
-        :ui="{
-          padding: { sm: 'px-3 py-2' },
-          color: { white: { outline: 'ring-1 ring-gray-300 dark:ring-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white' } }
-        }"
       >
         <span :class="displayValue ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'">
           {{ displayValue || placeholder }}
@@ -71,7 +67,7 @@ const calendarAttrs = {
         <UIcon name="i-heroicons-calendar-days-20-solid" class="w-5 h-5 text-gray-400" />
       </UButton>
 
-      <template #panel>
+      <template #content>
         <!-- TODO: Replace v-calendar with Nuxt UI DatePicker - v-calendar has dayIndex bug with Vue 3.5 -->
         <!-- See: https://github.com/nathanreyes/v-calendar/issues/1498 -->
         <VCalendarDatePicker
