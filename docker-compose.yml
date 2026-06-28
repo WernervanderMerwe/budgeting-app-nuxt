@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: budgeting-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: budgeting
+      POSTGRES_PASSWORD: budgeting_dev
+      POSTGRES_DB: budgeting
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U budgeting"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata-dev:

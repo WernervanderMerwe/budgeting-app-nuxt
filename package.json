@@ -16,7 +16,9 @@
     "windows:cleanup": "FOR /L %i IN (3000,1,3010) DO FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :%i 2^>nul') DO taskkill /F /PID %P 2>nul",
     "windows:cleanup:all": "taskkill /F /IM node.exe",
     "cf:deploy": "npm run build && npx wrangler pages deploy dist --project-name=budgeting-app",
-    "cleanup": "fuser -k 3000/tcp 2>/dev/null || true"
+    "cleanup": "fuser -k 3000/tcp 2>/dev/null || true",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
   },
   "dependencies": {
     "@iconify-json/heroicons": "^1.2.3",
@@ -27,11 +29,13 @@
     "@prisma/client": "^7.2.0",
     "@supabase/supabase-js": "^2.87.3",
     "@vueuse/core": "^14.0.0",
+    "better-auth": "^1.6.22",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "marked": "^17.0.1",
     "nuxt": "^4.3.1",
     "pg": "^8.16.3",
+    "resend": "^6.16.0",
     "tailwindcss": "^4.1.18",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.26",
