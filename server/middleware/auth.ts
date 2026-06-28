@@ -2,15 +2,18 @@ import dayjs from 'dayjs'
 import { serverAuth } from '~~/server/lib/auth'
 import { getPrisma } from '~~/server/utils/db'
 
-// API routes that don't require authentication
+// API route prefixes that don't require authentication
 const PUBLIC_ROUTES = [
   '/api/_nuxt',
   '/api/__nuxt',
-  '/api/_content', // @nuxt/content documentation routes
 ]
 
+function matchesPrefix(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(prefix + '/')
+}
+
 function isPublicRoute(path: string): boolean {
-  return PUBLIC_ROUTES.some(route => path.startsWith(route))
+  return PUBLIC_ROUTES.some(route => matchesPrefix(path, route))
 }
 
 /**
@@ -25,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const path = event.path
 
   if (!path.startsWith('/api/')) return
-  if (path.startsWith('/api/auth')) return // better-auth owns its own routes
+  if (matchesPrefix(path, '/api/auth')) return // better-auth owns its own routes
   if (isPublicRoute(path)) return
 
   try {
@@ -47,15 +50,33 @@ export default defineEventHandler(async (event) => {
 
     if (!profile) {
       const now = dayjs().unix()
-      profile = await prisma.profile.create({
-        data: {
-          authUserId: userId,
-          profileToken: crypto.randomUUID(),
-          createdAt: now,
-          updatedAt: now,
-        },
-        select: { profileToken: true },
-      })
+      try {
+        profile = await prisma.profile.create({
+          data: {
+            authUserId: userId,
+            profileToken: crypto.randomUUID(),
+            createdAt: now,
+            updatedAt: now,
+          },
+          select: { profileToken: true },
+        })
+      } catch (createError: any) {
+        // Concurrent first requests race to create the Profile; authUserId is
+        // unique, so all but one hit P2002. Re-fetch the winner's row.
+        if (createError?.code === 'P2002') {
+          profile = await prisma.profile.findUnique({
+            where: { authUserId: userId },
+            select: { profileToken: true },
+          })
+        } else {
+          throw createError
+        }
+      }
+    }
+
+    if (!profile) {
+      setResponseStatus(event, 500)
+      return { error: 'Profile resolution failed' }
     }
 
     event.context.profileToken = profile.profileToken
@@ -63,6 +84,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Auth middleware error:', error)
     setResponseStatus(event, 500)
-    return { error: 'Authentication error', details: error.message }
+    return { error: 'Authentication error' }
   }
 })

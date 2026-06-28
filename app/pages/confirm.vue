@@ -35,10 +35,17 @@ definePageMeta({
 })
 
 const { fetchSession } = useAuth()
+const route = useRoute()
 
 const error = ref('')
 
 onMounted(async () => {
+  // better-auth redirects back with ?error=... if the link is invalid/expired.
+  if (route.query.error) {
+    error.value = 'We could not verify your sign-in link. It may have expired.'
+    return
+  }
+
   try {
     const user = await fetchSession()
     if (user) {

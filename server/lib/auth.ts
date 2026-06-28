@@ -20,9 +20,20 @@ export function serverAuth(event: H3Event) {
   const secret = cf.BETTER_AUTH_SECRET ?? process.env.BETTER_AUTH_SECRET
   const baseURL = cf.BETTER_AUTH_URL ?? process.env.BETTER_AUTH_URL
 
+  // Fail fast on missing config: a missing secret makes session cookies
+  // forgeable, and a missing baseURL lets better-auth infer the origin from the
+  // request Host header — which would let an attacker poison the magic-link URL.
+  if (!secret) {
+    throw new Error('BETTER_AUTH_SECRET is not configured')
+  }
+  if (!baseURL) {
+    throw new Error('BETTER_AUTH_URL is not configured')
+  }
+
   return betterAuth({
     secret,
     baseURL,
+    trustedOrigins: [baseURL],
     database: prismaAdapter(getPrisma(event), { provider: 'postgresql' }),
     session: {
       expiresIn: 60 * 60 * 24 * 90, // 90-day session

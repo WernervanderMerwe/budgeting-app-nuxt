@@ -24,7 +24,7 @@ export const useAuth = () => {
   // Send a magic-link sign-in email. First sign-in also creates the account.
   const sendMagicLink = async (email: string) => {
     if (!$authClient) throw new Error('Auth client unavailable')
-    const { error } = await $authClient.signIn.magicLink({ email, callbackURL: '/' })
+    const { error } = await $authClient.signIn.magicLink({ email, callbackURL: '/confirm' })
     if (error) throw new Error(error.message || 'Failed to send magic link')
   }
 
