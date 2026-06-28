@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema", "driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -12,10 +11,10 @@ datasource db {
 }
 
 // Profile model for pseudonymization
-// Maps Supabase auth.users to anonymous profile_token
+// Maps a better-auth user.id (text/cuid) to an anonymous profile_token
 model Profile {
   id           Int    @id @default(autoincrement())
-  authUserId   String @unique @map("auth_user_id") @db.Uuid
+  authUserId   String @unique @map("auth_user_id") // better-auth user.id (was Supabase uuid)
   profileToken String @unique @map("profile_token")
   createdAt    Int    @map("created_at")
   updatedAt    Int    @map("updated_at")
@@ -236,5 +235,68 @@ model YearlyCategoryEntry {
   @@index([categoryId])
   @@unique([categoryId, month])
   @@map("yearly_category_entries")
+  @@schema("budgeting")
+}
+
+// ============================================
+// AUTH TABLES (managed by Better Auth — String IDs)
+// Mirrors ecommerce-template; magic-link uses the `verification` table.
+// ============================================
+
+model user {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @db.Timestamptz
+  sessions      session[]
+  accounts      account[]
+
+  @@schema("budgeting")
+}
+
+model session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime @db.Timestamptz
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@schema("budgeting")
+}
+
+model account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime? @db.Timestamptz
+  refreshTokenExpiresAt DateTime? @db.Timestamptz
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @db.Timestamptz
+
+  @@schema("budgeting")
+}
+
+model verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime @db.Timestamptz
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+
   @@schema("budgeting")
 }
