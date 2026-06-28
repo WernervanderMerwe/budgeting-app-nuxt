@@ -11,7 +11,6 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/ui',
-    '@nuxtjs/supabase',
   ],
 
   css: ['~/assets/css/main.css'],
@@ -60,23 +59,6 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: '', // Remove '-mode' suffix
-  },
-
-  supabase: {
-    // Don't set url/key here - they get baked as undefined at build time
-    // Instead, use NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_KEY env vars at runtime
-    types: '', // Disable Supabase types - using Prisma for DB access
-    redirectOptions: {
-      login: '/login',
-      callback: '/confirm',
-      include: ['/', '/transaction/*', '/yearly/*'],
-      exclude: ['/guide'],
-    },
-    cookieOptions: {
-      maxAge: 60 * 60 * 8, // 8 hours
-      sameSite: 'lax',
-      secure: true,
-    },
   },
 
   runtimeConfig: {

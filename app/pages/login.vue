@@ -12,13 +12,10 @@
           </h1>
         </div>
         <h2 class="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
-          Welcome back
+          Sign in
         </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?
-          <NuxtLink to="/signup" class="font-medium text-primary-600 hover:text-primary-500">
-            Sign up for free
-          </NuxtLink>
+          We'll email you a magic link — no password needed.
         </p>
         <NuxtLink
           to="/guide"
@@ -30,7 +27,22 @@
       </div>
 
       <UCard>
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <!-- Sent confirmation state -->
+        <div v-if="sent" class="text-center py-6">
+          <UIcon name="i-heroicons-envelope-open" class="w-12 h-12 text-green-500 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Check your email
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            We sent a sign-in link to <span class="font-medium">{{ email }}</span>. Click it to continue.
+          </p>
+          <UButton variant="soft" @click="sent = false">
+            Use a different email
+          </UButton>
+        </div>
+
+        <!-- Email entry form -->
+        <form v-else @submit.prevent="handleSubmit" class="space-y-6">
           <UFormField label="Email address" name="email">
             <UInput
               v-model="email"
@@ -41,23 +53,6 @@
               icon="i-heroicons-envelope"
             />
           </UFormField>
-
-          <UFormField label="Password" name="password">
-            <UInput
-              v-model="password"
-              type="password"
-              placeholder="Enter your password"
-              required
-              :disabled="isLoading"
-              icon="i-heroicons-lock-closed"
-            />
-          </UFormField>
-
-          <div class="flex items-center justify-end">
-            <NuxtLink to="/reset-password" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-              Forgot your password?
-            </NuxtLink>
-          </div>
 
           <UAlert
             v-if="error"
@@ -73,16 +68,9 @@
             size="lg"
             :loading="isLoading"
           >
-            Sign in
+            Send magic link
           </UButton>
         </form>
-
-        <!-- Future OAuth placeholder -->
-        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p class="text-xs text-center text-gray-500 dark:text-gray-400">
-            Social login options coming soon
-          </p>
-        </div>
       </UCard>
 
       <!-- Footer -->
@@ -101,22 +89,22 @@ definePageMeta({
   layout: false,
 })
 
-const { signIn } = useAuth()
+const { sendMagicLink } = useAuth()
 
 const email = ref('')
-const password = ref('')
 const error = ref('')
 const isLoading = ref(false)
+const sent = ref(false)
 
 const handleSubmit = async () => {
   error.value = ''
   isLoading.value = true
 
   try {
-    await signIn(email.value, password.value)
-    await navigateTo('/')
+    await sendMagicLink(email.value)
+    sent.value = true
   } catch (e: any) {
-    error.value = e.message || 'Failed to sign in'
+    error.value = e.message || 'Failed to send magic link'
   } finally {
     isLoading.value = false
   }

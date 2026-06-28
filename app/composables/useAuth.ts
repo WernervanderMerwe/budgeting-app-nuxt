@@ -1,94 +1,46 @@
-import type { Provider } from '@supabase/supabase-js'
+interface AuthUser {
+  id: string
+  email: string
+  name?: string | null
+  image?: string | null
+}
 
 /**
- * Authentication composable wrapping Supabase Auth
+ * Authentication composable wrapping better-auth (magic-link only).
+ * Session state is cached in useState so components share it.
  */
 export const useAuth = () => {
-  const supabase = useSupabaseClient()
-  const user = useSupabaseUser()
+  const { $authClient } = useNuxtApp() as unknown as {
+    $authClient?: {
+      signIn: { magicLink: (opts: { email: string; callbackURL?: string }) => Promise<{ error?: { message?: string } | null }> }
+      signOut: () => Promise<unknown>
+      getSession: () => Promise<{ data?: { user?: AuthUser } | null }>
+    }
+  }
 
+  const user = useState<AuthUser | null>('auth-user', () => null)
   const isAuthenticated = computed(() => !!user.value)
 
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return data
+  // Send a magic-link sign-in email. First sign-in also creates the account.
+  const sendMagicLink = async (email: string) => {
+    if (!$authClient) throw new Error('Auth client unavailable')
+    const { error } = await $authClient.signIn.magicLink({ email, callbackURL: '/' })
+    if (error) throw new Error(error.message || 'Failed to send magic link')
   }
 
-  const signInWithOAuth = async (provider: Provider) => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/confirm`,
-      },
-    })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return data
-  }
-
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return data
+  // Refresh the cached session from the server.
+  const fetchSession = async () => {
+    if (!$authClient) return null
+    const { data } = await $authClient.getSession()
+    user.value = data?.user ?? null
+    return user.value
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    // Redirect to login after sign out
+    if ($authClient) await $authClient.signOut()
+    user.value = null
     await navigateTo('/login')
   }
 
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-  }
-
-  const updatePassword = async (newPassword: string) => {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    })
-
-    if (error) {
-      throw new Error(error.message)
-    }
-  }
-
-  return {
-    user,
-    isAuthenticated,
-    signIn,
-    signInWithOAuth,
-    signUp,
-    signOut,
-    resetPassword,
-    updatePassword,
-  }
+  return { user, isAuthenticated, sendMagicLink, fetchSession, signOut }
 }
