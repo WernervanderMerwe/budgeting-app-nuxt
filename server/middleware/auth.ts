@@ -2,10 +2,13 @@ import dayjs from 'dayjs'
 import { serverAuth } from '~~/server/lib/auth'
 import { getPrisma } from '~~/server/utils/db'
 
-// API route prefixes that don't require authentication
+// API route prefixes that don't require authentication.
+// Includes Nuxt framework endpoints (e.g. @nuxt/icon's /api/_nuxt_icon),
+// which must stay public so icons render on the login/guide pages.
 const PUBLIC_ROUTES = [
   '/api/_nuxt',
   '/api/__nuxt',
+  '/api/_nuxt_icon',
 ]
 
 function matchesPrefix(path: string, prefix: string): boolean {
