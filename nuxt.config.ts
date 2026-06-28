@@ -31,9 +31,13 @@ export default defineNuxtConfig({
     rollupConfig: {
       external: ['cloudflare:sockets'],
     },
-    // Mock pg-native which is optional but causes build errors in edge runtime
+    // Mock optional deps that aren't used at runtime but break edge bundling:
+    // - pg-native: optional native binding for pg
+    // - @react-email/render: only used by the Resend SDK when sending React
+    //   email components; we send HTML strings, so this path is never executed.
     alias: {
       'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
+      '@react-email/render': './node_modules/unenv/dist/runtime/mock/empty.mjs',
     },
     // Disable prerendering - dynamic routes require runtime
     prerender: {
