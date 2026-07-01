@@ -1,48 +1,65 @@
 <template>
-  <!-- Unauthenticated: Simple login button -->
-  <NuxtLink
-    v-if="!isAuthenticated"
-    to="/login"
-    class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-    title="Sign in"
-  >
-    <div
-      class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
-    >
-      U
-    </div>
-  </NuxtLink>
-
-  <!-- Authenticated: Full dropdown menu -->
-  <UDropdownMenu
-    v-else
-    :items="menuItems"
-    :content="{ align: 'end' }"
-    :ui="{ content: 'w-56' }"
-  >
-    <button
+  <!--
+    Auth state lives in client-only state (useAuth's useState, fetched after
+    mount), so the server can't know it. Rendering either branch during SSR
+    guarantees a hydration mismatch once the client resolves the session.
+    ClientOnly renders nothing on the server; the fallback reserves the avatar
+    slot to avoid layout shift.
+  -->
+  <ClientOnly>
+    <!-- Unauthenticated: Simple login button -->
+    <NuxtLink
+      v-if="!isAuthenticated"
+      to="/login"
       class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+      title="Sign in"
     >
       <div
-        class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
+        class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
       >
-        {{ userInitial }}
+        U
       </div>
-      <svg
-        class="w-4 h-4 text-gray-500 dark:text-gray-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
+    </NuxtLink>
+
+    <!-- Authenticated: Full dropdown menu -->
+    <UDropdownMenu
+      v-else
+      :items="menuItems"
+      :content="{ align: 'end' }"
+      :ui="{ content: 'w-56' }"
+    >
+      <button
+        class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
       >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M19 9l-7 7-7-7"
-        />
-      </svg>
-    </button>
-  </UDropdownMenu>
+        <div
+          class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
+        >
+          {{ userInitial }}
+        </div>
+        <svg
+          class="w-4 h-4 text-gray-500 dark:text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+    </UDropdownMenu>
+
+    <!-- Placeholder while the session resolves client-side -->
+    <template #fallback>
+      <div
+        class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 shadow-sm"
+        aria-hidden="true"
+      />
+    </template>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
