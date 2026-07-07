@@ -1,4 +1,5 @@
 services:
+  # ── Development ─────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: budgeting-postgres-dev
@@ -16,6 +17,25 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    profiles: ["dev"]
+
+  # ── Production (VPS) ────────────────────────────────────
+  app:
+    image: ghcr.io/wernervandermerwe/budgeting-app:latest
+    container_name: budgeting-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3200:3000"
+    env_file: .env.production
+    networks:
+      - default
+      - infra
+    profiles: ["production"]
 
 volumes:
   pgdata-dev:
+
+networks:
+  infra:
+    external: true
+    name: postgres_default   # VERIFY on VPS in Task 9 (docker network ls) and fix if different
