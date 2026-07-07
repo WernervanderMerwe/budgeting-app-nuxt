@@ -1,0 +1,16 @@
+node_modules
+.output
+.nuxt
+.git
+.env*
+.dev.vars*
+.wrangler
+dist
+.claude
+docs
+deploy
+scripts
+*.md
+.github
+.vscode
+.idea
