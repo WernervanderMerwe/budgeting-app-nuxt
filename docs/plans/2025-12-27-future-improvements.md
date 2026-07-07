@@ -490,3 +490,75 @@ Focus areas:
 - wernerbuildsapps uses `pnpm` while budgeting-app uses `npm` - consider standardizing
 - wernerbuildsapps has `dotenv-cli` for env handling in deploy script
 - v-calendar shows "latest" as 2.4.2 but current is 3.1.2 - this is correct (v3 is Vue 3 version) - we will deprecate vcalendar and use nuxtui datepickers instead as part of this future improvements.
+
+---
+
+## Phase 4: VPS Migration (Future)
+
+> **⚠️ HISTORICAL (superseded 2026-07-07):** this section sketched a self-hosted-Supabase-on-VPS migration that was never executed. The migration happened differently — plain shared Postgres + better-auth, no Supabase at all: see `docs/plans/2026-07-07-phase2e-vps-hosted-cutover.md`.
+
+**Status**: ~~Planned~~ Superseded — kept for the record only
+
+### Overview
+
+Migrate from Cloudflare Pages + Supabase Cloud to HostAfrica VPS with self-hosted Supabase.
+
+### Why Migrate
+
+- Consolidate with tutoring app infrastructure (shared VPS, separate Supabase instances)
+- Eliminate Supabase Cloud latency (local DB = <10ms vs 200-500ms overseas)
+- Cost efficiency (shared resources)
+- Full control over data (privacy-focused app)
+
+### Architecture After Migration
+
+```
+┌─────────────────────────────────────────────┐
+│           HostAfrica VPS (shared)           │
+│                                             │
+│  ┌───────────────────────────────────────┐  │
+│  │ Supabase Instance 1 (Tutoring)        │  │
+│  │ Port: 8000 | DB Port: 5432            │  │
+│  └───────────────────────────────────────┘  │
+│                                             │
+│  ┌───────────────────────────────────────┐  │
+│  │ Supabase Instance 2 (Budget)          │  │
+│  │ Port: 8100 | DB Port: 5433            │  │
+│  │ + Pseudonymization preserved          │  │
+│  └───────────────────────────────────────┘  │
+│                                             │
+│  ┌───────────────────────────────────────┐  │
+│  │ Nuxt Apps: Tutoring + Budget          │  │
+│  └───────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘
+```
+
+### Key Considerations
+
+- **Keep Pinia**: This app has complex cross-component shared state - Pinia is required
+- **Pseudonymization**: Preserve privacy architecture (user identity separated from data)
+- **Auth migration**: Export users from Supabase Cloud, import to self-hosted
+- **Data migration**: pg_dump from Supabase Cloud, pg_restore to self-hosted
+
+### Migration Steps (High-Level)
+
+1. Tutoring app VPS stable and tested
+2. Set up second Supabase instance on VPS (port 8100)
+3. Export data from Supabase Cloud
+4. Import to self-hosted instance
+5. Update environment variables
+6. Test thoroughly
+7. Update DNS/Cloudflare routing
+8. Decommission Supabase Cloud project
+
+### When to Execute
+
+- Tutoring app VPS running smoothly
+- Familiar with self-hosted Supabase management
+- Backup/recovery procedures established
+- No active development on budget app features
+
+---
+
+*Migration plan created: 2025-12-27*
+*Context: Discussed during tutoring app brainstorming session*
