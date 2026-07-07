@@ -126,7 +126,7 @@ throw new NotFoundError('Category', categoryId)
 These patterns from the skill are overkill:
 
 - **Circuit breaker** - Single user, no external services to protect
-- **Retry with exponential backoff** - Could add for Supabase calls but not critical
+- **Retry with exponential backoff** - Could add for DB calls but not critical
 - **Result type pattern** - Try-catch is fine for your use case
 - **Error aggregation** - Simple validation, not multi-field batch validation
 

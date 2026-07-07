@@ -4,7 +4,6 @@
 .nuxt
 .nitro
 .cache
-dist
 
 # Node dependencies
 node_modules
@@ -36,8 +35,3 @@ prisma/*.db-journal
 
 # Windows reserved device names (artifacts)
 nul
-
-# Wrangler
-.wrangler
-.dev.vars
-.dev.vars.sh

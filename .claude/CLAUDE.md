@@ -1,23 +1,26 @@
-# Budgeting App - Nuxt 3
+# Budgeting App - Nuxt 4
 
 Personal budgeting app with transaction tracking and yearly overview modes.
 
 ## Tech Stack
-- **Framework:** Nuxt 3 + Vue 3 + TypeScript
+- **Framework:** Nuxt 4 + Vue 3 + TypeScript
 - **Styling:** TailwindCSS + dark mode
-- **Database:** PostgreSQL + Prisma ORM (via Supabase)
-- **Auth:** Supabase Auth
-- **Deployment:** Cloudflare Pages with Hyperdrive
+- **Database:** PostgreSQL + Prisma 7 (driver adapters), shared `infra-postgres` on the VPS
+- **Auth:** better-auth magic-link (Resend mailer)
+- **Deployment:** VPS-hosted Docker — image built locally, pushed to `ghcr.io/wernervandermerwe/budgeting-app`, pulled on the VPS via `scripts/vps-pull.sh`, compose `production` profile, port `127.0.0.1:3200`, Nginx + Cloudflare Origin Cert at `budget.wernerbuildsapps.co.za`
+- **Package manager:** pnpm 10.26.2
 - **Dates:** dayjs (unix timestamps in DB)
 
 ## Quick Commands
 ```bash
-npm run dev              # Start dev server
-npm run build            # Production build
-npx prisma studio        # DB GUI
-npx prisma migrate dev   # Create migration (local)
-npx prisma migrate deploy # Apply migrations (prod)
-npm run cleanup          # Kill leftover node processes
+pnpm dev                  # Start dev server
+pnpm build                # Production build
+pnpm db:up                # Start local dev Postgres (docker compose --profile dev up -d)
+pnpm db:down              # Stop local dev Postgres
+npx prisma studio         # DB GUI
+npx prisma migrate dev    # Create migration (local)
+npx prisma migrate deploy # Apply migrations (prod — run from desktop over SSH port-forward, see deploy/README.md)
+pnpm cleanup              # Kill leftover node processes
 ```
 
 ## Key Conventions
@@ -25,7 +28,7 @@ npm run cleanup          # Kill leftover node processes
 - **Dates:** Unix timestamps (seconds) - use dayjs
 - **API:** RESTful endpoints in `server/api/`
 - **State:** Vue composables (no Vuex/Pinia)
-- **Auth:** profileToken links data to user accounts
+- **Auth:** better-auth magic-link session; profileToken links data to user accounts
 
 ## Project Structure
 ```
@@ -40,6 +43,8 @@ pages/                # Route pages
   transaction/        # /transaction/[year]/[month]
   yearly/             # /yearly/[year]
 prisma/schema.prisma  # Database models
+deploy/               # VPS deploy docs, Nginx config
+scripts/              # build-push.sh (desktop), vps-pull.sh (VPS)
 ```
 
 ## Database Models
@@ -48,16 +53,23 @@ prisma/schema.prisma  # Database models
 
 ## Environment Variables
 ```env
-DATABASE_URL          # Supabase pooler connection (with ?pgbouncer=true)
-DIRECT_URL            # Direct Supabase connection (for migrations)
-NUXT_PUBLIC_SUPABASE_URL
-NUXT_PUBLIC_SUPABASE_KEY
+DATABASE_URL          # Postgres connection (local: docker compose; prod: infra-postgres on VPS)
+DIRECT_URL            # Direct connection, migrations only
+BETTER_AUTH_SECRET    # openssl rand -base64 32
+BETTER_AUTH_URL       # App's public origin, no trailing slash
+RESEND_API_KEY        # Magic-link email delivery
+RESEND_FROM           # e.g. "Budget App <noreply@send.wernerbuildsapps.co.za>"
 ```
+See `.env.example` (local dev) and `.env.production.example` (VPS).
 
 ## Current Status
-- Core app complete and deployed to Cloudflare Pages
-- Authentication working via Supabase
+- VPS cutover in progress on branch `migrate/vps-postgres-modern-stack` (retiring the old Cloudflare Pages + edge-DB-binding + Supabase pipeline, onto VPS Docker + ghcr + shared infra-postgres + better-auth)
+- The Cloudflare Pages production deployment is legacy and stays live only as a fallback until the VPS cutover is verified end-to-end, then it gets decommissioned
 - Both Transaction and Yearly modes functional
+
+## VPS Cutover
+- **Plan:** `docs/plans/2026-07-07-phase2e-vps-hosted-cutover.md`
+- **Deploy procedure:** `deploy/README.md`
 
 ## Pending Review TODOs
 Review these files before implementing improvements:
@@ -71,4 +83,3 @@ Review these files before implementing improvements:
 - Full guide: `.claude/CLAUDE-FULL.md`
 
 ---
-

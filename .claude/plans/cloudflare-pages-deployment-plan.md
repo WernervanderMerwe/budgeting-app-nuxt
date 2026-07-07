@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL (superseded 2026-07-07):** describes the retired Cloudflare Pages + Hyperdrive + Supabase architecture. Current: VPS-hosted, see docs/plans/2026-07-07-phase2e-vps-hosted-cutover.md.
+
 # Cloudflare Pages Deployment Plan
 
 ## Architecture Decision: Subdomain Approach

@@ -8,53 +8,55 @@ Personal budgeting application with two modes: **Transaction Tracker** for month
 - **Yearly Mode** - 12-month planning grid with income sources, deductions, and budget sections
 - **70/20/10 Budgeting** - Built-in sections for Needs (70%), Wants (20%), and Savings (10%)
 - **Dark/Light Mode** - System preference detection with manual toggle
-- **Authentication** - Secure user accounts via Supabase Auth
+- **Authentication** - Secure magic-link accounts via better-auth (Resend mailer)
 - **Mobile Responsive** - Works on desktop and mobile devices
 
 ## Tech Stack
 
-- **Framework:** Nuxt 3 + Vue 3 + TypeScript
+- **Framework:** Nuxt 4 + Vue 3 + TypeScript
 - **Styling:** TailwindCSS (via @nuxt/ui)
-- **Database:** PostgreSQL + Prisma ORM
-- **Backend:** Supabase (database + auth)
-- **Deployment:** Cloudflare Pages with Hyperdrive
+- **Database:** PostgreSQL + Prisma 7 (driver adapters)
+- **Auth:** better-auth (magic-link, Resend mailer)
+- **Deployment:** VPS-hosted Docker (image built locally, pushed to ghcr.io, pulled on the VPS) behind Nginx + Cloudflare Origin Cert
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 20.9+
-- [Supabase](https://supabase.com) account (free tier works)
-- [Cloudflare](https://cloudflare.com) account (for deployment)
+- pnpm 10.26.2 (`packageManager` in `package.json`)
+- Docker (for the local dev Postgres)
 
 ### 1. Clone and Install
 
 ```bash
 git clone https://github.com/WernervanderMerwe/budgeting-app-nuxt.git
 cd budgeting-app-nuxt
-npm install
+pnpm install
 ```
 
-### 2. Set Up Supabase
+### 2. Start the Dev Database
 
-1. Create a new Supabase project
-2. Go to **Settings > Database** and note your connection strings
-3. Create a Hyperdrive config in Cloudflare pointing to your Supabase database
+```bash
+pnpm db:up   # docker compose --profile dev up -d
+```
 
 ### 3. Environment Variables
 
-Create `.env.local` in the project root:
+Create `.env.local` in the project root (see `.env.example`):
 
 ```env
-# Database (Supabase connection via pooler)
-DATABASE_URL="postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres?pgbouncer=true"
+# Local dev Postgres (from pnpm db:up)
+DATABASE_URL="postgresql://budgeting:budgeting_dev@localhost:5434/budgeting"
+DIRECT_URL="postgresql://budgeting:budgeting_dev@localhost:5434/budgeting"
 
-# Direct connection (for migrations only)
-DIRECT_URL="postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres"
+# better-auth (magic-link)
+BETTER_AUTH_SECRET=""
+BETTER_AUTH_URL="http://localhost:3000"
 
-# Supabase client
-NUXT_PUBLIC_SUPABASE_URL="https://[project-ref].supabase.co"
-NUXT_PUBLIC_SUPABASE_KEY="your-anon-key"
+# Resend — magic-link email delivery
+RESEND_API_KEY=""
+RESEND_FROM="Budget App <noreply@send.wernerbuildsapps.co.za>"
 ```
 
 ### 4. Run Migrations
@@ -66,30 +68,18 @@ npx prisma migrate deploy
 ### 5. Development
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Visit `http://localhost:3000`
 
 ## Production Deployment
 
-### Cloudflare Pages
+The app deploys to a VPS as a Docker container (Nginx + Cloudflare Origin Cert in front,
+shared `infra-postgres` for the database). See [`deploy/README.md`](./deploy/README.md)
+for the full procedure (build/push script, `scripts/vps-pull.sh`, migrations, Nginx config).
 
-```bash
-# Build
-npm run build
-
-# Deploy
-npx wrangler pages deploy dist --project-name=budgeting-app
-```
-
-### Environment Variables (Cloudflare Dashboard)
-
-Set these in your Cloudflare Pages project settings:
-- `NUXT_PUBLIC_SUPABASE_URL`
-- `NUXT_PUBLIC_SUPABASE_KEY`
-
-The `DATABASE_URL` is provided automatically by Hyperdrive binding.
+Production env vars live in `.env.production` on the VPS (see `.env.production.example`).
 
 ## Project Structure
 
@@ -113,12 +103,14 @@ The `DATABASE_URL` is provided automatically by Hyperdrive binding.
 ## Scripts
 
 ```bash
-npm run dev              # Start dev server
-npm run build            # Production build
-npm run preview          # Preview production build
+pnpm dev                 # Start dev server
+pnpm build               # Production build
+pnpm preview             # Preview production build
 npx prisma studio        # Database GUI
 npx prisma migrate dev   # Create new migration
-npm run cleanup          # Kill orphaned node processes (Windows)
+pnpm db:up               # Start local dev Postgres (docker compose)
+pnpm db:down             # Stop local dev Postgres
+pnpm cleanup             # Kill orphaned node processes
 ```
 
 ## License
