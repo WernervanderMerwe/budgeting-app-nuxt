@@ -3,6 +3,18 @@
   "version": "1.0.0",
   "description": "A simple budgeting application built with Nuxt 3",
   "private": true,
+  "packageManager": "pnpm@10.26.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "@tailwindcss/oxide",
+      "@parcel/watcher",
+      "unrs-resolver",
+      "vue-demi"
+    ]
+  },
   "scripts": {
     "build": "prisma generate && nuxt build",
     "dev": "fuser -k 3000/tcp 2>/dev/null; prisma generate && nuxt dev",
