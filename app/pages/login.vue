@@ -36,7 +36,7 @@
           <p class="text-gray-600 dark:text-gray-400 mb-6">
             We sent a sign-in link to <span class="font-medium">{{ email }}</span>. Click it to continue.
           </p>
-          <UButton variant="soft" @click="sent = false">
+          <UButton variant="soft" @click="() => { sent = false }">
             Use a different email
           </UButton>
         </div>

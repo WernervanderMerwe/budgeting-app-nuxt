@@ -2,21 +2,11 @@ import type { H3Event } from 'h3'
 import { Resend } from 'resend'
 
 /**
- * Read a runtime env var. On Cloudflare Pages the values live on the
- * request-scoped binding env (process.env is not populated with secrets);
- * locally they come from process.env (loaded from .env.local).
- */
-function runtimeEnv(event: H3Event, key: string): string | undefined {
-  const cf = (event.context.cloudflare?.env ?? {}) as Record<string, string | undefined>
-  return cf[key] ?? process.env[key]
-}
-
-/**
- * Send a magic-link sign-in email via Resend (HTTP API — edge-safe).
+ * Send a magic-link sign-in email via Resend (HTTP API).
  */
 export async function sendMagicLinkEmail(event: H3Event, opts: { to: string; url: string }) {
-  const apiKey = runtimeEnv(event, 'RESEND_API_KEY')
-  const from = runtimeEnv(event, 'RESEND_FROM') ?? 'Budget App <onboarding@resend.dev>'
+  const apiKey = process.env.RESEND_API_KEY
+  const from = process.env.RESEND_FROM ?? 'Budget App <onboarding@resend.dev>'
 
   if (!apiKey) {
     throw new Error('RESEND_API_KEY is not configured')

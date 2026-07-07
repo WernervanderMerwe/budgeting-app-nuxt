@@ -3,8 +3,9 @@ import { setResponseStatus } from 'h3'
 import type { ZodError } from 'zod'
 
 /**
- * Create an error response that works with Cloudflare Workers.
- * Unlike throw createError(), this doesn't crash Workers.
+ * Create a structured JSON error response with the given status code.
+ * Returned as a body (rather than throw createError()) so API consumers
+ * always get a consistent { error, statusCode, message } shape.
  */
 export function errorResponse(
   event: H3Event,

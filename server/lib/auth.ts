@@ -8,17 +8,15 @@ import { sendMagicLinkEmail } from '~~/server/utils/mailer'
 /**
  * Build a better-auth instance for the current request.
  *
- * better-auth needs a Prisma client and config at construction time, but this
- * app builds its Prisma client per-request from the Cloudflare Hyperdrive
- * binding (which only exists inside an event handler, not at module scope).
- * So — unlike a Node app with a module-level singleton — auth is constructed
- * per request via getPrisma(event). Secret/baseURL are sourced from the
- * request-scoped Cloudflare env, falling back to process.env for local dev.
+ * better-auth needs a Prisma client and config at construction time. auth is
+ * constructed per request via getPrisma(event) — kept this way so callers
+ * don't need to change even though the underlying Prisma client is now a
+ * single shared instance for the Node process. Secret/baseURL are sourced
+ * from process.env.
  */
 export function serverAuth(event: H3Event) {
-  const cf = (event.context.cloudflare?.env ?? {}) as Record<string, string | undefined>
-  const secret = cf.BETTER_AUTH_SECRET ?? process.env.BETTER_AUTH_SECRET
-  const baseURL = cf.BETTER_AUTH_URL ?? process.env.BETTER_AUTH_URL
+  const secret = process.env.BETTER_AUTH_SECRET
+  const baseURL = process.env.BETTER_AUTH_URL
 
   // Fail fast on missing config: a missing secret makes session cookies
   // forgeable, and a missing baseURL lets better-auth infer the origin from the

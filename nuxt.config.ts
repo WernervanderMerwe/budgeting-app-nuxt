@@ -21,24 +21,7 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'cloudflare_pages',
-    // Enable WASM support for Prisma driver adapters
-    experimental: {
-      wasm: true,
-    },
-    // Externalize cloudflare sockets for pg driver
-    rollupConfig: {
-      external: ['cloudflare:sockets'],
-    },
-    // Mock optional deps that aren't used at runtime but break edge bundling:
-    // - pg-native: optional native binding for pg
-    // - @react-email/render: only used by the Resend SDK when sending React
-    //   email components; we send HTML strings, so this path is never executed.
-    alias: {
-      'pg-native': './node_modules/unenv/dist/runtime/mock/empty.mjs',
-      '@react-email/render': './node_modules/unenv/dist/runtime/mock/empty.mjs',
-    },
-    // Disable prerendering - dynamic routes require runtime
+    preset: 'node_server',
     prerender: {
       crawlLinks: false,
     },
