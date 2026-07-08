@@ -63,9 +63,9 @@ RESEND_FROM           # e.g. "Budget App <noreply@send.wernerbuildsapps.co.za>"
 See `.env.example` (local dev) and `.env.production.example` (VPS).
 
 ## Current Status
-- VPS cutover in progress on branch `migrate/vps-postgres-modern-stack` (retiring the old Cloudflare Pages + edge-DB-binding + Supabase pipeline, onto VPS Docker + ghcr + shared infra-postgres + better-auth)
-- The Cloudflare Pages production deployment is legacy and stays live only as a fallback until the VPS cutover is verified end-to-end, then it gets decommissioned
-- Both Transaction and Yearly modes functional
+- LIVE on the VPS since 2026-07-08 at `https://budget.wernerbuildsapps.co.za` (cutover complete; old Cloudflare Pages project and Hyperdrive config deleted)
+- Nightly pg_dump backups of infra-postgres at 02:00 (`/root/backups/` on the VPS, 14-day retention)
+- Both Transaction and Yearly modes functional; low-maintenance mode — no heavy development planned
 
 ## VPS Cutover
 - **Plan:** `docs/plans/2026-07-07-phase2e-vps-hosted-cutover.md`
