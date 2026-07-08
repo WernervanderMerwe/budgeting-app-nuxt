@@ -46,6 +46,7 @@
           <UFormField label="Email address" name="email">
             <UInput
               v-model="email"
+              class="w-full"
               type="email"
               placeholder="you@example.com"
               required

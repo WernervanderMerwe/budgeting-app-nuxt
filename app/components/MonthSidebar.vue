@@ -15,7 +15,7 @@
 
     <!-- Months List -->
     <div class="flex-1 overflow-y-auto p-2">
-      <LoadingSpinner v-if="isLoadingMonths" class="my-8" />
+      <LoadingSpinner v-if="isLoadingMonths && !hasMonths" class="my-8" />
 
       <ErrorAlert v-else-if="monthsError" :message="monthsError" />
 
@@ -161,6 +161,8 @@
                   label="Monthly Income (R)"
                   placeholder="e.g., 45000.00"
                   required
+                  @enter="handleCreateMonth"
+                  @escape="showCreateModal = false"
                 />
                 <p v-if="previousMonthIncome > 0" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Pre-filled from current month (R {{ previousMonthIncome.toFixed(2) }})
@@ -332,6 +334,11 @@ watch(showCreateModal, (isOpen) => {
 })
 
 const handleCreateMonth = async () => {
+  // Mirror the submit button's disabled state - Enter in the income field
+  // must not bypass the sequential-month validation or double-submit
+  if (isCreating.value || (hasMonths.value && !isValidMonthSelection.value && !overrideSequential.value)) return
+  if (!newMonth.value.income) return
+
   isCreating.value = true
   try {
     const created = await createMonth({

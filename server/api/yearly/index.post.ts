@@ -52,8 +52,40 @@ export default defineEventHandler(async (event) => {
         },
       },
       include: {
+        incomeSources: {
+          orderBy: { orderIndex: 'asc' },
+          include: {
+            entries: {
+              orderBy: { month: 'asc' },
+              include: {
+                deductions: {
+                  orderBy: { orderIndex: 'asc' },
+                },
+              },
+            },
+          },
+        },
         sections: {
           orderBy: { orderIndex: 'asc' },
+          include: {
+            categories: {
+              where: { parentId: null }, // Only top-level categories
+              orderBy: { orderIndex: 'asc' },
+              include: {
+                children: {
+                  orderBy: { orderIndex: 'asc' },
+                  include: {
+                    entries: {
+                      orderBy: { month: 'asc' },
+                    },
+                  },
+                },
+                entries: {
+                  orderBy: { month: 'asc' },
+                },
+              },
+            },
+          },
         },
       },
     })

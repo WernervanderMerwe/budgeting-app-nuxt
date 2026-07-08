@@ -11,6 +11,9 @@ import { getCurrentTimestamp } from '~/utils/date'
 import { randsToCents } from '~/utils/currency'
 import { extractErrorMessage } from '~/utils/api-error'
 
+// Dedupe concurrent fetchMonths() calls (e.g. sidebar + page both fetching on mount)
+let fetchMonthsPromise: Promise<void> | null = null
+
 export const useMonths = () => {
   const { showErrorToast } = useOptimisticUpdates()
   // State
@@ -70,19 +73,28 @@ export const useMonths = () => {
    * Fetch all months
    */
   const fetchMonths = async (): Promise<void> => {
+    // Reuse an in-flight request instead of firing a duplicate one
+    // (sidebar and page both call this on mount)
+    if (fetchMonthsPromise) return fetchMonthsPromise
+
     isLoadingMonths.value = true
     monthsError.value = null
 
-    try {
-      const data = await $fetch<Month[]>('/api/months')
-      months.value = data
-    } catch (error: unknown) {
-      monthsError.value = extractErrorMessage(error, 'Failed to fetch months')
-      console.error('Error fetching months:', error)
-      throw error
-    } finally {
-      isLoadingMonths.value = false
-    }
+    fetchMonthsPromise = (async () => {
+      try {
+        const data = await $fetch<Month[]>('/api/months')
+        months.value = data
+      } catch (error: unknown) {
+        monthsError.value = extractErrorMessage(error, 'Failed to fetch months')
+        console.error('Error fetching months:', error)
+        throw error
+      } finally {
+        isLoadingMonths.value = false
+        fetchMonthsPromise = null
+      }
+    })()
+
+    return fetchMonthsPromise
   }
 
   /**
@@ -245,6 +257,13 @@ export const useMonths = () => {
     if (selectedMonthId.value === id && currentMonth.value) {
       // Already selected, no need to fetch again
       return
+    }
+
+    // Switching to a different month - clear stale data so the page shows
+    // the loading state instead of briefly rendering the previous month
+    // under the new URL while the fetch is in flight
+    if (currentMonth.value && currentMonth.value.id !== id) {
+      currentMonth.value = null
     }
 
     await fetchMonth(id)
