@@ -7,7 +7,7 @@
           <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
             <span class="text-3xl font-bold text-white">B</span>
           </div>
-          <h1 class="text-3xl font-bold text-white">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
             Budget App
           </h1>
         </div>
