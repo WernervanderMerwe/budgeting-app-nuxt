@@ -1,8 +1,3 @@
-import { config } from 'dotenv'
-
-// Load environment variables from .env.local
-config({ path: '.env.local' })
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   srcDir: 'app/',

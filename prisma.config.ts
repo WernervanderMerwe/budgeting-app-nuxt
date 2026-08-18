@@ -1,8 +1,9 @@
 import { config } from "dotenv";
 import { defineConfig, env } from "prisma/config";
 
-// Load environment variables from .env.local
-config({ path: ".env.local" });
+// Load environment variables from .env (Prisma CLI does not auto-load .env
+// when prisma.config.ts exists)
+config({ path: ".env" });
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
