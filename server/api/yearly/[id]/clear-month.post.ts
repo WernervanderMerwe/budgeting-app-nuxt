@@ -136,7 +136,7 @@ export default defineEventHandler(async (event) => {
       month,
       resetPaidStatus,
     }
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to clear month data', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to clear month data', error as Error)
   }
 })

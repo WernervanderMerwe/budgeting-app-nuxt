@@ -2,24 +2,21 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
     <div class="flex items-center justify-between mb-4">
       <button
-        @click="isExpanded = !isExpanded"
         class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300"
-      >
+        @click="isExpanded = !isExpanded">
         <svg
           class="w-5 h-5 transition-transform"
           :class="{ 'rotate-90': isExpanded }"
           fill="none"
           stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+          viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
         Fixed Payments
       </button>
       <button
-        @click="handleAddClick"
         class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center space-x-1"
-      >
+        @click="handleAddClick">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -30,7 +27,7 @@
     <!-- Collapsible Content -->
     <div v-show="isExpanded">
       <!-- Add Form -->
-      <form v-if="showAddForm" @submit.prevent="handleAdd" class="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+      <form v-if="showAddForm" class="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg" @submit.prevent="handleAdd">
       <div class="flex gap-3 mb-3">
         <input
           v-model="newPayment.name"
@@ -40,8 +37,7 @@
           required
           :disabled="isAdding"
           @keydown.enter.prevent="handleAdd"
-          @keydown.escape.prevent="cancelAdd"
-        />
+          @keydown.escape.prevent="cancelAdd">
         <CurrencyInput
           v-model="newPayment.amount"
           placeholder="e.g., 8500.00"
@@ -49,26 +45,23 @@
           required
           :disabled="isAdding"
           @enter="handleAdd"
-          @escape="cancelAdd"
-        />
+          @escape="cancelAdd"/>
       </div>
       <div class="flex justify-end space-x-2">
         <button
           type="button"
-          @click="cancelAdd"
           :disabled="isAdding"
           class="px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          @click="cancelAdd">
           Cancel
         </button>
         <button
           type="submit"
           :disabled="isAdding"
-          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-        >
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
           <svg v-if="isAdding" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
           </svg>
           <span>{{ isAdding ? 'Adding...' : 'Add' }}</span>
         </button>
@@ -91,8 +84,7 @@
           :class="[
             'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-opacity',
             { 'animate-pulse opacity-70': isTempId(payment.id) }
-          ]"
-        >
+          ]">
         <!-- Display Mode -->
         <template v-if="editingId !== payment.id">
           <div class="flex-1">
@@ -106,23 +98,21 @@
             </span>
             <div class="flex space-x-1">
               <button
-                @click="startEditing(payment)"
                 :disabled="isTempId(payment.id)"
                 class="p-1"
                 :class="isTempId(payment.id) ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'"
                 title="Edit"
-              >
+                @click="startEditing(payment)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </button>
               <button
-                @click="handleDelete(payment.id)"
                 :disabled="isTempId(payment.id)"
                 class="p-1"
                 :class="isTempId(payment.id) ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300'"
                 title="Delete"
-              >
+                @click="handleDelete(payment.id)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -135,10 +125,9 @@
         <form
           v-else
           ref="editFormRef"
-          @submit.prevent="handleUpdate(payment.id)"
-          @focusout="handleEditFormFocusOut"
           class="flex-1 flex items-center space-x-2"
-        >
+          @submit.prevent="handleUpdate(payment.id)"
+          @focusout="handleEditFormFocusOut">
           <input
             v-model="editedPayment.name"
             type="text"
@@ -146,8 +135,7 @@
             required
             :disabled="isUpdating"
             @keydown.enter.prevent="handleUpdate(payment.id)"
-            @keydown.escape.prevent="cancelEditing"
-          />
+            @keydown.escape.prevent="cancelEditing">
           <CurrencyInput
             v-model="editedPayment.amount"
             placeholder=""
@@ -155,17 +143,15 @@
             required
             :disabled="isUpdating"
             @enter="handleUpdate(payment.id)"
-            @escape="cancelEditing"
-          />
+            @escape="cancelEditing"/>
           <button
             type="submit"
             :disabled="isUpdating"
             class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 p-1 disabled:opacity-50"
-            title="Save"
-          >
+            title="Save">
             <svg v-if="isUpdating" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
             </svg>
             <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -173,11 +159,10 @@
           </button>
           <button
             type="button"
-            @click="cancelEditing"
             :disabled="isUpdating"
             class="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-1 disabled:opacity-50"
             title="Cancel"
-          >
+            @click="cancelEditing">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>

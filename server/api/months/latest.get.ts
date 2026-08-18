@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
       year: latestMonth.year,
       month: latestMonth.month,
     }
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to fetch latest month', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to fetch latest month', error as Error)
   }
 })

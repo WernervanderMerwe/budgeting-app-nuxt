@@ -3,8 +3,7 @@
     <div class="text-center">
       <div
         class="animate-spin rounded-full border-b-2 border-blue-500 mx-auto"
-        :class="[sizeClass, text ? 'mb-4' : '']"
-      ></div>
+        :class="[sizeClass, text ? 'mb-4' : '']"/>
       <p v-if="text" class="text-gray-600 dark:text-gray-400">{{ text }}</p>
     </div>
   </div>

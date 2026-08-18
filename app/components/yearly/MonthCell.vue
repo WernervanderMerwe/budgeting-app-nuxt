@@ -89,22 +89,19 @@ function togglePaid() {
     :class="{
       'bg-green-50 dark:bg-green-900/20': isPaid && showCheckbox,
       'bg-yellow-50 dark:bg-yellow-900/20': highlight && !isPaid,
-    }"
-  >
+    }">
     <!-- Checkbox -->
     <button
       v-if="showCheckbox"
-      @click="togglePaid"
       :disabled="disabled"
       class="flex-shrink-0 w-5 h-5 flex items-center justify-center"
       :class="{ 'cursor-not-allowed opacity-50': disabled }"
-    >
+      @click="togglePaid">
       <span
         class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors"
         :class="isPaid
           ? 'bg-green-500 border-green-500 text-white'
-          : 'border-gray-300 dark:border-gray-600 hover:border-green-400'"
-      >
+          : 'border-gray-300 dark:border-gray-600 hover:border-green-400'">
         <svg v-if="isPaid" xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
         </svg>
@@ -122,18 +119,16 @@ function togglePaid() {
         class="w-full text-right text-sm bg-white dark:bg-gray-700 border border-blue-500 rounded px-1 py-0.5 focus:outline-none"
         @blur="cancelEditing"
         @keydown="handleKeydown"
-        @input="handleInput"
-      />
+        @input="handleInput">
       <span
         v-else
-        @click="startEditing"
         class="text-sm px-1 py-0.5 rounded text-gray-900 dark:text-gray-100"
         :class="{
           'text-gray-400 dark:text-gray-500': amount === 0 && editable,
           'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700': editable && !disabled,
           'cursor-not-allowed opacity-50': disabled,
         }"
-      >
+        @click="startEditing">
         {{ formatCurrency(amount) }}
       </span>
     </div>

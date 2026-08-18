@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
     // Process all updates in a transaction
     const results = await prisma.$transaction(
       updates.map((update: { id: number; amount?: number; isPaid?: boolean }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic Prisma update payload built conditionally from optional fields
         const updateData: any = { updatedAt: now }
         if (update.amount !== undefined) updateData.amount = update.amount
         if (update.isPaid !== undefined) updateData.isPaid = update.isPaid

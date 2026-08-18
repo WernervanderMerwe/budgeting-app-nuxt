@@ -30,8 +30,7 @@ const { hasMonths, isLoadingMonths } = useMonths()
       v-if="isLoadingMonths"
       size="lg"
       text="Loading..."
-      container-class="min-h-[60vh]"
-    />
+      container-class="min-h-[60vh]"/>
 
     <!-- Welcome / No Month State -->
     <div v-else class="flex items-center justify-center min-h-[60vh]">

@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
 
     setResponseStatus(event, 201)
     return yearlyBudget
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to create yearly budget', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to create yearly budget', error as Error)
   }
 })

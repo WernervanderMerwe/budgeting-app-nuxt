@@ -324,7 +324,7 @@ export function useYearlyCategories() {
     if (!section) return
 
     // Collect all leaf category entries (categories without children, or children of parent categories)
-    const updatePromises: Promise<any>[] = []
+    const updatePromises: Promise<unknown>[] = []
 
     for (const category of section.categories) {
       if (category.children && category.children.length > 0) {

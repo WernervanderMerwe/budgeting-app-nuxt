@@ -16,7 +16,7 @@ const router = useRouter()
 
 const {
   currentBudget,
-  selectedYear,
+  selectedYear: _selectedYear,
   loading,
   error,
   hasBudget,
@@ -202,8 +202,7 @@ async function handleAddIncomeSource() {
     <!-- Header -->
     <YearlyHeader
       @open-copy-modal="showCopyModal = true"
-      @open-clear-modal="showClearModal = true"
-    />
+      @open-clear-modal="showClearModal = true"/>
 
     <!-- Main Content -->
     <div class="flex-1 min-h-0 overflow-auto">
@@ -212,17 +211,15 @@ async function handleAddIncomeSource() {
         v-if="loading"
         size="lg"
         text="Loading budget..."
-        container-class="min-h-[60vh]"
-      />
+        container-class="min-h-[60vh]"/>
 
       <!-- Error State -->
       <div v-else-if="error" class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center">
           <p class="text-red-500 mb-4">{{ error }}</p>
           <button
-            @click="fetchBudgetByYear(yearFromRoute)"
             class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
+            @click="fetchBudgetByYear(yearFromRoute)">
             Retry
           </button>
         </div>
@@ -243,9 +240,8 @@ async function handleAddIncomeSource() {
             Create a new yearly budget to start tracking your finances with the 70/20/10 rule.
           </p>
           <button
-            @click="handleCreateBudget"
             class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
-          >
+            @click="handleCreateBudget">
             Create {{ yearFromRoute }} Budget
           </button>
         </div>
@@ -258,25 +254,22 @@ async function handleAddIncomeSource() {
           <div class="flex">
             <div
               class="sticky left-0 z-10 relative px-3 py-2 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0"
-              :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }"
-            >
+              :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px` }">
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Category</span>
               <!-- Resize Handle -->
               <div
                 class="absolute right-0 top-0 bottom-0 w-3 cursor-col-resize flex items-center justify-center gap-px group"
-                @mousedown="startResize"
                 title="Drag to resize"
-              >
-                <div class="w-px h-4 bg-gray-400 dark:bg-gray-500 group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors"></div>
-                <div class="w-px h-4 bg-gray-400 dark:bg-gray-500 group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors"></div>
+                @mousedown="startResize">
+                <div class="w-px h-4 bg-gray-400 dark:bg-gray-500 group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors"/>
+                <div class="w-px h-4 bg-gray-400 dark:bg-gray-500 group-hover:bg-blue-500 group-active:bg-blue-600 transition-colors"/>
               </div>
             </div>
             <div class="flex flex-1 overflow-hidden">
               <div
                 v-for="(month, index) in MONTH_NAMES_SHORT"
                 :key="index"
-                class="flex-1 min-w-[115px] px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0 overflow-hidden"
-              >
+                class="flex-1 min-w-[115px] px-1 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0 overflow-hidden">
                 {{ month }}
               </div>
             </div>
@@ -300,8 +293,7 @@ async function handleAddIncomeSource() {
             @add-subcategory="openAddSubcategoryModal"
             @rename-category="handleRenameCategory"
             @check-all-children="handleCheckAllChildren"
-            @check-all-section="handleCheckAllSection"
-          />
+            @check-all-section="handleCheckAllSection"/>
 
           <!-- Summary Footer -->
           <YearlySummaryFooter />
@@ -312,22 +304,19 @@ async function handleAddIncomeSource() {
     <!-- Copy Month Modal -->
     <YearlyCopyMonthModal
       :is-open="showCopyModal"
-      @close="showCopyModal = false"
-    />
+      @close="showCopyModal = false"/>
 
     <!-- Clear Month Modal -->
     <YearlyClearMonthModal
       :is-open="showClearModal"
-      @close="showClearModal = false"
-    />
+      @close="showClearModal = false"/>
 
     <!-- Add Category Modal -->
     <Teleport to="body">
       <div
         v-if="showAddCategoryModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showAddCategoryModal = false"
-      >
+        @click.self="showAddCategoryModal = false">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm mx-4 p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add Category</h3>
           <input
@@ -335,19 +324,16 @@ async function handleAddIncomeSource() {
             type="text"
             placeholder="Category name"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
-            @keydown.enter="handleAddCategory"
-          />
+            @keydown.enter="handleAddCategory">
           <div class="flex justify-end gap-2">
             <button
-              @click="showAddCategoryModal = false"
               class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-            >
+              @click="showAddCategoryModal = false">
               Cancel
             </button>
             <button
-              @click="handleAddCategory"
               class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-            >
+              @click="handleAddCategory">
               Add
             </button>
           </div>
@@ -360,8 +346,7 @@ async function handleAddIncomeSource() {
       <div
         v-if="showAddIncomeSourceModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showAddIncomeSourceModal = false"
-      >
+        @click.self="showAddIncomeSourceModal = false">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm mx-4 p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add Income Source</h3>
           <input
@@ -369,19 +354,16 @@ async function handleAddIncomeSource() {
             type="text"
             placeholder="e.g., Salary, Side Hustle, Investments"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 mb-4"
-            @keydown.enter="handleAddIncomeSource"
-          />
+            @keydown.enter="handleAddIncomeSource">
           <div class="flex justify-end gap-2">
             <button
-              @click="showAddIncomeSourceModal = false"
               class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-            >
+              @click="showAddIncomeSourceModal = false">
               Cancel
             </button>
             <button
-              @click="handleAddIncomeSource"
               class="px-4 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg"
-            >
+              @click="handleAddIncomeSource">
               Add
             </button>
           </div>
@@ -394,8 +376,7 @@ async function handleAddIncomeSource() {
       <div
         v-if="showAddSubcategoryModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showAddSubcategoryModal = false"
-      >
+        @click.self="showAddSubcategoryModal = false">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm mx-4 p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add Subcategory</h3>
           <input
@@ -403,19 +384,16 @@ async function handleAddIncomeSource() {
             type="text"
             placeholder="Subcategory name"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
-            @keydown.enter="handleAddSubcategory"
-          />
+            @keydown.enter="handleAddSubcategory">
           <div class="flex justify-end gap-2">
             <button
-              @click="showAddSubcategoryModal = false"
               class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-            >
+              @click="showAddSubcategoryModal = false">
               Cancel
             </button>
             <button
-              @click="handleAddSubcategory"
               class="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-            >
+              @click="handleAddSubcategory">
               Add
             </button>
           </div>

@@ -14,8 +14,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: number): void
-  (e: 'enter'): void
-  (e: 'escape'): void
+  (e: 'enter' | 'escape'): void
   (e: 'blur', event: FocusEvent): void
 }>()
 
@@ -95,7 +94,6 @@ function handleKeydown(event: KeyboardEvent) {
       ]"
       @input="handleInput"
       @blur="handleBlur"
-      @keydown="handleKeydown"
-    />
+      @keydown="handleKeydown">
   </div>
 </template>

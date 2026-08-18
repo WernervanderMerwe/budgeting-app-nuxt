@@ -141,7 +141,7 @@ export default defineEventHandler(async (event) => {
       months: monthSummaries,
       yearly: yearlyTotals,
     }
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to calculate budget summary', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to calculate budget summary', error as Error)
   }
 })

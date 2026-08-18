@@ -10,18 +10,16 @@
       <div class="container mx-auto px-4">
         <div class="flex items-center justify-center space-x-4">
           <button
-            @click="goToPreviousYear"
             class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
+            @click="goToPreviousYear">
             &larr; {{ selectedYear - 1 }}
           </button>
           <span class="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 rounded-lg">
             {{ selectedYear }}
           </span>
           <button
-            @click="goToNextYear"
             class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
+            @click="goToNextYear">
             {{ selectedYear + 1 }} &rarr;
           </button>
         </div>

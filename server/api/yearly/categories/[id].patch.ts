@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
       return errors.notFound(event, 'Category not found')
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic Prisma update payload built conditionally from optional body fields
     const updateData: any = {
       updatedAt: getCurrentTimestamp(),
     }

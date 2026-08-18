@@ -15,7 +15,7 @@ export const useTheme = () => {
   const initTheme = (): void => {
     if (isInitialized.value) return
 
-    if (process.client) {
+    if (import.meta.client) {
       // Check localStorage first
       const stored = localStorage.getItem('theme') as ThemeMode | null
 
@@ -37,7 +37,7 @@ export const useTheme = () => {
    * Apply theme to document element
    */
   const applyTheme = (mode: ThemeMode): void => {
-    if (process.client) {
+    if (import.meta.client) {
       const html = document.documentElement
 
       if (mode === 'dark') {
@@ -54,7 +54,7 @@ export const useTheme = () => {
   const setTheme = (mode: ThemeMode): void => {
     theme.value = mode
 
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.setItem('theme', mode)
       applyTheme(mode)
     }
@@ -83,7 +83,7 @@ export const useTheme = () => {
   }
 
   // Auto-initialize on composable creation (client-side only)
-  if (process.client && !isInitialized.value) {
+  if (import.meta.client && !isInitialized.value) {
     initTheme()
   }
 

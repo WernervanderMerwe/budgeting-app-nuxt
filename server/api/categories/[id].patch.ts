@@ -1,5 +1,5 @@
 import { getPrisma } from '~~/server/utils/db'
-import { randsToCents, centsToRands } from '~~/server/utils/currency'
+import { randsToCents } from '~~/server/utils/currency'
 import { getCurrentTimestamp } from '~~/server/utils/date'
 import { errors } from '~~/server/utils/errors'
 
@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
       return errors.notFound(event, 'Category not found')
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic Prisma update payload built conditionally from optional body fields
     const updateData: any = {
       updatedAt: getCurrentTimestamp(),
     }

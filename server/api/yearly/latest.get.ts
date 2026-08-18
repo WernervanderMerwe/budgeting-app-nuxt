@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     }
 
     return { year: latestBudget.year }
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to fetch latest yearly budget', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to fetch latest yearly budget', error as Error)
   }
 })

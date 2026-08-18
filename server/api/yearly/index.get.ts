@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return yearlyBudgets
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to fetch yearly budgets', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to fetch yearly budgets', error as Error)
   }
 })

@@ -59,8 +59,7 @@ const calendarAttrs = {
         variant="outline"
         color="neutral"
         block
-        :class="['justify-between', props.class]"
-      >
+        :class="['justify-between', props.class]">
         <span :class="displayValue ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'">
           {{ displayValue || placeholder }}
         </span>
@@ -72,8 +71,7 @@ const calendarAttrs = {
         <!-- See: https://github.com/nathanreyes/v-calendar/issues/1498 -->
         <VCalendarDatePicker
           v-model="dateValue"
-          v-bind="calendarAttrs"
-        />
+          v-bind="calendarAttrs"/>
       </template>
     </UPopover>
   </div>

@@ -6,9 +6,8 @@
       </h2>
       <button
         v-if="!isEditing"
-        @click="startEditing"
         class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
-      >
+        @click="startEditing">
         Edit
       </button>
     </div>
@@ -24,31 +23,27 @@
     <form
       v-else
       ref="editFormRef"
-      @submit.prevent="handleSave"
-      @focusout="handleEditFormFocusOut"
       class="space-y-4"
-    >
+      @submit.prevent="handleSave"
+      @focusout="handleEditFormFocusOut">
       <CurrencyInput
         v-model="editedIncome"
         label="Income Amount (R)"
         required
         @enter="handleSave"
-        @escape="cancelEditing"
-      />
+        @escape="cancelEditing"/>
 
       <div class="flex justify-end space-x-3">
         <button
           type="button"
-          @click="cancelEditing"
           class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm"
-        >
+          @click="cancelEditing">
           Cancel
         </button>
         <button
           type="submit"
           :disabled="isSaving"
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">
           {{ isSaving ? 'Saving...' : 'Save' }}
         </button>
       </div>

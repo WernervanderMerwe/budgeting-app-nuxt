@@ -3,9 +3,8 @@
     <!-- Sidebar Header -->
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <button
-        @click="showCreateModal = true"
         class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-      >
+        @click="showCreateModal = true">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -38,27 +37,24 @@
           <ul class="space-y-1">
             <li v-for="month in monthsByYear[year]" :key="month.id">
               <button
-                @click="navigateToMonth(month.id)"
                 :class="[
                   'w-full text-left px-3 py-2 rounded-lg transition-colors',
                   selectedMonthId === month.id
                     ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 ]"
-              >
+                @click="navigateToMonth(month.id)">
                 <div class="flex items-center justify-between">
                   <span>{{ month.displayName }}</span>
                   <svg
                     v-if="selectedMonthId === month.id"
                     class="w-4 h-4"
                     fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
+                    viewBox="0 0 20 20">
                     <path
                       fill-rule="evenodd"
                       d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd"/>
                   </svg>
                 </div>
               </button>
@@ -73,8 +69,7 @@
       <div
         v-if="showCreateModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-        @click.self="showCreateModal = false"
-      >
+        @click.self="showCreateModal = false">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
             Create New Month
@@ -92,9 +87,8 @@
                 <div class="flex items-center justify-between mb-3">
                   <button
                     type="button"
-                    @click="newMonth.year--"
                     class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                  >
+                    @click="newMonth.year--">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -102,9 +96,8 @@
                   <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ newMonth.year }}</span>
                   <button
                     type="button"
-                    @click="newMonth.year++"
                     class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                  >
+                    @click="newMonth.year++">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -117,7 +110,6 @@
                     v-for="m in 12"
                     :key="m"
                     type="button"
-                    @click="newMonth.month = m"
                     :disabled="isMonthExisting(newMonth.year, m)"
                     :class="[
                       'py-2 px-1 text-sm rounded-lg transition-colors',
@@ -129,7 +121,7 @@
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 ring-2 ring-green-500'
                             : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                     ]"
-                  >
+                    @click="newMonth.month = m">
                     {{ getMonthName(m, 'short') }}
                   </button>
                 </div>
@@ -137,11 +129,11 @@
                 <!-- Legend -->
                 <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
                   <div class="flex items-center gap-1">
-                    <span class="w-3 h-3 rounded bg-green-500"></span>
+                    <span class="w-3 h-3 rounded bg-green-500"/>
                     <span>Recommended</span>
                   </div>
                   <div class="flex items-center gap-1">
-                    <span class="w-3 h-3 rounded bg-gray-300 dark:bg-gray-600"></span>
+                    <span class="w-3 h-3 rounded bg-gray-300 dark:bg-gray-600"/>
                     <span>Already exists</span>
                   </div>
                 </div>
@@ -162,8 +154,7 @@
                   placeholder="e.g., 45000.00"
                   required
                   @enter="handleCreateMonth"
-                  @escape="showCreateModal = false"
-                />
+                  @escape="showCreateModal = false"/>
                 <p v-if="previousMonthIncome > 0" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Pre-filled from current month (R {{ previousMonthIncome.toFixed(2) }})
                 </p>
@@ -175,8 +166,7 @@
                   id="copyFromPrevious"
                   v-model="copyFromPrevious"
                   type="checkbox"
-                  class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                 <div class="flex-1">
                   <label for="copyFromPrevious" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
                     Copy payments and budgets from current month
@@ -192,16 +182,14 @@
             <div class="flex justify-end space-x-3 mt-6">
               <button
                 type="button"
-                @click="showCreateModal = false"
                 class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
+                @click="showCreateModal = false">
                 Cancel
               </button>
               <button
                 type="submit"
                 :disabled="isCreating || (hasMonths && !isValidMonthSelection && !overrideSequential)"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {{ isCreating ? 'Creating...' : 'Create Month' }}
               </button>
             </div>
@@ -229,7 +217,7 @@ const {
   monthsError,
   hasMonths,
   fetchMonths,
-  selectMonth,
+  selectMonth: _selectMonth,
   createMonth,
 } = useMonths()
 

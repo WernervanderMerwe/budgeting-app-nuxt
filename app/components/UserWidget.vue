@@ -12,11 +12,9 @@
       v-if="!isAuthenticated"
       to="/login"
       class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-      title="Sign in"
-    >
+      title="Sign in">
       <div
-        class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
-      >
+        class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
         U
       </div>
     </NuxtLink>
@@ -26,28 +24,23 @@
       v-else
       :items="menuItems"
       :content="{ align: 'end' }"
-      :ui="{ content: 'w-56' }"
-    >
+      :ui="{ content: 'w-56' }">
       <button
-        class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-      >
+        class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
         <div
-          class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm"
-        >
+          class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
           {{ userInitial }}
         </div>
         <svg
           class="w-4 h-4 text-gray-500 dark:text-gray-400"
           fill="none"
           stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+          viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M19 9l-7 7-7-7"
-          />
+            d="M19 9l-7 7-7-7"/>
         </svg>
       </button>
     </UDropdownMenu>
@@ -56,13 +49,14 @@
     <template #fallback>
       <div
         class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 shadow-sm"
-        aria-hidden="true"
-      />
+        aria-hidden="true"/>
     </template>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+
 const props = defineProps<{
   yearlyActions?: {
     onCopyMonth?: () => void
@@ -105,7 +99,7 @@ const handleSignOut = async () => {
 }
 
 const menuItems = computed(() => {
-  const items: any[][] = []
+  const items: DropdownMenuItem[][] = []
 
   // User label header
   items.push([
@@ -117,7 +111,7 @@ const menuItems = computed(() => {
 
   // Add yearly actions only on small screens when they're provided
   if (isSmallScreen.value && props.yearlyActions) {
-    const yearlyItems: any[] = []
+    const yearlyItems: DropdownMenuItem[] = []
 
     if (props.yearlyActions.onCopyMonth) {
       yearlyItems.push({

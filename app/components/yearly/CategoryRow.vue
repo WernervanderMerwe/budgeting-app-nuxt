@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { YearlyCategoryWithChildren, YearlyCategoryEntry } from '~/types/yearly'
-import { MONTH_NAMES_SHORT } from '~/types/yearly'
 import { useColumnWidth } from '~/composables/useColumnResize'
 import { formatCurrency, centsToRands, randsToCents } from '~/utils/currency'
 import { isTempId } from '~/composables/useOptimisticUpdates'
@@ -12,8 +11,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update-entry', entryId: number, data: { amount?: number; isPaid?: boolean }): void
-  (e: 'delete', categoryId: number): void
-  (e: 'add-child', parentId: number): void
+  (e: 'delete' | 'add-child', id: number): void
   (e: 'rename', categoryId: number, newName: string): void
   (e: 'check-all-children', categoryId: number, month: number, isPaid: boolean): void
 }>()
@@ -147,31 +145,27 @@ function handleEditKeydown(event: KeyboardEvent) {
     <!-- Category Row -->
     <div
       class="group flex items-stretch border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-      :class="{ 'bg-gray-50/50 dark:bg-gray-800/30': isChild }"
-    >
+      :class="{ 'bg-gray-50/50 dark:bg-gray-800/30': isChild }">
       <!-- Category Name (sticky) -->
       <div
         class="sticky left-0 z-10 relative flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-hidden"
         :class="{ 'pl-6': isChild }"
-        :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }"
-      >
+        :style="{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }">
         <!-- Expand/Collapse -->
         <button
           v-if="hasChildren"
-          @click="toggleExpand"
           class="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded flex-shrink-0"
-        >
+          @click="toggleExpand">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-4 w-4 transition-transform text-gray-500 dark:text-gray-300"
             :class="{ 'rotate-90': isExpanded }"
             viewBox="0 0 20 20"
-            fill="currentColor"
-          >
+            fill="currentColor">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
           </svg>
         </button>
-        <span v-else class="w-5 flex-shrink-0"></span>
+        <span v-else class="w-5 flex-shrink-0"/>
 
         <!-- Edit Mode -->
         <input
@@ -181,48 +175,42 @@ function handleEditKeydown(event: KeyboardEvent) {
           type="text"
           class="flex-1 min-w-0 text-sm px-1 py-0.5 border border-blue-500 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none"
           @keydown="handleEditKeydown"
-          @blur="saveEdit"
-        />
+          @blur="saveEdit">
 
         <!-- Display Mode -->
         <span
           v-else
           class="text-sm font-medium truncate flex-1 min-w-0 text-gray-900 dark:text-white px-1 py-0.5 rounded"
           :class="isCategorySyncing ? 'opacity-70' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'"
-          @click="!isCategorySyncing && startEditing()"
-        >{{ category.name }}</span>
+          @click="!isCategorySyncing && startEditing()">{{ category.name }}</span>
         <!-- Syncing spinner -->
         <svg
           v-if="isCategorySyncing"
           class="animate-spin h-3.5 w-3.5 text-blue-500 flex-shrink-0"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
         </svg>
 
         <!-- Actions (absolute positioned) - hidden when editing or syncing -->
         <div
           v-if="!isEditing && !isCategorySyncing"
-          class="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-white dark:bg-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
+          class="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-white dark:bg-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             v-if="!isChild"
-            @click.stop="emit('add-child', category.id)"
             class="p-1 text-gray-400 hover:text-blue-500"
             title="Add subcategory"
-          >
+            @click.stop="emit('add-child', category.id)">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
           </button>
           <button
-            @click.stop="emit('delete', category.id)"
             class="p-1 text-gray-400 hover:text-red-500"
             title="Delete category"
-          >
+            @click.stop="emit('delete', category.id)">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
             </svg>
@@ -235,36 +223,31 @@ function handleEditKeydown(event: KeyboardEvent) {
         <div
           v-for="month in 12"
           :key="month"
-          class="flex-1 min-w-[115px] border-r border-gray-100 dark:border-gray-800 last:border-r-0"
-        >
+          class="flex-1 min-w-[115px] border-r border-gray-100 dark:border-gray-800 last:border-r-0">
           <!-- Parent category with children - show aggregate checkbox -->
           <div
             v-if="hasChildren"
             class="relative flex items-center gap-1 px-1 py-1 w-full h-full"
             :class="{
               'bg-green-50 dark:bg-green-900/20': areAllChildrenPaidForMonth(month),
-            }"
-          >
+            }">
             <button
-              @click="!isCategorySyncing && handleParentCheckboxClick(month)"
               :disabled="isCategorySyncing"
               class="flex-shrink-0 w-5 h-5 flex items-center justify-center"
               :class="{ 'cursor-not-allowed opacity-50': isCategorySyncing }"
-            >
+              @click="!isCategorySyncing && handleParentCheckboxClick(month)">
               <span
                 class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors"
                 :class="areAllChildrenPaidForMonth(month)
                   ? 'bg-green-500 border-green-500 text-white'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-green-400'"
-              >
+                  : 'border-gray-300 dark:border-gray-600 hover:border-green-400'">
                 <svg v-if="areAllChildrenPaidForMonth(month)" xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
               </span>
             </button>
             <span
-              class="flex-1 text-right text-sm text-gray-900 dark:text-gray-100"
-            >
+              class="flex-1 text-right text-sm text-gray-900 dark:text-gray-100">
               {{ formatCurrency(centsToRands(getParentTotalForMonth(month))) }}
             </span>
           </div>
@@ -278,8 +261,7 @@ function handleEditKeydown(event: KeyboardEvent) {
             :editable="true"
             :disabled="isEntrySyncing(getEntryForMonth(month))"
             @update:amount="handleAmountUpdate(month, $event)"
-            @update:is-paid="handlePaidUpdate(month, $event)"
-          />
+            @update:is-paid="handlePaidUpdate(month, $event)"/>
         </div>
       </div>
     </div>
@@ -294,8 +276,7 @@ function handleEditKeydown(event: KeyboardEvent) {
         @update-entry="(entryId, data) => emit('update-entry', entryId, data)"
         @delete="emit('delete', $event)"
         @rename="(categoryId, newName) => emit('rename', categoryId, newName)"
-        @check-all-children="(categoryId, month, isPaid) => emit('check-all-children', categoryId, month, isPaid)"
-      />
+        @check-all-children="(categoryId, month, isPaid) => emit('check-all-children', categoryId, month, isPaid)"/>
     </template>
   </div>
 </template>

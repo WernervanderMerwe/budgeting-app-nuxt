@@ -28,7 +28,7 @@ export const useBudget = () => {
   const budgetError = useState<string | null>('budgetError', () => null)
 
   // Get access to months composable and optimistic helpers
-  const { currentMonth, refreshCurrentMonth } = useMonths()
+  const { currentMonth, refreshCurrentMonth: _refreshCurrentMonth } = useMonths()
   const { showErrorToast, addPendingOperation, removePendingOperation } = useOptimisticUpdates()
 
   // ============================================================================

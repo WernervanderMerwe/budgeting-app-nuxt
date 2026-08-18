@@ -3,7 +3,6 @@ import type {
   YearlyIncomeSourceWithEntries,
   YearlyIncomeEntry,
   YearlyDeduction,
-  YearlyBudgetWithRelations,
   CreateIncomeSourceDTO,
   UpdateIncomeSourceDTO,
   UpdateIncomeEntryDTO,

@@ -19,8 +19,7 @@
         </p>
         <NuxtLink
           to="/guide"
-          class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
-        >
+          class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">
           <UIcon name="i-heroicons-book-open" class="w-4 h-4" />
           <span>Check out the User Guide first</span>
         </NuxtLink>
@@ -42,7 +41,7 @@
         </div>
 
         <!-- Email entry form -->
-        <form v-else @submit.prevent="handleSubmit" class="space-y-6">
+        <form v-else class="space-y-6" @submit.prevent="handleSubmit">
           <UFormField label="Email address" name="email">
             <UInput
               v-model="email"
@@ -51,8 +50,7 @@
               placeholder="you@example.com"
               required
               :disabled="isLoading"
-              icon="i-heroicons-envelope"
-            />
+              icon="i-heroicons-envelope"/>
           </UFormField>
 
           <UAlert
@@ -60,15 +58,13 @@
             color="error"
             variant="soft"
             :title="error"
-            icon="i-heroicons-exclamation-circle"
-          />
+            icon="i-heroicons-exclamation-circle"/>
 
           <UButton
             type="submit"
             block
             size="lg"
-            :loading="isLoading"
-          >
+            :loading="isLoading">
             Send magic link
           </UButton>
         </form>
@@ -104,8 +100,8 @@ const handleSubmit = async () => {
   try {
     await sendMagicLink(email.value)
     sent.value = true
-  } catch (e: any) {
-    error.value = e.message || 'Failed to send magic link'
+  } catch (e) {
+    error.value = (e as Error).message || 'Failed to send magic link'
   } finally {
     isLoading.value = false
   }

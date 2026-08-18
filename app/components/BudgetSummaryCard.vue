@@ -17,7 +17,7 @@
         </span>
       </div>
 
-      <div class="border-t border-gray-200 dark:border-gray-700"></div>
+      <div class="border-t border-gray-200 dark:border-gray-700"/>
 
       <!-- Fixed Payments -->
       <div class="flex items-center justify-between py-2">
@@ -35,7 +35,7 @@
         </span>
       </div>
 
-      <div class="border-t border-gray-200 dark:border-gray-700"></div>
+      <div class="border-t border-gray-200 dark:border-gray-700"/>
 
       <!-- Budgeted -->
       <div class="flex items-center justify-between py-2">
@@ -53,7 +53,7 @@
         </span>
       </div>
 
-      <div class="border-t border-gray-200 dark:border-gray-700"></div>
+      <div class="border-t border-gray-200 dark:border-gray-700"/>
 
       <!-- Spent -->
       <div class="flex items-center justify-between py-2">
@@ -63,7 +63,7 @@
         </span>
       </div>
 
-      <div class="border-t-2 border-gray-300 dark:border-gray-600"></div>
+      <div class="border-t-2 border-gray-300 dark:border-gray-600"/>
 
       <!-- Total Remaining -->
       <div class="flex items-center justify-between py-2">
@@ -74,8 +74,7 @@
             summary.totalRemaining >= 0
               ? 'text-green-600 dark:text-green-400'
               : 'text-red-600 dark:text-red-400'
-          ]"
-        >
+          ]">
           {{ formatCurrency(centsToRands(summary.totalRemaining)) }}
         </span>
       </div>
@@ -89,8 +88,7 @@
           <li
             v-for="category in summary.categories"
             :key="category.categoryId"
-            class="flex items-center justify-between text-sm"
-          >
+            class="flex items-center justify-between text-sm">
             <span class="text-gray-700 dark:text-gray-300">{{ category.categoryName }}</span>
             <div class="flex items-center space-x-2">
               <span class="text-gray-600 dark:text-gray-400 text-xs">
@@ -102,8 +100,7 @@
                   category.remaining >= 0
                     ? 'text-green-600 dark:text-green-400'
                     : 'text-red-600 dark:text-red-400'
-                ]"
-              >
+                ]">
                 {{ category.remaining >= 0 ? '' : '-' }}{{ formatCurrency(centsToRands(Math.abs(category.remaining))) }}
               </span>
             </div>

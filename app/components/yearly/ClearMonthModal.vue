@@ -6,8 +6,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'cleared'): void
+  (e: 'close' | 'cleared'): void
 }>()
 
 const { getTotalExpensesForMonth, clearMonth } = useYearlyCategories()
@@ -51,7 +50,7 @@ async function handleClear() {
     // Success - close modal (optimistic update already applied)
     emit('cleared')
     emit('close')
-  } catch (error) {
+  } catch {
     // Error already handled in composable (rollback + toast), just show in modal too
     errorMessage.value = 'Failed to clear month data. Please try again.'
   } finally {
@@ -71,17 +70,15 @@ function handleBackdropClick(event: MouseEvent) {
     <div
       v-if="isOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      @click="handleBackdropClick"
-    >
+      @click="handleBackdropClick">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Clear Month Data</h2>
           <button
-            @click="emit('close')"
             :disabled="isLoading"
             class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            @click="emit('close')">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
@@ -101,8 +98,7 @@ function handleBackdropClick(event: MouseEvent) {
             </label>
             <select
               v-model="selectedMonth"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
               <option v-for="(name, index) in MONTH_NAMES" :key="index" :value="index + 1">
                 {{ name }}
               </option>
@@ -115,8 +111,7 @@ function handleBackdropClick(event: MouseEvent) {
               id="clear-reset-paid"
               v-model="resetPaidStatus"
               type="checkbox"
-              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
             <label for="clear-reset-paid" class="text-sm text-gray-700 dark:text-gray-300">
               Reset paid status (uncheck all items)
             </label>
@@ -125,16 +120,14 @@ function handleBackdropClick(event: MouseEvent) {
           <!-- Warning if month has no values -->
           <p
             v-if="!monthHasValues"
-            class="text-sm text-yellow-600 dark:text-yellow-400"
-          >
+            class="text-sm text-yellow-600 dark:text-yellow-400">
             This month has no values to clear.
           </p>
 
           <!-- Warning if month has values -->
           <div
             v-if="monthHasValues"
-            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-          >
+            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <p class="text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -149,8 +142,7 @@ function handleBackdropClick(event: MouseEvent) {
           <!-- API Error Message -->
           <p
             v-if="errorMessage"
-            class="text-sm text-red-500"
-          >
+            class="text-sm text-red-500">
             {{ errorMessage }}
           </p>
         </div>
@@ -158,17 +150,15 @@ function handleBackdropClick(event: MouseEvent) {
         <!-- Footer -->
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <button
-            @click="emit('close')"
             :disabled="isLoading"
             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            @click="emit('close')">
             Cancel
           </button>
           <button
-            @click="handleClear"
             :disabled="isLoading || !monthHasValues"
             class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed rounded-lg"
-          >
+            @click="handleClear">
             {{ isLoading ? 'Clearing...' : 'Clear Month' }}
           </button>
         </div>

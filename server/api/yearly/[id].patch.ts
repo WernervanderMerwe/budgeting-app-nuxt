@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
       return errors.notFound(event, 'Yearly budget not found')
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic Prisma update payload built conditionally from optional body fields
     const updateData: any = {
       updatedAt: getCurrentTimestamp(),
     }
@@ -36,7 +37,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return yearlyBudget
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to update yearly budget', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to update yearly budget', error as Error)
   }
 })

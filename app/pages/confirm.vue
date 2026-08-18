@@ -53,8 +53,8 @@ onMounted(async () => {
     } else {
       error.value = 'We could not verify your sign-in link. It may have expired.'
     }
-  } catch (e: any) {
-    error.value = e.message || 'An unexpected error occurred'
+  } catch (e) {
+    error.value = (e as Error).message || 'An unexpected error occurred'
   }
 })
 </script>

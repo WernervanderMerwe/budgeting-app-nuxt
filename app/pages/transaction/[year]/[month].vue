@@ -11,8 +11,8 @@ const router = useRouter()
 const {
   months,
   currentMonth,
-  selectedMonthId,
-  hasMonths,
+  selectedMonthId: _selectedMonthId,
+  hasMonths: _hasMonths,
   isLoadingMonths,
   fetchMonths,
   selectMonth,
@@ -114,8 +114,7 @@ const cancelAddCategory = () => {
       v-if="isLoadingMonths || !currentMonth"
       size="lg"
       text="Loading..."
-      container-class="min-h-[60vh]"
-    />
+      container-class="min-h-[60vh]"/>
 
     <!-- Month Content -->
     <div v-else>
@@ -139,8 +138,7 @@ const cancelAddCategory = () => {
           <!-- Fixed Payments -->
           <FixedPaymentsList
             :month-id="currentMonth.id"
-            :fixed-payments="currentMonth.fixedPayments"
-          />
+            :fixed-payments="currentMonth.fixedPayments"/>
 
           <!-- Budget Categories Section -->
           <div class="space-y-4">
@@ -149,9 +147,8 @@ const cancelAddCategory = () => {
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Budget Categories</h2>
               <button
                 v-if="!showAddCategoryForm"
-                @click="showAddCategoryForm = true"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
-              >
+                @click="showAddCategoryForm = true">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -160,7 +157,7 @@ const cancelAddCategory = () => {
             </div>
 
             <!-- Add Category Form -->
-            <form v-if="showAddCategoryForm" @submit.prevent="handleAddCategory" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <form v-if="showAddCategoryForm" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700" @submit.prevent="handleAddCategory">
               <h3 class="font-semibold text-gray-900 dark:text-white mb-3">New Budget Category</h3>
               <div class="flex gap-3 mb-4">
                 <div class="flex-1">
@@ -174,8 +171,7 @@ const cancelAddCategory = () => {
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                     @keydown.enter.prevent="handleAddCategory"
-                    @keydown.escape.prevent="cancelAddCategory"
-                  />
+                    @keydown.escape.prevent="cancelAddCategory">
                 </div>
                 <div class="w-40">
                   <CurrencyInput
@@ -184,23 +180,20 @@ const cancelAddCategory = () => {
                     placeholder="e.g., 5000.00"
                     required
                     @enter="handleAddCategory"
-                    @escape="cancelAddCategory"
-                  />
+                    @escape="cancelAddCategory"/>
                 </div>
               </div>
               <div class="flex justify-end space-x-3">
                 <button
                   type="button"
-                  @click="cancelAddCategory"
                   class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
+                  @click="cancelAddCategory">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   :disabled="isAddingCategory"
-                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                   {{ isAddingCategory ? 'Adding...' : 'Add Category' }}
                 </button>
               </div>
@@ -211,8 +204,7 @@ const cancelAddCategory = () => {
               <BudgetCategoryCard
                 v-for="category in currentMonth.categories"
                 :key="category.id"
-                :category="category"
-              />
+                :category="category"/>
             </template>
 
             <!-- Empty State -->

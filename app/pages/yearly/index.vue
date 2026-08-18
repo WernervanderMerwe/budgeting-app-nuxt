@@ -30,7 +30,6 @@ onMounted(async () => {
     <LoadingSpinner
       size="lg"
       text="Loading..."
-      container-class="h-full"
-    />
+      container-class="h-full"/>
   </div>
 </template>

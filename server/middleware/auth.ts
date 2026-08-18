@@ -63,10 +63,10 @@ export default defineEventHandler(async (event) => {
           },
           select: { profileToken: true },
         })
-      } catch (createError: any) {
+      } catch (createError) {
         // Concurrent first requests race to create the Profile; authUserId is
         // unique, so all but one hit P2002. Re-fetch the winner's row.
-        if (createError?.code === 'P2002') {
+        if ((createError as { code?: string })?.code === 'P2002') {
           profile = await prisma.profile.findUnique({
             where: { authUserId: userId },
             select: { profileToken: true },
@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
 
     event.context.profileToken = profile.profileToken
     event.context.userId = userId
-  } catch (error: any) {
+  } catch (error) {
     console.error('Auth middleware error:', error)
     setResponseStatus(event, 500)
     return { error: 'Authentication error' }

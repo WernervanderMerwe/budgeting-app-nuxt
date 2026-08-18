@@ -1,5 +1,4 @@
 // Composable for optimistic update infrastructure
-import type { Ref } from 'vue'
 
 export interface PendingOperation {
   type: 'create' | 'update' | 'delete'

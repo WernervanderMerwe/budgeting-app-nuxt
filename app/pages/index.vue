@@ -19,8 +19,7 @@
     <div class="mb-6 max-w-3xl mx-auto">
       <NuxtLink
         to="/guide"
-        class="inline-flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors"
-      >
+        class="inline-flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors">
         <UIcon name="i-heroicons-book-open" class="w-4 h-4" />
         <span>New here? Read the User Guide</span>
         <UIcon name="i-heroicons-arrow-right" class="w-3 h-3" />
@@ -32,8 +31,7 @@
       <!-- Transaction Tracker Card -->
       <NuxtLink
         to="/transaction"
-        class="group block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-transparent hover:border-blue-500 transition-all duration-200 hover:shadow-xl"
-      >
+        class="group block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-transparent hover:border-blue-500 transition-all duration-200 hover:shadow-xl">
         <div class="w-16 h-16 mx-auto mb-6 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
           <UIcon name="i-heroicons-clipboard-document-list" class="w-8 h-8 text-blue-600 dark:text-blue-400" />
         </div>
@@ -52,8 +50,7 @@
       <!-- Yearly Overview Card -->
       <NuxtLink
         to="/yearly"
-        class="group block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-transparent hover:border-green-500 transition-all duration-200 hover:shadow-xl"
-      >
+        class="group block p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-transparent hover:border-green-500 transition-all duration-200 hover:shadow-xl">
         <div class="w-16 h-16 mx-auto mb-6 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
           <UIcon name="i-heroicons-calendar-days" class="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
@@ -92,8 +89,7 @@
               <a
                 href="https://en.wikipedia.org/wiki/Pseudonymization"
                 target="_blank"
-                class="text-xs text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 inline-flex items-center gap-1 mt-1"
-              >
+                class="text-xs text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 inline-flex items-center gap-1 mt-1">
                 Learn more
                 <UIcon name="i-heroicons-arrow-top-right-on-square" class="w-3 h-3" />
               </a>

@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return { success: true }
-  } catch (error: any) {
-    return errors.serverError(event, 'Failed to delete yearly budget', error)
+  } catch (error) {
+    return errors.serverError(event, 'Failed to delete yearly budget', error as Error)
   }
 })

@@ -14,6 +14,13 @@
 
 const TEST_ERROR_KEY = 'dev_test_error'
 
+declare global {
+  interface Window {
+    __setTestError: (errorType: string | null) => void
+    __getTestError: () => string | null
+  }
+}
+
 export default defineNuxtPlugin(() => {
   // Only modify in development
   if (import.meta.env.PROD) return
@@ -22,7 +29,7 @@ export default defineNuxtPlugin(() => {
   const originalFetch = globalThis.$fetch
 
   // Create intercepted $fetch
-  const interceptedFetch = ((url: string, options?: any) => {
+  const interceptedFetch = ((url: string, options?: Parameters<typeof $fetch>[1]) => {
     const testError = localStorage.getItem(TEST_ERROR_KEY)
 
     if (testError && typeof url === 'string' && url.startsWith('/api/')) {
@@ -42,7 +49,7 @@ export default defineNuxtPlugin(() => {
   globalThis.$fetch = interceptedFetch
 
   // Set up console helpers
-  ;(window as any).__setTestError = (errorType: string | null) => {
+  window.__setTestError = (errorType: string | null) => {
     if (errorType) {
       localStorage.setItem(TEST_ERROR_KEY, errorType)
       console.log(`%c[TEST ERROR] Enabled: ${errorType}`, 'color: orange; font-weight: bold')
@@ -55,7 +62,7 @@ export default defineNuxtPlugin(() => {
     }
   }
 
-  ;(window as any).__getTestError = () => {
+  window.__getTestError = () => {
     const current = localStorage.getItem(TEST_ERROR_KEY)
     console.log(`%c[TEST ERROR] Current: ${current || 'disabled'}`, 'color: cyan')
     return current
