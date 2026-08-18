@@ -5,7 +5,7 @@ The app runs in Docker on port 3200 (localhost only), Nginx reverse proxies to i
 Cloudflare handles SSL termination to Nginx with an Origin Certificate for end-to-end encryption.
 
 The database is the **shared `infra-postgres` container** (`/root/infra/postgres` on the VPS,
-reached over the external `postgres_default` network) — there is no per-app postgres for this
+reached over the external `infra_default` network) — there is no per-app postgres for this
 app, unlike the ecom template.
 
 ---
@@ -25,7 +25,8 @@ nano .env.production   # fill in all values; DB password lives in /root/infra/po
 # 3. Pull and start
 bash scripts/vps-pull.sh
 
-# 4. Run migrations (see "Migrations" below — done from the desktop, not on the VPS)
+# 4. Run migrations from the desktop (not on the VPS) — see "Migrations" below
+#    pnpm vps:db:migrate
 
 # 5. Set up Nginx
 sudo cp deploy/nginx/budgeting-app.conf /etc/nginx/sites-available/
@@ -48,12 +49,24 @@ sudo nginx -t && sudo systemctl reload nginx
 ## Pipeline
 
 ```bash
-# On the desktop — build and push the image
-./scripts/build-push.sh
-
-# On the VPS — pull and restart
-bash scripts/vps-pull.sh
+pnpm vps:deploy
 ```
+
+One command, run from the desktop on `main`. It gates on: being on `main`, a clean working
+tree, and local `main` matching `origin/main`; it warns (and asks) if the last commit isn't a
+version bump, and warns separately if `prisma/migrations` changed since the last release tag.
+It then builds the image locally, pushes `:x.y.z` and `:latest` to
+`ghcr.io/wernervandermerwe/budgeting-app`, and has the VPS `git pull`, `docker compose
+--profile production pull`, `up -d`, and prune the old image.
+
+**Rollback / pin a specific version** — skips the build, has the VPS pull and run that tag
+directly:
+
+```bash
+pnpm vps:deploy 0.1.14
+```
+
+See `docs/devops/lifecycle.md` for the full dev → qa → production flow this fits into.
 
 ---
 
@@ -61,22 +74,17 @@ bash scripts/vps-pull.sh
 
 The runtime image contains **only `.output`** — no Prisma CLI, no `node_modules`, no
 `prisma/` folder. So ecom's `docker compose exec app npx prisma db push` pattern does not
-work here. Migrations are run **from the desktop**, over an SSH port-forward into the VPS's
-`infra-postgres` container:
+work here. Migrations are run **from the desktop**, wrapped by:
 
 ```bash
-# 1. Open a port-forward to infra-postgres on the VPS (background, no shell)
-ssh -fN -L 5544:127.0.0.1:5544 vps
-
-# 2. Run the migration from the desktop, pointing at the forwarded port.
-#    Both DATABASE_URL and DIRECT_URL are required — prisma.config.ts references both.
-DATABASE_URL='postgresql://budgeting:<pw>@127.0.0.1:5544/budgeting' \
-DIRECT_URL='postgresql://budgeting:<pw>@127.0.0.1:5544/budgeting' \
-npx prisma migrate deploy
+pnpm vps:db:migrate
 ```
 
-Close the forward afterwards with `ssh -O cancel -L 5544:127.0.0.1:5544 vps` (or kill the
-background `ssh` process).
+This runs `scripts/vps-db.sh migrate`, which opens an SSH port-forward into the VPS's
+`infra-postgres` container, prompts for the `budgeting` DB password (read from the VPS's
+`/root/infra/postgres/.env`), then runs `prisma migrate deploy` against the forwarded port
+with both `DATABASE_URL` and `DIRECT_URL` set (`prisma.config.ts` references both). The
+tunnel is torn down automatically when the command exits.
 
 There is no seed step and no uploads volume for this app.
 
@@ -85,7 +93,10 @@ There is no seed step and no uploads volume for this app.
 ## Useful commands
 
 ```bash
+pnpm vps:logs      # tail container logs (docker logs -f budgeting-app)
+pnpm vps:status    # container status (docker ps | grep budgeting)
+
+# Direct on the VPS, if needed:
 docker compose --profile production logs -f app
 docker compose --profile production restart app
-docker logs -f budgeting-app
 ```

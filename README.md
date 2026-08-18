@@ -8,7 +8,7 @@ Personal budgeting application with two modes: **Transaction Tracker** for month
 - **Yearly Mode** - 12-month planning grid with income sources, deductions, and budget sections
 - **70/20/10 Budgeting** - Built-in sections for Needs (70%), Wants (20%), and Savings (10%)
 - **Dark/Light Mode** - System preference detection with manual toggle
-- **Authentication** - Secure magic-link accounts via better-auth (Resend mailer)
+- **Authentication** - Secure magic-link accounts via better-auth (nodemailer — Mailpit in dev, Resend SMTP gateway in prod)
 - **Mobile Responsive** - Works on desktop and mobile devices
 
 ## Tech Stack
@@ -16,8 +16,8 @@ Personal budgeting application with two modes: **Transaction Tracker** for month
 - **Framework:** Nuxt 4 + Vue 3 + TypeScript
 - **Styling:** TailwindCSS (via @nuxt/ui)
 - **Database:** PostgreSQL + Prisma 7 (driver adapters)
-- **Auth:** better-auth (magic-link, Resend mailer)
-- **Deployment:** VPS-hosted Docker (image built locally, pushed to ghcr.io, pulled on the VPS) behind Nginx + Cloudflare Origin Cert
+- **Auth:** better-auth (magic-link, nodemailer — Mailpit in dev, Resend SMTP gateway in prod)
+- **Deployment:** VPS-hosted Docker (image built locally via `pnpm vps:deploy`, pushed to ghcr.io, pulled on the VPS) behind Nginx + Cloudflare Origin Cert
 
 ## Quick Start
 
@@ -35,15 +35,9 @@ cd budgeting-app-nuxt
 pnpm install
 ```
 
-### 2. Start the Dev Database
+### 2. Environment Variables
 
-```bash
-pnpm db:up   # docker compose --profile dev up -d
-```
-
-### 3. Environment Variables
-
-Create `.env.local` in the project root (see `.env.example`):
+Create `.env` in the project root (see `.env.example`):
 
 ```env
 # Local dev Postgres (from pnpm db:up)
@@ -54,30 +48,36 @@ DIRECT_URL="postgresql://budgeting:budgeting_dev@localhost:5434/budgeting"
 BETTER_AUTH_SECRET=""
 BETTER_AUTH_URL="http://localhost:3000"
 
-# Resend — magic-link email delivery
-RESEND_API_KEY=""
-RESEND_FROM="Budget App <noreply@send.wernerbuildsapps.co.za>"
+# Mail — dev goes to local Mailpit (read at http://localhost:8027)
+NUXT_SMTP_HOST="localhost"
+NUXT_SMTP_PORT="1027"
+NUXT_SMTP_USER=""
+NUXT_SMTP_PASS=""
+NUXT_SMTP_FROM="Budget App <noreply@send.wernerbuildsapps.co.za>"
 ```
 
-### 4. Run Migrations
+### 3. Run Migrations
 
 ```bash
-npx prisma migrate deploy
+pnpm db:migrate
 ```
 
-### 5. Development
+### 4. Start the Dev Stack
 
 ```bash
-pnpm dev
+pnpm dev:up   # Postgres + Mailpit containers, then Nuxt dev server (foreground)
 ```
 
-Visit `http://localhost:3000`
+Visit `http://localhost:3000`. Magic-link sign-in emails land at `http://localhost:8027`
+(Mailpit), not a real inbox.
 
 ## Production Deployment
 
 The app deploys to a VPS as a Docker container (Nginx + Cloudflare Origin Cert in front,
-shared `infra-postgres` for the database). See [`deploy/README.md`](./deploy/README.md)
-for the full procedure (build/push script, `scripts/vps-pull.sh`, migrations, Nginx config).
+shared `infra-postgres` for the database) via a single `pnpm vps:deploy` command, gated by a
+local QA stage (`pnpm qa:up`) against the same production Docker image. See
+[`deploy/README.md`](./deploy/README.md) and [`docs/devops/lifecycle.md`](./docs/devops/lifecycle.md)
+for the full dev → qa → production procedure (migrations, Nginx config, rollback).
 
 Production env vars live in `.env.production` on the VPS (see `.env.production.example`).
 
@@ -103,15 +103,20 @@ Production env vars live in `.env.production` on the VPS (see `.env.production.e
 ## Scripts
 
 ```bash
-pnpm dev                 # Start dev server
-pnpm build               # Production build
-pnpm preview             # Preview production build
-npx prisma studio        # Database GUI
-npx prisma migrate dev   # Create new migration
-pnpm db:up               # Start local dev Postgres (docker compose)
-pnpm db:down             # Stop local dev Postgres
-pnpm cleanup             # Kill orphaned node processes
+pnpm dev:up               # Start local dev stack (Postgres + Mailpit + Nuxt, foreground)
+pnpm dev:down             # Stop local dev stack
+pnpm build                # Production build
+pnpm preview              # Preview production build
+pnpm db:studio            # Database GUI
+pnpm db:migrate           # Create + apply a migration (local)
+pnpm qa:up                # Build + start prod-image QA container (port 3422) — deploy gate
+pnpm vps:deploy           # Build, push to GHCR, deploy to VPS
+pnpm vps:db:migrate       # Apply migrations to prod DB
+pnpm version:patch        # Bump version + tag
+pnpm dev:kill             # Free port 3000
 ```
+
+See [`docs/devops/lifecycle.md`](./docs/devops/lifecycle.md) for the full command reference.
 
 ## License
 
