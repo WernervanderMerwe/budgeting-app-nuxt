@@ -212,6 +212,7 @@ After any schema change, regenerate the Prisma client (done automatically by `pn
 | Symptom | Root cause | Fix |
 |---|---|---|
 | Prisma can't connect locally | Postgres not up, or `DATABASE_URL` on the wrong port | `pnpm db:up`; dev Postgres is `5434`, not 5432 |
+| `pnpm db:up` fails: "container name already in use" | Your container predates the `postgres` → `postgres-dev` service rename (2026-08-18), so compose can't adopt it | `docker rm -f budgeting-postgres-dev`, then `pnpm db:up`. Data lives in the `pgdata-dev` volume and survives the recreate |
 | Auth works in dev, breaks in qa/prod | `BETTER_AUTH_URL` doesn't match the browser origin | Set it per tier |
 | No magic-link emails, but no error either | `NUXT_SMTP_HOST` unset — `sendMail()` fails soft, warning-only | Set the SMTP block; check Mailpit (dev/qa, `http://localhost:8027`) or Resend logs (prod) |
 | Magic-link request returns a 500 | SMTP host set but send actually failed | `sendMagicLinkEmail()` throws loudly on `{ sent: false }` — check the SMTP creds/network |

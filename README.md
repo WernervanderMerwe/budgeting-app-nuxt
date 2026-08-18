@@ -56,13 +56,19 @@ NUXT_SMTP_PASS=""
 NUXT_SMTP_FROM="Budget App <noreply@send.wernerbuildsapps.co.za>"
 ```
 
-### 3. Run Migrations
+### 3. Start the Database
+
+```bash
+pnpm db:up    # Postgres + Mailpit containers
+```
+
+### 4. Run Migrations
 
 ```bash
 pnpm db:migrate
 ```
 
-### 4. Start the Dev Stack
+### 5. Start the Dev Stack
 
 ```bash
 pnpm dev:up   # Postgres + Mailpit containers, then Nuxt dev server (foreground)
