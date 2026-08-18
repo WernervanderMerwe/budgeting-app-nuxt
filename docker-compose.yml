@@ -1,6 +1,6 @@
 services:
   # ── Development ─────────────────────────────────────────
-  postgres:
+  postgres-dev:
     image: postgres:16-alpine
     container_name: budgeting-postgres-dev
     restart: unless-stopped
@@ -18,6 +18,26 @@ services:
       timeout: 3s
       retries: 5
     profiles: ["dev"]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: budgeting-mailpit
+    profiles: ["dev"]
+    ports:
+      - "8027:8025"   # web UI (8025 ecom, 8026 tutoring)
+      - "1027:1025"   # SMTP
+
+  # ── QA (local prod-image gate) ──────────────────────────
+  budgeting-qa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: budgeting-qa
+    profiles: ["qa"]
+    restart: "no"
+    network_mode: host   # reach dev Postgres on localhost:5434 + Mailpit on 1027; browser + SSR share localhost
+    env_file:
+      - .env.qa
 
   # ── Production (VPS) ────────────────────────────────────
   app:
