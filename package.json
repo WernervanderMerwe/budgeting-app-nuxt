@@ -41,9 +41,9 @@
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "marked": "^17.0.1",
+    "nodemailer": "^9.0.5",
     "nuxt": "^4.3.1",
     "pg": "^8.16.3",
-    "resend": "^6.16.0",
     "tailwindcss": "^4.1.18",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.26",
@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.16.0",
     "prisma": "^7.2.0",
     "tsx": "^4.20.6",

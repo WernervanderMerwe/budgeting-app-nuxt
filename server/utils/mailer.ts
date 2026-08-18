@@ -1,19 +1,11 @@
 import type { H3Event } from 'h3'
-import { Resend } from 'resend'
+import { sendMail } from './mail'
 
 /**
- * Send a magic-link sign-in email via Resend (HTTP API).
+ * Send a magic-link sign-in email via the shared SMTP transport.
+ * Fails LOUD — a silently dropped magic link is an invisible login outage.
  */
-export async function sendMagicLinkEmail(event: H3Event, opts: { to: string; url: string }) {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM ?? 'Budget App <onboarding@resend.dev>'
-
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY is not configured')
-  }
-
-  const resend = new Resend(apiKey)
-
+export async function sendMagicLinkEmail(_event: H3Event, opts: { to: string; url: string }) {
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
       <h2 style="margin: 0 0 16px;">Sign in to Budget App</h2>
@@ -26,14 +18,9 @@ export async function sendMagicLinkEmail(event: H3Event, opts: { to: string; url
     </div>
   `
 
-  const { error } = await resend.emails.send({
-    from,
-    to: opts.to,
-    subject: 'Sign in to Budget App',
-    html,
-  })
+  const result = await sendMail({ to: opts.to, subject: 'Sign in to Budget App', html })
 
-  if (error) {
-    throw new Error(`Failed to send magic link email: ${error.message ?? String(error)}`)
+  if (!result.sent) {
+    throw new Error(`Failed to send magic link email: ${result.error}`)
   }
 }
