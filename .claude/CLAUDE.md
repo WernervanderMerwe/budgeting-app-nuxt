@@ -64,7 +64,7 @@ DIRECT_URL            # Direct connection, migrations only
 BETTER_AUTH_SECRET    # openssl rand -base64 32, per-tier
 BETTER_AUTH_URL       # App's public origin, no trailing slash — must match browser origin per tier
 NUXT_SMTP_HOST        # dev/qa: localhost (Mailpit) | prod: smtp.resend.com
-NUXT_SMTP_PORT        # dev/qa: 1027 | prod: 587
+NUXT_SMTP_PORT        # dev/qa: 1422 | prod: 587
 NUXT_SMTP_USER        # prod: "resend" (literally); unset in dev/qa
 NUXT_SMTP_PASS        # prod: Resend API key; unset in dev/qa
 NUXT_SMTP_FROM        # e.g. "Budget App <noreply@send.wernerbuildsapps.co.za>"
