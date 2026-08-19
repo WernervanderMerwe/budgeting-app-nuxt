@@ -43,7 +43,9 @@
     "vps:db:migrate": "bash scripts/vps-db.sh migrate",
     "version:patch": "bash scripts/version-bump.sh patch",
     "version:minor": "bash scripts/version-bump.sh minor",
-    "version:major": "bash scripts/version-bump.sh major"
+    "version:major": "bash scripts/version-bump.sh major",
+    "test": "tsx --test test/**/*.test.ts",
+    "receipt:fixture": "tsx scripts/receipt-fixture.mjs"
   },
   "dependencies": {
     "@iconify-json/heroicons": "^1.2.3",
@@ -58,8 +60,13 @@
     "marked": "^17.0.1",
     "nodemailer": "^9.0.5",
     "nuxt": "^4.3.1",
+    "onnxruntime-web": "^1.27.0",
     "pg": "^8.16.3",
+    "ppu-ocv": "^4.0.0",
+    "ppu-paddle-ocr": "^6.4.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.1.18",
+    "unpdf": "^1.8.1",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.26",
     "zod": "^3.24.1"

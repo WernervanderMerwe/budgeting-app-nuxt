@@ -27,6 +27,8 @@ pnpm vps:db:migrate        # Apply migrations to prod DB (SSH tunnel + prisma mi
 pnpm version:patch         # Bump version + tag (also :minor / :major)
 pnpm db:studio             # DB GUI (or: npx prisma studio)
 pnpm dev:kill              # Free port 3000 (kill leftover Nuxt dev process)
+pnpm test                  # Run tests (node:test via tsx; pure, no DB)
+pnpm receipt:fixture <img> # Capture a till slip as a parser test fixture
 ```
 
 ## Key Conventions
@@ -90,6 +92,7 @@ Review these files before implementing improvements:
 - `.claude/TODO-ERROR-HANDLING-REVIEW.md` - Zod validation errors, error extraction
 
 ## References
+- Dev workflow & receipt fixtures: `docs/dev-workflow.md`
 - Dev/QA/production lifecycle: `docs/devops/lifecycle.md`
 - User guide: `docs/user-guide.md`
 - Build history: `.claude/CLAUDE-PHASES.md`

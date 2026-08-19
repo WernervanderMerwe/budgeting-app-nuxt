@@ -1,0 +1,741 @@
+{
+  "source": "spar vredekloof whatsapp image slip.jpeg",
+  "capturedAt": "2026-08-19",
+  "engine": "ppu-paddle-ocr v6-tiny @1200px",
+  "overallConfidence": 0.9477,
+  "expected": {
+    "merchant": "Spar Vredekloof",
+    "amountCents": 30393,
+    "dateText": "19/08/2026"
+  },
+  "lines": [
+    [
+      {
+        "text": "SPAR",
+        "box": {
+          "x": 253,
+          "y": 129,
+          "width": 185,
+          "height": 34
+        },
+        "confidence": 0.9937
+      }
+    ],
+    [
+      {
+        "text": "VREDEKLOOF",
+        "box": {
+          "x": 300,
+          "y": 177,
+          "width": 93,
+          "height": 20
+        },
+        "confidence": 0.975
+      }
+    ],
+    [
+      {
+        "text": "SPAR",
+        "box": {
+          "x": 324,
+          "y": 196,
+          "width": 46,
+          "height": 21
+        },
+        "confidence": 0.9936
+      }
+    ],
+    [
+      {
+        "text": "VAT: 4910175696",
+        "box": {
+          "x": 270,
+          "y": 216,
+          "width": 142,
+          "height": 21
+        },
+        "confidence": 0.9642
+      }
+    ],
+    [
+      {
+        "text": "TEL: 0219810720/1",
+        "box": {
+          "x": 265,
+          "y": 237,
+          "width": 152,
+          "height": 21
+        },
+        "confidence": 0.9662
+      }
+    ],
+    [
+      {
+        "text": "FAX: 021 982 1111",
+        "box": {
+          "x": 261,
+          "y": 256,
+          "width": 157,
+          "height": 22
+        },
+        "confidence": 0.9806
+      }
+    ],
+    [
+      {
+        "text": "R",
+        "box": {
+          "x": 464,
+          "y": 276,
+          "width": 31,
+          "height": 23
+        },
+        "confidence": 0.9998
+      }
+    ],
+    [
+      {
+        "text": "NOLAMAYONNAISE 750GR",
+        "box": {
+          "x": 159,
+          "y": 300,
+          "width": 189,
+          "height": 20
+        },
+        "confidence": 0.9718
+      },
+      {
+        "text": "51.99",
+        "box": {
+          "x": 449,
+          "y": 296,
+          "width": 59,
+          "height": 23
+        },
+        "confidence": 0.9718
+      }
+    ],
+    [
+      {
+        "text": "Rewards Promo",
+        "box": {
+          "x": 175,
+          "y": 323,
+          "width": 121,
+          "height": 17
+        },
+        "confidence": 0.9836
+      },
+      {
+        "text": "-13.00",
+        "box": {
+          "x": 446,
+          "y": 319,
+          "width": 60,
+          "height": 21
+        },
+        "confidence": 0.9836
+      }
+    ],
+    [
+      {
+        "text": "MOCCA JAVA CATURRA 250GR",
+        "box": {
+          "x": 159,
+          "y": 341,
+          "width": 215,
+          "height": 20
+        },
+        "confidence": 0.97
+      },
+      {
+        "text": "114.99",
+        "box": {
+          "x": 444,
+          "y": 340,
+          "width": 62,
+          "height": 20
+        },
+        "confidence": 0.97
+      }
+    ],
+    [
+      {
+        "text": "HAND ANDY REFILL 750ML",
+        "box": {
+          "x": 159,
+          "y": 361,
+          "width": 195,
+          "height": 21
+        },
+        "confidence": 0.9653
+      },
+      {
+        "text": "24.99",
+        "box": {
+          "x": 452,
+          "y": 361,
+          "width": 54,
+          "height": 21
+        },
+        "confidence": 0.9653
+      }
+    ],
+    [
+      {
+        "text": "L/STAR SHRED TUN 170G",
+        "box": {
+          "x": 158,
+          "y": 383,
+          "width": 190,
+          "height": 20
+        },
+        "confidence": 0.9451
+      },
+      {
+        "text": "25.99",
+        "box": {
+          "x": 449,
+          "y": 382,
+          "width": 57,
+          "height": 21
+        },
+        "confidence": 0.9451
+      }
+    ],
+    [
+      {
+        "text": "Voided Item:",
+        "box": {
+          "x": 159,
+          "y": 405,
+          "width": 108,
+          "height": 20
+        },
+        "confidence": 0.9455
+      }
+    ],
+    [
+      {
+        "text": "*L/STAR SHRED TUN 170G",
+        "box": {
+          "x": 158,
+          "y": 425,
+          "width": 197,
+          "height": 21
+        },
+        "confidence": 0.9467
+      },
+      {
+        "text": "25.99",
+        "box": {
+          "x": 450,
+          "y": 425,
+          "width": 56,
+          "height": 21
+        },
+        "confidence": 0.9467
+      }
+    ],
+    [
+      {
+        "text": "*L/STAR SHRED TUN 170G",
+        "box": {
+          "x": 158,
+          "y": 448,
+          "width": 196,
+          "height": 17
+        },
+        "confidence": 0.9591
+      },
+      {
+        "text": "-25.99",
+        "box": {
+          "x": 443,
+          "y": 446,
+          "width": 62,
+          "height": 21
+        },
+        "confidence": 0.9591
+      }
+    ],
+    [
+      {
+        "text": "ROBERTSON SPICE/89GR",
+        "box": {
+          "x": 155,
+          "y": 466,
+          "width": 193,
+          "height": 22
+        },
+        "confidence": 0.9886
+      },
+      {
+        "text": "19.99",
+        "box": {
+          "x": 449,
+          "y": 467,
+          "width": 56,
+          "height": 22
+        },
+        "confidence": 0.9886
+      }
+    ],
+    [
+      {
+        "text": "VETKOEK & MINCE EA",
+        "box": {
+          "x": 157,
+          "y": 488,
+          "width": 163,
+          "height": 20
+        },
+        "confidence": 0.9593
+      }
+    ],
+    [
+      {
+        "text": "1 @ 49.99",
+        "box": {
+          "x": 328,
+          "y": 509,
+          "width": 85,
+          "height": 21
+        },
+        "confidence": 0.9733
+      },
+      {
+        "text": "49.99",
+        "box": {
+          "x": 447,
+          "y": 509,
+          "width": 55,
+          "height": 22
+        },
+        "confidence": 0.9733
+      }
+    ],
+    [
+      {
+        "text": "BANANA BREAD EA",
+        "box": {
+          "x": 154,
+          "y": 529,
+          "width": 141,
+          "height": 21
+        },
+        "confidence": 0.9612
+      }
+    ],
+    [
+      {
+        "text": "1 @ 28.99",
+        "box": {
+          "x": 326,
+          "y": 552,
+          "width": 86,
+          "height": 20
+        },
+        "confidence": 0.9587
+      },
+      {
+        "text": "28.99",
+        "box": {
+          "x": 444,
+          "y": 552,
+          "width": 56,
+          "height": 21
+        },
+        "confidence": 0.9587
+      }
+    ],
+    [
+      {
+        "text": "TOTAL",
+        "box": {
+          "x": 154,
+          "y": 573,
+          "width": 74,
+          "height": 17
+        },
+        "confidence": 0.9822
+      },
+      {
+        "text": "FOR 7 ITEMS",
+        "box": {
+          "x": 218,
+          "y": 572,
+          "width": 110,
+          "height": 20
+        },
+        "confidence": 0.9822
+      },
+      {
+        "text": "303.93",
+        "box": {
+          "x": 437,
+          "y": 572,
+          "width": 64,
+          "height": 22
+        },
+        "confidence": 0.9822
+      }
+    ],
+    [
+      {
+        "text": "TENDERED Credit Card",
+        "box": {
+          "x": 154,
+          "y": 594,
+          "width": 181,
+          "height": 20
+        },
+        "confidence": 0.9665
+      },
+      {
+        "text": "303.93",
+        "box": {
+          "x": 437,
+          "y": 595,
+          "width": 62,
+          "height": 20
+        },
+        "confidence": 0.9665
+      }
+    ],
+    [
+      {
+        "text": "--- TAX INVOICE",
+        "box": {
+          "x": 259,
+          "y": 637,
+          "width": 135,
+          "height": 17
+        },
+        "confidence": 0.96
+      }
+    ],
+    [
+      {
+        "text": "VAT rate",
+        "box": {
+          "x": 152,
+          "y": 656,
+          "width": 79,
+          "height": 21
+        },
+        "confidence": 0.9538
+      },
+      {
+        "text": "excl.",
+        "box": {
+          "x": 263,
+          "y": 656,
+          "width": 52,
+          "height": 21
+        },
+        "confidence": 0.9538
+      },
+      {
+        "text": "TAX",
+        "box": {
+          "x": 349,
+          "y": 655,
+          "width": 40,
+          "height": 22
+        },
+        "confidence": 0.9538
+      },
+      {
+        "text": "incl.",
+        "box": {
+          "x": 461,
+          "y": 657,
+          "width": 54,
+          "height": 21
+        },
+        "confidence": 0.9538
+      }
+    ],
+    [
+      {
+        "text": "15.00%",
+        "box": {
+          "x": 152,
+          "y": 678,
+          "width": 62,
+          "height": 20
+        },
+        "confidence": 0.99
+      },
+      {
+        "text": "264.29",
+        "box": {
+          "x": 247,
+          "y": 677,
+          "width": 61,
+          "height": 20
+        },
+        "confidence": 0.99
+      },
+      {
+        "text": "39.64",
+        "box": {
+          "x": 342,
+          "y": 677,
+          "width": 53,
+          "height": 20
+        },
+        "confidence": 0.99
+      },
+      {
+        "text": "303.93",
+        "box": {
+          "x": 446,
+          "y": 678,
+          "width": 62,
+          "height": 20
+        },
+        "confidence": 0.99
+      }
+    ],
+    [
+      {
+        "text": "EE2E",
+        "box": {
+          "x": 154,
+          "y": 703,
+          "width": 39,
+          "height": 11
+        },
+        "confidence": 0.5425
+      },
+      {
+        "text": "EE2E",
+        "box": {
+          "x": 362,
+          "y": 703,
+          "width": 39,
+          "height": 11
+        },
+        "confidence": 0.5425
+      },
+      {
+        "text": "EEE5S44EREEE",
+        "box": {
+          "x": 413,
+          "y": 704,
+          "width": 111,
+          "height": 12
+        },
+        "confidence": 0.5425
+      }
+    ],
+    [
+      {
+        "text": "Hi Werner!",
+        "box": {
+          "x": 287,
+          "y": 719,
+          "width": 97,
+          "height": 22
+        },
+        "confidence": 0.9814
+      }
+    ],
+    [
+      {
+        "text": "Thanks for swiping your SPAR Rewards card",
+        "box": {
+          "x": 149,
+          "y": 741,
+          "width": 371,
+          "height": 22
+        },
+        "confidence": 0.9583
+      }
+    ],
+    [
+      {
+        "text": "(****9446)",
+        "box": {
+          "x": 290,
+          "y": 763,
+          "width": 94,
+          "height": 22
+        },
+        "confidence": 0.9401
+      }
+    ],
+    [
+      {
+        "text": "Today",
+        "box": {
+          "x": 151,
+          "y": 806,
+          "width": 108,
+          "height": 22
+        },
+        "confidence": 0.9472
+      },
+      {
+        "text": "SPARSaved You",
+        "box": {
+          "x": 249,
+          "y": 808,
+          "width": 264,
+          "height": 23
+        },
+        "confidence": 0.9472
+      }
+    ],
+    [
+      {
+        "text": "13.00",
+        "box": {
+          "x": 308,
+          "y": 831,
+          "width": 94,
+          "height": 20
+        },
+        "confidence": 0.9971
+      }
+    ],
+    [
+      {
+        "text": "SLIP /",
+        "box": {
+          "x": 143,
+          "y": 874,
+          "width": 75,
+          "height": 21
+        },
+        "confidence": 0.9149
+      },
+      {
+        "text": "TILL / CASHIER / DATE / TIME",
+        "box": {
+          "x": 207,
+          "y": 875,
+          "width": 307,
+          "height": 22
+        },
+        "confidence": 0.9149
+      }
+    ],
+    [
+      {
+        "text": "8816",
+        "box": {
+          "x": 146,
+          "y": 897,
+          "width": 50,
+          "height": 22
+        },
+        "confidence": 0.9822
+      },
+      {
+        "text": "005",
+        "box": {
+          "x": 228,
+          "y": 898,
+          "width": 39,
+          "height": 22
+        },
+        "confidence": 0.9822
+      },
+      {
+        "text": "251",
+        "box": {
+          "x": 317,
+          "y": 900,
+          "width": 41,
+          "height": 21
+        },
+        "confidence": 0.9822
+      },
+      {
+        "text": "19.08.26 17:54",
+        "box": {
+          "x": 376,
+          "y": 900,
+          "width": 144,
+          "height": 20
+        },
+        "confidence": 0.9822
+      }
+    ],
+    [
+      {
+        "text": "CASHIER NAME: C.G5.1",
+        "box": {
+          "x": 138,
+          "y": 921,
+          "width": 191,
+          "height": 22
+        },
+        "confidence": 0.9763
+      }
+    ],
+    [
+      {
+        "text": "EXCHANGES ONLY ALLOWED",
+        "box": {
+          "x": 230,
+          "y": 945,
+          "width": 208,
+          "height": 21
+        },
+        "confidence": 0.9685
+      }
+    ],
+    [
+      {
+        "text": "WHEN SLIP IS PROVIDED",
+        "box": {
+          "x": 230,
+          "y": 968,
+          "width": 201,
+          "height": 21
+        },
+        "confidence": 0.9621
+      }
+    ],
+    [
+      {
+        "text": "AND REGRET NO CASH REFUNDS",
+        "box": {
+          "x": 211,
+          "y": 991,
+          "width": 247,
+          "height": 21
+        },
+        "confidence": 0.9511
+      }
+    ],
+    [
+      {
+        "text": "AIRT IME NOT REFUNDABLE",
+        "box": {
+          "x": 229,
+          "y": 1014,
+          "width": 212,
+          "height": 20
+        },
+        "confidence": 0.9515
+      }
+    ],
+    [
+      {
+        "text": "NOW ON UBER EATS",
+        "box": {
+          "x": 255,
+          "y": 1037,
+          "width": 157,
+          "height": 20
+        },
+        "confidence": 0.956
+      }
+    ]
+  ]
+}
