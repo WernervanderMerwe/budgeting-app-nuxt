@@ -12,29 +12,9 @@
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import type { OcrLine, OcrSegment, ParsedReceipt } from './receipt-types'
+import { BRANDS, type MerchantKind } from './receipt-merchants'
 
 dayjs.extend(customParseFormat)
-
-/** Known SA retailers, matched against the top of the slip. First match wins. */
-const BRANDS: ReadonlyArray<readonly [RegExp, string]> = [
-  [/\bSPAR\b/i, 'Spar'],
-  [/\bCHECKERS\b|SIXTY ?60/i, 'Checkers'],
-  [/PICK ?N ?PAY|\bPNP\b/i, 'Pick n Pay'],
-  [/WOOLWORTHS|\bWOOLIES\b/i, 'Woolworths'],
-  [/\bSHELL\b/i, 'Shell'],
-  [/\bENGEN\b/i, 'Engen'],
-  [/\bSASOL\b/i, 'Sasol'],
-  [/\bCALTEX\b/i, 'Caltex'],
-  [/\bBP\b/i, 'BP'],
-  [/TAKEALOT/i, 'Takealot'],
-  [/\bMR ?D\b|MR DELIVERY/i, 'Mr D'],
-  [/\bCLICKS\b/i, 'Clicks'],
-  [/DIS-?CHEM/i, 'Dis-Chem'],
-  [/\bMAKRO\b/i, 'Makro'],
-  [/\bGAME\b/i, 'Game'],
-  [/\bBUILDERS\b/i, 'Builders'],
-  [/\bWOOLWORTHS\b/i, 'Woolworths'],
-]
 
 /** Lines that are never part of a store name (registration numbers, contact details). */
 const NAME_NOISE = /^(VAT|TEL|FAX|REG|CO|TAX|NPWP|R)\b|^[\d\s.,:/*=-]+$/i
@@ -96,17 +76,23 @@ function toRow(segments: OcrLine): Row {
   }
 }
 
-function findMerchant(rows: Row[], evidence: string[]): string | null {
+interface MerchantResult { name: string | null, kind: MerchantKind | null }
+
+function findMerchant(rows: Row[], evidence: string[]): MerchantResult {
   // Store identity is always at the top; searching further down picks up
   // marketing footers ("NOW ON UBER EATS") instead.
   const head = rows.slice(0, Math.max(6, Math.ceil(rows.length / 3)))
 
   let brand: string | null = null
-  outer: for (const [pattern, name] of BRANDS) {
-    for (const row of head) {
+  let kind: MerchantKind | null = null
+  let brandRow = -1
+  outer: for (const { pattern, name, kind: brandKind } of BRANDS) {
+    for (const [index, row] of head.entries()) {
       if (pattern.test(row.text)) {
         brand = name
-        evidence.push(`merchant: brand "${name}" matched in "${row.text}"`)
+        kind = brandKind
+        brandRow = index
+        evidence.push(`merchant: brand "${name}" (${brandKind}) matched in "${row.text}"`)
         break outer
       }
     }
@@ -114,10 +100,12 @@ function findMerchant(rows: Row[], evidence: string[]): string | null {
 
   // A nearby all-caps line that isn't the brand itself is usually the suburb.
   let branch: string | null = null
-  for (const row of head) {
+  for (const [index, row] of head.entries()) {
     const text = row.text.trim()
     if (NAME_NOISE.test(text)) continue
-    if (brand && new RegExp(brand.replace(/[^\w]/g, '.'), 'i').test(text)) continue
+    // The row the brand matched is the brand itself, not a suburb. Comparing
+    // strings here is unreliable ("Nando's" vs "NANDOS"), so use the index.
+    if (index === brandRow) continue
     if (/^[A-Z][A-Z\s'&.-]{2,}$/.test(text)) {
       branch = titleCase(text.replace(/\s+/g, ' ').trim())
       evidence.push(`merchant: branch "${branch}" from "${text}"`)
@@ -127,12 +115,12 @@ function findMerchant(rows: Row[], evidence: string[]): string | null {
 
   if (!brand) {
     const first = head.find(r => !NAME_NOISE.test(r.text) && r.text.length > 2)
-    if (!first) return null
+    if (!first) return { name: null, kind: null }
     evidence.push(`merchant: no known brand, fell back to "${first.text}"`)
-    return first.text.trim()
+    return { name: first.text.trim(), kind: null }
   }
 
-  return branch ? `${brand} ${branch}` : brand
+  return { name: branch ? `${brand} ${branch}` : brand, kind }
 }
 
 function findAmount(rows: Row[], evidence: string[]): { cents: number | null, confidence: number } {
@@ -217,6 +205,7 @@ export function parseReceipt(lines: OcrLine[] | OcrSegment[]): ParsedReceipt {
   if (!rows.length) {
     return {
       merchant: null,
+      merchantKind: null,
       amountCents: null,
       transactionDate: null,
       dateText: null,
@@ -230,7 +219,8 @@ export function parseReceipt(lines: OcrLine[] | OcrSegment[]): ParsedReceipt {
   const { unix, text } = findDate(rows, evidence)
 
   return {
-    merchant,
+    merchant: merchant.name,
+    merchantKind: merchant.kind,
     amountCents: cents,
     transactionDate: unix,
     dateText: text,

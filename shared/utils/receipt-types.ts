@@ -5,6 +5,7 @@
  * (current) and potentially the browser (if OCR ever moves client-side).
  * Nothing in this directory may import `fs`, `Buffer`, `sharp`, or a file path.
  */
+import type { MerchantKind } from './receipt-merchants'
 
 /** Bounding box of a recognised text segment, in pixels of the scanned image. */
 export interface OcrBox {
@@ -34,6 +35,8 @@ export type OcrLine = OcrSegment[]
 export interface ParsedReceipt {
   /** e.g. "Spar Vredekloof". Null when nothing usable was found. */
   merchant: string | null
+  /** What the merchant normally sells; drives the category mismatch warning. */
+  merchantKind: MerchantKind | null
   /** Total in cents, per the project-wide money convention. */
   amountCents: number | null
   /** Unix timestamp in seconds, per the project-wide date convention. */
