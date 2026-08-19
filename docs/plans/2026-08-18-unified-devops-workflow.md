@@ -12,6 +12,27 @@
 
 ---
 
+## Status: EXECUTED 2026-08-19 — awaiting Werner's review + merge
+
+| Phase | State |
+|---|---|
+| **A — budgeting** | DONE, merged to `main` (`01f5197`), pushed. Not yet deployed — version bump + `pnpm vps:deploy` deliberately deferred to the next feature work. |
+| **B — ecom** | DONE on local `dev` (`1ebdfaf`), **not pushed** — Werner pushes. `lint`, `typecheck` and a full production build all green (build needs `NODE_OPTIONS=--max-old-space-size=8192`, same as the Dockerfile). |
+| **T — tutoring** | DONE (`75042ad` on `feat/pg16-better-auth`). All three `server/utils/mail.ts` copies now byte-identical except the per-app `from` fallback. |
+| **C — wrap-up** | Bead updated; memory updated. Bead stays open until both `dev` branches merge. |
+
+**Dual-zod risk (carried over from tutoring's production 500s): CLEARED for ecom.**
+`.output/server/node_modules/zod` symlinks to `zod@3.25.76`, with `zod@4.3.6` traced separately
+under `.nitro/` for better-auth. `nitro.externals.inline: ['zod']` is not needed here.
+
+**Found during execution — pre-existing, not caused by this plan:** ecom's VPS
+`.env.production` has an **empty `SMTP_HOST`**, and the removed `nuxt-nodemailer` config read
+that same variable. Ecom production email has therefore never been configured. Real SMTP
+credentials are needed before any ecom transactional mail works in production; until then sends
+fail soft into the `FailedEmail` queue.
+
+---
+
 ## Per-app constants (the ONLY allowed differences in copied files)
 
 | | tutoring (reference) | ecommerce-template | budgeting-app-nuxt |
