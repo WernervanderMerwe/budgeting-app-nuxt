@@ -33,7 +33,21 @@ else
     echo "  Postgres started"
 fi
 
-# --- 3. Start Nuxt dev server (foreground) ---
+# --- 3. Check Mailpit container is up; start if not ---
+# `pnpm db:up` brings up the whole dev profile, but it is skipped above when
+# Postgres is already running — so Mailpit can be left stopped from a previous
+# session and magic-link login then fails with ECONNREFUSED on the SMTP port.
+echo ""
+echo "Checking Mailpit..."
+if [ -n "$(docker ps -q -f name=budgeting-mailpit)" ]; then
+    echo "  Mailpit is running"
+else
+    echo "  Mailpit not running — starting..."
+    docker compose --profile dev up -d mailpit
+    echo "  Mailpit started (web UI: http://localhost:8422)"
+fi
+
+# --- 4. Start Nuxt dev server (foreground) ---
 # .env is the single source of truth for dev — do NOT copy .env.local over it.
 echo ""
 echo "Starting Nuxt dev server (Ctrl+C to stop — run 'pnpm dev:down' to also stop Postgres)..."
