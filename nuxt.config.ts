@@ -41,6 +41,12 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Receipt scanning. Tunable per tier without a rebuild — see docs/dev-workflow.md
+    receiptMaxDimension: 1200,   // NUXT_RECEIPT_MAX_DIMENSION — longest edge before OCR
+    receiptMaxSizeMb: 15,        // NUXT_RECEIPT_MAX_SIZE_MB  — upload cap
+    receiptIdleMs: 120_000,      // NUXT_RECEIPT_IDLE_MS      — keep OCR session warm between scans
+    receiptLockTimeoutMs: 30_000, // NUXT_RECEIPT_LOCK_TIMEOUT_MS — max wait for the scan mutex
+
     public: {
       // Client-side config
       appName: 'Basic Budget App',

@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@iconify-json/heroicons": "^1.2.3",
+    "@napi-rs/canvas": "^1.0.7",
     "@nuxt/ui": "^4.4.0",
     "@nuxtjs/color-mode": "^4.0.0",
     "@prisma/adapter-pg": "^7.2.0",
