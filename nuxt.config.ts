@@ -46,6 +46,7 @@ export default defineNuxtConfig({
     receiptMaxSizeMb: 15,        // NUXT_RECEIPT_MAX_SIZE_MB  — upload cap
     receiptIdleMs: 120_000,      // NUXT_RECEIPT_IDLE_MS      — keep OCR session warm between scans
     receiptLockTimeoutMs: 30_000, // NUXT_RECEIPT_LOCK_TIMEOUT_MS — max wait for the scan mutex
+    receiptModelDir: '',         // NUXT_RECEIPT_MODEL_DIR — local model dir; empty = download at runtime
 
     public: {
       // Client-side config

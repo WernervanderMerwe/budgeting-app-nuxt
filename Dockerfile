@@ -16,6 +16,14 @@ COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
+# Bake the OCR models in so the first scan after a container restart doesn't
+# need internet or pay the runtime download cold start (see server/utils/receipt-ocr.ts).
+RUN apk add --no-cache curl && \
+    mkdir -p /app/models && \
+    curl -fL -o /app/models/PP-OCRv6_tiny_det.ort https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main/detection/ort/PP-OCRv6_tiny_det.ort && \
+    curl -fL -o /app/models/PP-OCRv6_tiny_rec.ort https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main/recognition/ort/PP-OCRv6_tiny_rec.ort && \
+    curl -fL -o /app/models/ppocrv6_tiny_dict.txt https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main/recognition/ppocrv6_tiny_dict.txt
+
 # Copy source
 COPY . .
 
@@ -34,10 +42,12 @@ WORKDIR /app
 
 # Copy built output (Nitro bundles everything, no node_modules needed)
 COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/models ./models
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
+ENV NUXT_RECEIPT_MODEL_DIR=/app/models
 
 EXPOSE 3000
 

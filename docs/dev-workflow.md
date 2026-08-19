@@ -109,6 +109,11 @@ and parses correctly; at `maxDimension: 900` a portrait photo lands at 506px
 short edge — below what is proven, with glyphs around 11px where recognition
 starts to break down.
 
+The OCR models themselves are baked into the Docker image at `/app/models`
+(`NUXT_RECEIPT_MODEL_DIR`), so a container restart doesn't pay a download cold
+start. Locally `NUXT_RECEIPT_MODEL_DIR` is unset, so the first scan downloads
+the models from GitHub and caches them to `~/.cache/ppu-paddle-ocr`.
+
 ## Gotchas
 
 - **Money is cents** everywhere. Use `randsToCents` / `centsToRands`.

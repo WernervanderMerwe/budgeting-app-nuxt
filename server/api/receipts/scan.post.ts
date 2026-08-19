@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
     maxDimension: config.receiptMaxDimension,
     idleMs: config.receiptIdleMs,
     lockTimeoutMs: config.receiptLockTimeoutMs,
+    modelDir: config.receiptModelDir,
   }
 
   try {

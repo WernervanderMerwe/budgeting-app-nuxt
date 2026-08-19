@@ -63,7 +63,7 @@ async function acquire(timeoutMs: number): Promise<() => void> {
   return release
 }
 
-async function getService(): Promise<PaddleService> {
+async function getService(modelDir: string): Promise<PaddleService> {
   if (idleTimer) {
     clearTimeout(idleTimer)
     idleTimer = null
@@ -75,7 +75,19 @@ async function getService(): Promise<PaddleService> {
   const { PaddleOcrService, MODEL_PRESETS } = await import('ppu-paddle-ocr/web')
   await import('ppu-ocv/canvas')
 
-  const created = new PaddleOcrService({ model: MODEL_PRESETS['v6-tiny'] }) as unknown as PaddleService
+  // Baked into the image (see Dockerfile) so the first scan after a container
+  // restart doesn't need internet or pay the GitHub download cold start.
+  // Local dev has no baked dir, so it falls back to the library's own
+  // download-and-cache-to-~/.cache behaviour.
+  const model = modelDir
+    ? {
+        detection: `${modelDir}/PP-OCRv6_tiny_det.ort`,
+        recognition: `${modelDir}/PP-OCRv6_tiny_rec.ort`,
+        charactersDictionary: `${modelDir}/ppocrv6_tiny_dict.txt`,
+      }
+    : MODEL_PRESETS['v6-tiny']
+
+  const created = new PaddleOcrService({ model }) as unknown as PaddleService
   await created.initialize()
   service = created
   return created
@@ -98,6 +110,7 @@ export interface OcrOptions {
   maxDimension: number
   idleMs: number
   lockTimeoutMs: number
+  modelDir: string
 }
 
 export interface OcrResult {
@@ -121,7 +134,7 @@ export async function recogniseImage(input: Buffer, options: OcrOptions): Promis
 
   const release = await acquire(options.lockTimeoutMs)
   try {
-    const ocr = await getService()
+    const ocr = await getService(options.modelDir)
     const result = await ocr.recognize(
       prepared.buffer.slice(prepared.byteOffset, prepared.byteOffset + prepared.byteLength) as ArrayBuffer,
       { noCache: true },
