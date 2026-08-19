@@ -1,7 +1,7 @@
 # Receipt & Invoice Scanning — Design
 
 **Date:** 2026-08-19
-**Status:** Validated by spike; ready to implement
+**Status:** Parser + brand table implemented and committed; server utils and UI next
 **Scope:** Transaction Tracker mode only. Yearly mode is explicitly out of scope.
 
 ## Goal
@@ -116,14 +116,16 @@ the browser, preprocessing moves to `ppu-ocv`, which runs in both.
 ## File layout
 
 ```
-shared/utils/receipt-parser.ts      # pure: lines -> { merchant, amountCents, dateText, confidence }
-shared/utils/receipt-types.ts       # OcrLine, OcrSegment, ParsedReceipt
-server/utils/receipt-ocr.ts         # lazy init, per-scan destroy, single-flight mutex
+shared/utils/receipt-parser.ts      # pure: lines -> merchant / amountCents / date / confidence
+shared/utils/receipt-merchants.ts   # SA brand table + kinds + category classification
+shared/utils/receipt-types.ts       # OcrLine, OcrSegment, ParsedReceipt, MerchantKind
+server/utils/receipt-ocr.ts         # warm session, awaited mutex, idle release
 server/utils/receipt-pdf.ts         # unpdf text layer -> line shape
 server/api/receipts/scan.post.ts    # multipart upload -> sniff -> extract -> parse
-app/components/ReceiptScanButton.vue
-app/components/ReceiptConfirmDialog.vue
-prisma/schema.prisma                # + MerchantCategoryRule
+app/components/ReceiptScanPanel.vue # dropzone + preview + prefilled fields
+scripts/receipt-fixture.mjs         # capture a slip as a test fixture
+test/fixtures/receipts/*.json       # captured slips
+                                    # (no prisma change — see "No schema change" below)
 ```
 
 ## Upload endpoint
@@ -143,37 +145,50 @@ be raised to 1600 by env var if faded slips start failing, with no code change o
 Accepts JPEG/PNG/WebP/TIFF/AVIF and PDF. Ownership is enforced through the existing
 `profileToken` chain, exactly as `transactions/index.post.ts` does.
 
-## Category learning
+## No schema change — the category is implicit
 
-`TransactionCategory` rows are **per-month**, so a rule cannot store a `categoryId` — it would
-dangle next month. The rule stores the category **name** and resolves it against the current
-month's categories at scan time; if no category of that name exists in this month, the dialog
-opens with the dropdown blank.
+An earlier draft of this design added a `MerchantCategoryRule` table so scans
+could learn which category a merchant belongs to. **That has been dropped.**
 
-```prisma
-model MerchantCategoryRule {
-  id           Int    @id @default(autoincrement())
-  profileToken String @map("profile_token")
-  merchant     String                          // normalised, e.g. "spar"
-  categoryName String @map("category_name")
-  createdAt    Int    @map("created_at")
-  updatedAt    Int    @map("updated_at")
+The add-transaction UI is an inline form rendered *inside each category card*
+(`TransactionList` receives `:category-id` from `BudgetCategoryCard`). A scan
+launched from the Groceries card is therefore already in the right category —
+there is nothing to learn and nothing to guess.
 
-  profile Profile @relation(fields: [profileToken], references: [profileToken], onDelete: Cascade)
+**This feature makes no schema change and requires no migration.** It is purely
+additive, which also means it carries no production-database risk.
 
-  @@unique([profileToken, merchant])
-  @@map("merchant_category_rules")
-  @@schema("budgeting")
-}
+## Category mismatch warning
+
+Instead of learning, the parser reports what a merchant normally *is*
+(`merchantKind`), taken from the brand table in `shared/utils/receipt-merchants.ts`.
+The confirm panel shows a category dropdown defaulting to the card you launched
+from, and warns when the two disagree:
+
+```
+Category:  [ Groceries      v ]
+⚠ This looks like a fuel slip.
 ```
 
-First Shell slip: user picks "Fuel", rule is written. Every later Shell slip pre-selects Fuel.
-Changing the category on a later scan overwrites the rule.
+`isCategoryMismatch()` returns true **only when both sides are known and differ**.
+An unrecognised merchant, or a category named "Werner misc" that
+`classifyCategoryName()` cannot classify, stays silent. The warning never blocks
+submission — buying milk at a Shell garage is legitimate.
 
-## Receipt images are discarded
+Reassigning the category needs **no new state code**: `createTransaction(data)`
+already takes `categoryId` and its optimistic update maps across every category
+in the month before calling `recalculateSummary()`, so both the old and new cards
+update themselves.
 
-Parsed, then thrown away. Nothing written to disk: no storage growth, no backup bloat, nothing
-extra to secure. The physical slip or the original email remains the record of proof.
+## Receipt images are never persisted
+
+The preview shown next to the prefilled fields comes from the local `File` via
+`URL.createObjectURL` — the server never sends an image back. Nitro holds the bytes in memory
+only for the duration of the scan.
+
+"Deleting the image" is therefore just `revokeObjectURL()` and dropping the reference on submit
+or cancel. Nothing is written to disk: no storage growth, no backup bloat, nothing extra to
+secure. The physical slip or the original email remains the record of proof.
 
 ## Operational notes
 
@@ -181,22 +196,37 @@ extra to secure. The physical slip or the original email remains the record of p
   to `~/.cache/ppu-paddle-ocr`. Left alone, the first scan after every container restart needs
   internet and pays a cold hit. `ModelPathOptions` accepts local file paths — copy them in at
   build time and pass paths.
-- **Single-flight mutex.** ~300 MB × 2 concurrent scans would hurt on a 1.2 GB box. With 1–2 users
-  a "one scan at a time" lock is sufficient and costs nothing in practice.
-- **Destroy the session per scan** (`svc.destroy()`) so memory is transient, not resident.
+- **Serialise scans with an awaited mutex — queue, do not reject.** A second
+  concurrent scan waits for the lock and then runs normally; it does not get a
+  409. Serialising is what pins peak memory at ~300 MB instead of 600 MB+ on a
+  1.2 GB box, so this stays correct regardless of user count — more users would
+  simply queue. A ~30 s acquire timeout is the safety valve: a wedged scan
+  degrades to one clear error rather than a pile of hung requests.
+- **Keep the OCR session warm for `NUXT_RECEIPT_IDLE_MS` (default 120 s), then
+  release it.** Initialisation costs ~1.3 s under WASM. The real usage pattern is
+  a batch — sitting down with a week of slips — so a per-scan destroy would pay
+  that cost on every slip. Reuse a live session, cancel the pending release
+  timer on entry, and re-arm it in the `finally`. After the idle window the
+  ~170 MB is handed back. The mutex already guarantees at most one session
+  exists, so this adds no memory beyond the idle window itself.
 - Revisit native `onnxruntime-node` on `node:22-slim` only if WASM latency becomes a problem —
   it is roughly 1.5× faster but forfeits the Alpine base image.
 
 ## Error handling
 
+Failure is a spectrum, not a boolean, and **the form always opens** — a partial
+scan still saves typing, and a total failure should never dead-end the user.
+
 | Case | Behaviour |
 |---|---|
-| Unreadable / unsupported file | 422 with a clear message; nothing saved |
+| Clean scan | all three fields prefilled |
+| Total found, merchant unknown | amount + date filled; description blank and focused |
+| No total found | amount blank and focused — never guess a number |
+| Low confidence / no corroboration | fields filled, amount highlighted for a second look |
 | PDF has no text layer (scanned bill) | render page to image, fall through to the OCR path |
-| No total found | dialog opens with amount blank and focused — never guess |
-| Low confidence or no corroboration | dialog flags the field; user confirms or corrects |
-| OCR throws | 500 via `errors.serverError`; session still destroyed in `finally` |
-| Scan already running | 409, or client-side queue — never run two at once |
+| Unreadable / unsupported file | error shown on the dropzone, **form opens blank** so the slip can be entered by hand or the scan retried |
+| OCR throws | 500 via `errors.serverError`; session released in `finally`; form opens blank |
+| Another scan in flight | request waits on the mutex, then runs — no error |
 
 **The confirm step is mandatory.** No scan writes a transaction directly. Faded thermal paper is
 an information-loss problem no engine can fix, so a human check is always the last step.
@@ -237,4 +267,6 @@ no-LLM approach, and it is paid down one fixture at a time.
 - Yearly Overview mode — explicitly excluded.
 - Line-item extraction. Only merchant, total, and date are needed.
 - Storing receipt images.
+- Learning merchant -> category rules (dropped; the category is implicit).
+- Any schema change or migration.
 - Any browser-side OCR, until/unless the server path proves unsatisfactory.
