@@ -1,12 +1,27 @@
 import sharp from 'sharp'
 import { recogniseImage } from '~~/server/utils/receipt-ocr'
-import { extractPdf } from '~~/server/utils/receipt-pdf'
+import { extractPdf, type PdfExtraction } from '~~/server/utils/receipt-pdf'
 import { errors } from '~~/server/utils/errors'
 import { parseReceipt } from '~~/shared/utils/receipt-parser'
 import type { ParsedReceipt } from '~~/shared/utils/receipt-types'
 
-/** Raster formats sharp can decode that a phone or scanner realistically produces. */
-const ALLOWED_IMAGE_FORMATS = ['jpeg', 'png', 'webp', 'tiff', 'avif', 'heif', 'gif']
+/**
+ * Raster formats sharp can decode that a phone or scanner realistically produces.
+ *
+ * Verified against the real deployment image (`node:22-alpine`, sharp 0.35.3):
+ * `sharp.format.avif` doesn't exist as a distinct id — both AVIF and HEIC are
+ * reported as format `'heif'`, and `metadata().format` never actually equals
+ * `'avif'`, so listing `'avif'` here would be dead code. AVIF (AV1-coded heif)
+ * decodes fully; genuine HEIC (HEVC-coded heif, the iPhone default) opens
+ * metadata fine but throws on the real pixel decode with "Support for this
+ * compression format has not been built in" — the shipped libheif has no HEVC
+ * decoder. `metadata().compression` (`'av1'` vs `'hevc'`) is what tells them
+ * apart; see the check below.
+ */
+const ALLOWED_IMAGE_FORMATS = ['jpeg', 'png', 'webp', 'tiff', 'heif', 'gif']
+
+/** The one heif variant sharp can open metadata for but not actually decode. */
+const UNDECODABLE_HEIF_COMPRESSION = 'hevc'
 
 function isPdf(data: Buffer): boolean {
   // Magic bytes, not the client-supplied MIME type or filename.
@@ -54,7 +69,16 @@ export default defineEventHandler(async (event) => {
   try {
     // ── PDF: read the text layer; only fall back to OCR for a scanned bill ──
     if (isPdf(file.data)) {
-      const extracted = await extractPdf(file.data)
+      // Wrapped separately from the OCR fallback below: a truncated/corrupt
+      // upload is a client error (400), not a server fault (500) — but only
+      // parsing itself is client-caused, so recogniseImage() stays outside
+      // this try and still surfaces as a genuine server error if it throws.
+      let extracted: PdfExtraction
+      try {
+        extracted = await extractPdf(file.data)
+      } catch {
+        return errors.badRequest(event, 'Could not read that PDF — it may be corrupt or truncated')
+      }
 
       if (extracted.lines) {
         const parsed = parseReceipt(extracted.lines)
@@ -69,8 +93,11 @@ export default defineEventHandler(async (event) => {
 
     // ── Image: validate by decoding, not by trusting the MIME type ──────────
     let format: string | undefined
+    let compression: string | undefined
     try {
-      format = (await sharp(file.data).metadata()).format
+      const metadata = await sharp(file.data).metadata()
+      format = metadata.format
+      compression = metadata.compression
     } catch {
       return errors.badRequest(event, 'Could not read that file as an image or PDF')
     }
@@ -78,7 +105,17 @@ export default defineEventHandler(async (event) => {
     if (!format || !ALLOWED_IMAGE_FORMATS.includes(format)) {
       return errors.badRequest(
         event,
-        `Unsupported image format "${format ?? 'unknown'}". Use JPEG, PNG, WebP, HEIC or a PDF`,
+        `Unsupported image format "${format ?? 'unknown'}". Use JPEG, PNG, WebP, TIFF, AVIF, GIF or a PDF`,
+      )
+    }
+
+    // AVIF and HEIC both report format 'heif'; only the AV1-coded one (real AVIF)
+    // actually decodes on this build's libheif — see ALLOWED_IMAGE_FORMATS above.
+    if (format === 'heif' && compression === UNDECODABLE_HEIF_COMPRESSION) {
+      return errors.badRequest(
+        event,
+        'HEIC photos aren\'t supported here. Switch your camera to "Most Compatible" '
+        + '(saves JPEG) or use AVIF, JPEG, PNG, WebP, TIFF, GIF or a PDF.',
       )
     }
 

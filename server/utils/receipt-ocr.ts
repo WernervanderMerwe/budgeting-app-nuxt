@@ -36,6 +36,13 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null
 let lockTail: Promise<void> = Promise.resolve()
 
 /**
+ * Idle teardown competes with real scans for the same lock, so give it a
+ * generous timeout — a busy period should just skip a teardown round (and
+ * re-arm) rather than tie up the lock queue behind a long wait.
+ */
+const IDLE_TEARDOWN_LOCK_TIMEOUT_MS = 5000
+
+/**
  * Acquire the scan lock, waiting for any in-flight scan. Returns a release fn.
  * Rejects if the wait exceeds `timeoutMs`, so a wedged scan surfaces as one
  * clear error rather than an unbounded pile of hung requests.
@@ -93,17 +100,54 @@ async function getService(modelDir: string): Promise<PaddleService> {
   return created
 }
 
-/** Release the warm session after the idle window so the RAM goes back. */
+/**
+ * Release the warm session after the idle window so the RAM goes back.
+ *
+ * This only ARMS the timer — it must never acquire the lock itself, because it
+ * is called from inside `recogniseImage`'s `finally` while that scan still
+ * holds the lock; acquiring here would deadlock against its own release.
+ * The deferred callback below is what acquires, once that scan has released.
+ */
 function scheduleRelease(idleMs: number): void {
   if (idleTimer) clearTimeout(idleTimer)
   idleTimer = setTimeout(() => {
-    const stale = service
-    service = null
-    idleTimer = null
-    void stale?.destroy().catch(() => { /* nothing useful to do on teardown */ })
+    void releaseIdleService(idleMs)
   }, idleMs)
   // Don't hold the process open purely for a teardown timer.
   idleTimer.unref?.()
+}
+
+/**
+ * Tear down the idle session, but only once we hold the scan lock — otherwise
+ * a scan arriving in the gap between "clear service" and "await destroy" would
+ * see `service === null` and initialise a second engine while the first is
+ * still tearing down, transiently doubling memory.
+ *
+ * Runs from a bare `setTimeout` callback, so it must never throw: an unhandled
+ * rejection there is worse than a delayed teardown. If the lock can't be
+ * acquired within the (generous) teardown timeout, skip this round and
+ * re-arm — a normal scan re-arms on its own via `recogniseImage`'s `finally`
+ * anyway, but re-arming here too covers the pathological case of a scan
+ * stuck mid-recognition, so the service isn't left permanently warm.
+ */
+async function releaseIdleService(idleMs: number): Promise<void> {
+  idleTimer = null
+  let release: (() => void) | undefined
+  try {
+    release = await acquire(IDLE_TEARDOWN_LOCK_TIMEOUT_MS)
+  } catch {
+    scheduleRelease(idleMs) // a scan is running or wedged; try again later
+    return
+  }
+  try {
+    const stale = service
+    service = null
+    await stale?.destroy()
+  } catch {
+    // nothing useful to do on teardown failure
+  } finally {
+    release()
+  }
 }
 
 export interface OcrOptions {

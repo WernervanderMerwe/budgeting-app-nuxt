@@ -122,7 +122,7 @@ shared/utils/receipt-types.ts       # OcrLine, OcrSegment, ParsedReceipt, Mercha
 server/utils/receipt-ocr.ts         # warm session, awaited mutex, idle release
 server/utils/receipt-pdf.ts         # unpdf text layer -> line shape
 server/api/receipts/scan.post.ts    # multipart upload -> sniff -> extract -> parse
-app/components/ReceiptScanPanel.vue # dropzone + preview + prefilled fields
+app/components/ReceiptScanModal.vue # dropzone -> scan -> image/fields review
 scripts/receipt-fixture.mjs         # capture a slip as a test fixture
 test/fixtures/receipts/*.json       # captured slips
                                     # (no prisma change — see "No schema change" below)
@@ -179,6 +179,42 @@ Reassigning the category needs **no new state code**: `createTransaction(data)`
 already takes `categoryId` and its optimistic update maps across every category
 in the month before calling `recalculateSummary()`, so both the old and new cards
 update themselves.
+
+## Confirm UI — a modal, not the inline card form
+
+**Revised 2026-08-19 after seeing it running.** The first implementation prefilled the existing
+inline add-transaction form inside the category card. That card is a narrow grid column, so the
+slip rendered as a ~160px thumbnail — far too small to check a total against, which defeats the
+entire point of showing the image.
+
+The whole scan flow now lives in its own modal (`Teleport to="body"` + fixed overlay +
+click-outside to dismiss, matching `ConfirmDialog.vue`):
+
+```
++- Scan Receipt --------------------------------------------- X -+
+|                                                                |
+|  +--------------------+   Description                          |
+|  |                    |   [ Spar Vredekloof              ]     |
+|  |   slip image       |   Amount            Date               |
+|  |   ~460px wide      |   [ 303.93    ]    [ 19 Aug 2026 ]     |
+|  |   up to 70vh tall  |   Category                             |
+|  |   click = lightbox |   [ Groceries                  v ]     |
+|  +--------------------+                                        |
+|                                        [ Cancel ]  [ Add ]     |
++----------------------------------------------------------------+
+```
+
+- `max-w-5xl`, `max-h-[90vh]`; two columns on desktop, stacked (image on top) on mobile.
+- **The dropzone lives in the modal too.** Clicking Scan opens the modal showing a large drop
+  target; after a successful scan the same modal switches to the review layout. One surface, and
+  the drag target is big enough to actually aim at.
+- Clicking the image opens it full size in the `UModal fullscreen` lightbox already used by
+  `guide.vue` — needed for faded thermal print.
+- The category card keeps two buttons: **Add Transaction** (the unchanged inline form, for manual
+  entry) and **Scan** (opens this modal).
+
+The modal emits the confirmed values; `TransactionList` still owns `createTransaction`, so
+reassigning the category continues to work through the existing optimistic path.
 
 ## Receipt images are never persisted
 
