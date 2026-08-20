@@ -16,8 +16,30 @@
  * latter pulls in `onnxruntime-node`, which is glibc-only and fails on the
  * node:22-alpine image with `ld-linux-x86-64.so.2: No such file`.
  */
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import sharp from 'sharp'
 import type { OcrLine } from '~~/shared/utils/receipt-types'
+
+/**
+ * Load a baked model file as an ArrayBuffer.
+ *
+ * This MUST be a buffer, not a path. The `/web` build resolves a string source
+ * by handing it to `fetch()` — fine for an https URL, fatal for `/app/models/x`,
+ * which throws `TypeError: Failed to parse URL`. It only accepts a local file
+ * via the `source instanceof ArrayBuffer` branch, so we do the read ourselves.
+ *
+ * Dev never hit this because `receiptModelDir` is empty there and the library
+ * falls back to downloading the preset — which is exactly why it broke only in
+ * the production image.
+ */
+async function loadModelFile(dir: string, name: string): Promise<ArrayBuffer> {
+  const buffer = await readFile(join(dir, name))
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength,
+  ) as ArrayBuffer
+}
 
 interface PaddleService {
   initialize: () => Promise<void>
@@ -83,14 +105,14 @@ async function getService(modelDir: string): Promise<PaddleService> {
   await import('ppu-ocv/canvas')
 
   // Baked into the image (see Dockerfile) so the first scan after a container
-  // restart doesn't need internet or pay the GitHub download cold start.
-  // Local dev has no baked dir, so it falls back to the library's own
-  // download-and-cache-to-~/.cache behaviour.
+  // restart doesn't need internet or pay the GitHub download cold start. Read
+  // as buffers — see loadModelFile. Local dev has no baked dir, so it falls
+  // back to the library's own download-and-cache-to-~/.cache behaviour.
   const model = modelDir
     ? {
-        detection: `${modelDir}/PP-OCRv6_tiny_det.ort`,
-        recognition: `${modelDir}/PP-OCRv6_tiny_rec.ort`,
-        charactersDictionary: `${modelDir}/ppocrv6_tiny_dict.txt`,
+        detection: await loadModelFile(modelDir, 'PP-OCRv6_tiny_det.ort'),
+        recognition: await loadModelFile(modelDir, 'PP-OCRv6_tiny_rec.ort'),
+        charactersDictionary: await loadModelFile(modelDir, 'ppocrv6_tiny_dict.txt'),
       }
     : MODEL_PRESETS['v6-tiny']
 
