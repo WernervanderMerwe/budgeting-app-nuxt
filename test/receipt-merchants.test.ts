@@ -30,6 +30,10 @@ describe('brand recognition', () => {
     ['KWIKSPAR', 'Spar', 'groceries'],
     ['USAVE', 'Usave', 'groceries'],
     ['CHECKERS HYPER', 'Checkers', 'groceries'],
+    ['CHECKERS SIXTY60', 'Checkers', 'groceries'],
+    // OCR reads the stylised Sixty60 logo's zero as a capital O.
+    ['CHECKERS SIXTY6O', 'Checkers', 'groceries'],
+    ['SIXTY6O DELIVERY', 'Checkers', 'groceries'],
     ['SHELL VREDEKLOOF', 'Shell', 'fuel'],
     ['ENGEN 1 STOP', 'Engen', 'fuel'],
     ['NANDOS BRACKENFELL', "Nando's", 'eating-out'],
@@ -66,6 +70,45 @@ describe('false positive traps', () => {
     const matching = BRANDS.filter(b => b.pattern.test('TOTAL'))
     assert.deepEqual(matching.map(b => b.name), [],
       'a pattern matches "TOTAL" and will mislabel every slip')
+  })
+
+  test('a person\'s title and initial is not the Mr D delivery brand', () => {
+    // "Mr D Nkosi" in a billing address used to match the bare \bMR ?D\b alias.
+    const hits = BRANDS.filter(b => b.pattern.test('Mr D Nkosi')).map(b => b.name)
+    assert.deepEqual(hits, [], `matched ${hits.join(', ')}`)
+    assert.equal(merchantOf('MR D FOOD').merchant, 'Mr D')
+  })
+
+  test('generic single-word aliases are marked headOnly', () => {
+    // These are ordinary English words; matched against a whole OCR'd invoice
+    // rather than six header rows they would fire constantly.
+    const generic = ['Clicks', 'Spur', 'Boxer', 'Rain', 'Game', 'PEP', 'BP', 'MTN']
+    for (const name of generic) {
+      const brand = BRANDS.find(b => b.name === name)
+      assert.ok(brand, `${name} missing from the table`)
+      assert.equal(brand!.headOnly, true, `${name} must be headOnly`)
+    }
+  })
+
+  test('full brand names stay matchable outside the head', () => {
+    // Splitting the risky aliases out must not cost the full names their reach.
+    for (const [text, expected] of [
+      ['PICK N PAY FAMILY', 'Pick n Pay'],
+      ['MR PRICE HOME', 'Mr Price'],
+      ['CITY OF CAPE TOWN', 'City of Cape Town'],
+      ['PLAYSTATION NETWORK', 'PlayStation'],
+      ['CHRIS WILLEMSE CYCLES', 'Chris Willemse Cycles'],
+    ] as Array<[string, string]>) {
+      const brand = BRANDS.find(b => b.pattern.test(text))
+      assert.equal(brand?.name, expected, text)
+      assert.notEqual(brand?.headOnly, true, `${expected} should not be headOnly`)
+    }
+  })
+
+  test('BUILDERS does not match inside a longer word', () => {
+    const hits = BRANDS.filter(b => b.pattern.test('REBUILDERSHIP')).map(b => b.name)
+    assert.deepEqual(hits, [], `matched ${hits.join(', ')}`)
+    assert.equal(merchantOf('BUILDERS WAREHOUSE').merchant, 'Builders')
   })
 
   test('no brand pattern matches common slip boilerplate', () => {

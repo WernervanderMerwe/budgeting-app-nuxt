@@ -5,8 +5,10 @@
  * merchant, add a pattern here and capture a fixture — see docs/dev-workflow.md.
  *
  * Ordering matters: the first pattern to match wins, so put specific patterns
- * above general ones. Patterns are matched only against the TOP THIRD of a
- * receipt, which is why short generic words are tolerable here but still risky.
+ * above general ones. Patterns are matched against the TOP THIRD of a receipt
+ * first; only if that finds nothing does the parser widen to the whole document
+ * (excluding priced line items). Short generic words are therefore riskier than
+ * they look — see the DANGER note below.
  */
 
 /** What a merchant is normally used for. Drives the category mismatch warning. */
@@ -24,6 +26,15 @@ export interface Brand {
   pattern: RegExp
   name: string
   kind: MerchantKind
+  /**
+   * Match only in the top third, never in the whole-document fallback.
+   *
+   * For aliases that are ordinary English words ("spur of the moment", "boxer
+   * shorts", "in two clicks", "rain") or two/three-letter initialisms. Matching
+   * six header rows is a very different proposition from matching every line of
+   * an OCR'd invoice, and these would fire constantly on the latter.
+   */
+  headOnly?: boolean
 }
 
 /**
@@ -34,11 +45,13 @@ export interface Brand {
 export const BRANDS: readonly Brand[] = [
   // ── Groceries ────────────────────────────────────────────────────────────
   { pattern: /\b(SUPER ?SPAR|KWIK ?SPAR|SAVEMOR|SPAR)\b/i, name: 'Spar', kind: 'groceries' },
-  { pattern: /\bCHECKERS\b|SIXTY ?60|HYPER ?CHECKERS/i, name: 'Checkers', kind: 'groceries' },
+  // `6[O0]`: OCR reads the stylised Sixty60 logo's zero as a capital O.
+  { pattern: /\bCHECKERS\b|S[I1]XTY ?6[O0]/i, name: 'Checkers', kind: 'groceries' },
   { pattern: /\bSHOPRITE\b/i, name: 'Shoprite', kind: 'groceries' },
   { pattern: /\bUSAVE\b|\bU-SAVE\b/i, name: 'Usave', kind: 'groceries' },
-  { pattern: /PICK ?N ?PAY|\bPNP\b/i, name: 'Pick n Pay', kind: 'groceries' },
-  { pattern: /\bBOXER\b/i, name: 'Boxer', kind: 'groceries' },
+  { pattern: /PICK ?N ?PAY/i, name: 'Pick n Pay', kind: 'groceries' },
+  { pattern: /\bPNP\b/i, name: 'Pick n Pay', kind: 'groceries', headOnly: true },
+  { pattern: /\bBOXER\b/i, name: 'Boxer', kind: 'groceries', headOnly: true }, // "boxer shorts"
   { pattern: /FOOD ?LOVER|FRUIT ?& ?VEG CITY/i, name: "Food Lover's Market", kind: 'groceries' },
   { pattern: /WOOLWORTHS|\bWOOLIES\b/i, name: 'Woolworths', kind: 'groceries' },
   { pattern: /OK ?(FOODS|GROCER|MINIMARK|URBAN)/i, name: 'OK Foods', kind: 'groceries' },
@@ -54,7 +67,7 @@ export const BRANDS: readonly Brand[] = [
   { pattern: /\bASTRON\b/i, name: 'Astron Energy', kind: 'fuel' },
   { pattern: /PUMA ?ENERGY/i, name: 'Puma Energy', kind: 'fuel' },
   { pattern: /TOTAL ?ENERGIES/i, name: 'TotalEnergies', kind: 'fuel' }, // never bare /TOTAL/
-  { pattern: /\bBP\b/i, name: 'BP', kind: 'fuel' },
+  { pattern: /\bBP\b/i, name: 'BP', kind: 'fuel', headOnly: true },
 
   // ── Eating out ───────────────────────────────────────────────────────────
   { pattern: /NANDO'?S/i, name: "Nando's", kind: 'eating-out' },
@@ -70,13 +83,13 @@ export const BRANDS: readonly Brand[] = [
   { pattern: /CHICKEN ?LICKEN/i, name: 'Chicken Licken', kind: 'eating-out' },
   { pattern: /FISHAWAYS/i, name: 'Fishaways', kind: 'eating-out' },
   { pattern: /ROCO ?MAMAS/i, name: 'RocoMamas', kind: 'eating-out' },
-  { pattern: /\bSPUR\b/i, name: 'Spur', kind: 'eating-out' },
+  { pattern: /\bSPUR\b/i, name: 'Spur', kind: 'eating-out', headOnly: true }, // "spur of the moment"
   { pattern: /OCEAN ?BASKET/i, name: 'Ocean Basket', kind: 'eating-out' },
   { pattern: /PANAROTTI/i, name: 'Panarottis', kind: 'eating-out' },
   { pattern: /JOHN ?DORY/i, name: "John Dory's", kind: 'eating-out' },
   { pattern: /COL'?CACCHIO/i, name: "Col'Cacchio", kind: 'eating-out' },
   { pattern: /SIMPLY ?ASIA/i, name: 'Simply Asia', kind: 'eating-out' },
-  { pattern: /\bKAUAI\b/i, name: 'Kauai', kind: 'eating-out' },
+  { pattern: /\bKAUAI\b/i, name: 'Kauai', kind: 'eating-out', headOnly: true },
   { pattern: /MUGG ?& ?BEAN|MUGG ?AND ?BEAN/i, name: 'Mugg & Bean', kind: 'eating-out' },
   { pattern: /VIDA ?E? ?CAFF?E/i, name: 'Vida e Caffè', kind: 'eating-out' },
   { pattern: /SEATTLE ?COFFEE/i, name: 'Seattle Coffee', kind: 'eating-out' },
@@ -84,7 +97,7 @@ export const BRANDS: readonly Brand[] = [
   { pattern: /STARBUCKS/i, name: 'Starbucks', kind: 'eating-out' },
   { pattern: /KRISPY ?KREME/i, name: 'Krispy Kreme', kind: 'eating-out' },
   { pattern: /UBER ?EATS/i, name: 'Uber Eats', kind: 'eating-out' },
-  { pattern: /\bMR ?D\b|MR ?D ?FOOD|MR DELIVERY/i, name: 'Mr D', kind: 'eating-out' },
+  { pattern: /MR ?D ?FOOD|MR ?DELIVERY|\bMRDFOOD\b/i, name: 'Mr D', kind: 'eating-out' },
   { pattern: /BOLT ?FOOD/i, name: 'Bolt Food', kind: 'eating-out' },
 
   // ── Entertainment ────────────────────────────────────────────────────────
@@ -95,7 +108,8 @@ export const BRANDS: readonly Brand[] = [
   { pattern: /SHOWMAX/i, name: 'Showmax', kind: 'entertainment' },
   { pattern: /SPOTIFY/i, name: 'Spotify', kind: 'entertainment' },
   { pattern: /\bDSTV\b|MULTICHOICE/i, name: 'DStv', kind: 'entertainment' },
-  { pattern: /PLAYSTATION|\bPSN\b/i, name: 'PlayStation', kind: 'entertainment' },
+  { pattern: /PLAYSTATION/i, name: 'PlayStation', kind: 'entertainment' },
+  { pattern: /\bPSN\b/i, name: 'PlayStation', kind: 'entertainment', headOnly: true },
   { pattern: /\bXBOX\b/i, name: 'Xbox', kind: 'entertainment' },
   { pattern: /NINTENDO/i, name: 'Nintendo', kind: 'entertainment' },
   { pattern: /STEAM ?GAMES|STEAMPOWERED/i, name: 'Steam', kind: 'entertainment' },
@@ -103,17 +117,18 @@ export const BRANDS: readonly Brand[] = [
 
   // ── Bicycle ──────────────────────────────────────────────────────────────
   { pattern: /CYCLE ?LAB/i, name: 'Cycle Lab', kind: 'bicycle' },
-  { pattern: /CHRIS ?WILLEMSE|\bCWC\b/i, name: 'Chris Willemse Cycles', kind: 'bicycle' },
+  { pattern: /CHRIS ?WILLEMSE/i, name: 'Chris Willemse Cycles', kind: 'bicycle' },
+  { pattern: /\bCWC\b/i, name: 'Chris Willemse Cycles', kind: 'bicycle', headOnly: true },
   { pattern: /BIKE ?ADDICT/i, name: 'Bike Addict', kind: 'bicycle' },
   { pattern: /CAJEE'?S/i, name: 'Cajees Cycles', kind: 'bicycle' },
   { pattern: /OLYMPIC ?CYCLES/i, name: 'Olympic Cycles', kind: 'bicycle' },
   { pattern: /SOLOMON'?S ?CYCLES/i, name: "Solomon's Cycles", kind: 'bicycle' },
   { pattern: /LE ?PELOTON/i, name: 'Le Peloton', kind: 'bicycle' },
   { pattern: /EVO ?BIKES/i, name: 'Evobikes', kind: 'bicycle' },
-  { pattern: /\bBICYCLE\b|\bCYCLERY\b|\bCYCLES\b/i, name: 'Bike shop', kind: 'bicycle' },
+  { pattern: /\bBICYCLE\b|\bCYCLERY\b|\bCYCLES\b/i, name: 'Bike shop', kind: 'bicycle', headOnly: true },
 
   // ── Pharmacy ─────────────────────────────────────────────────────────────
-  { pattern: /\bCLICKS\b/i, name: 'Clicks', kind: 'pharmacy' },
+  { pattern: /\bCLICKS\b/i, name: 'Clicks', kind: 'pharmacy', headOnly: true }, // "in two clicks"
   { pattern: /DIS-?CHEM/i, name: 'Dis-Chem', kind: 'pharmacy' },
   { pattern: /MEDIRITE/i, name: 'Medirite', kind: 'pharmacy' },
   { pattern: /ALPHA ?PHARM/i, name: 'Alpha Pharm', kind: 'pharmacy' },
@@ -121,29 +136,31 @@ export const BRANDS: readonly Brand[] = [
   // ── General retail ───────────────────────────────────────────────────────
   { pattern: /TAKEALOT/i, name: 'Takealot', kind: 'retail' },
   { pattern: /\bMAKRO\b/i, name: 'Makro', kind: 'retail' },
-  { pattern: /BUILDERS ?(WAREHOUSE|EXPRESS)?/i, name: 'Builders', kind: 'retail' },
+  { pattern: /\bBUILDERS\b ?(?:WAREHOUSE|EXPRESS)?/i, name: 'Builders', kind: 'retail' },
   { pattern: /LEROY ?MERLIN/i, name: 'Leroy Merlin', kind: 'retail' },
   { pattern: /SPORTSMAN'?S ?WAREHOUSE/i, name: "Sportsmans Warehouse", kind: 'retail' },
   { pattern: /CAPE ?UNION ?MART/i, name: 'Cape Union Mart', kind: 'retail' },
-  { pattern: /MR ?PRICE|\bMRP\b/i, name: 'Mr Price', kind: 'retail' },
+  { pattern: /MR ?PRICE/i, name: 'Mr Price', kind: 'retail' },
+  { pattern: /\bMRP\b/i, name: 'Mr Price', kind: 'retail', headOnly: true },
   { pattern: /ACKERMANS/i, name: 'Ackermans', kind: 'retail' },
-  { pattern: /\bPEP\b/i, name: 'PEP', kind: 'retail' },
+  { pattern: /\bPEP\b/i, name: 'PEP', kind: 'retail', headOnly: true },
   { pattern: /TRUWORTHS/i, name: 'Truworths', kind: 'retail' },
   { pattern: /INCREDIBLE ?CONNECTION/i, name: 'Incredible Connection', kind: 'retail' },
   { pattern: /HIFI ?CORP|HI-FI ?CORP/i, name: 'HiFi Corp', kind: 'retail' },
-  { pattern: /\bGAME\b(?! ?MEAT)/i, name: 'Game', kind: 'retail' },
+  { pattern: /\bGAME\b(?! ?MEAT)/i, name: 'Game', kind: 'retail', headOnly: true },
 
   // ── Utilities & telecom ──────────────────────────────────────────────────
-  { pattern: /CITY ?OF ?CAPE ?TOWN|\bCOCT\b/i, name: 'City of Cape Town', kind: 'utilities' },
+  { pattern: /CITY ?OF ?CAPE ?TOWN/i, name: 'City of Cape Town', kind: 'utilities' },
+  { pattern: /\bCOCT\b/i, name: 'City of Cape Town', kind: 'utilities', headOnly: true },
   { pattern: /\bESKOM\b/i, name: 'Eskom', kind: 'utilities' },
   { pattern: /DRAKENSTEIN|STELLENBOSCH ?MUNI/i, name: 'Municipality', kind: 'utilities' },
   { pattern: /VODACOM/i, name: 'Vodacom', kind: 'utilities' },
-  { pattern: /\bMTN\b/i, name: 'MTN', kind: 'utilities' },
+  { pattern: /\bMTN\b/i, name: 'MTN', kind: 'utilities', headOnly: true },
   { pattern: /TELKOM/i, name: 'Telkom', kind: 'utilities' },
   { pattern: /CELL ?C/i, name: 'Cell C', kind: 'utilities' },
   { pattern: /AFRIHOST/i, name: 'Afrihost', kind: 'utilities' },
   { pattern: /WEB ?AFRICA/i, name: 'Webafrica', kind: 'utilities' },
-  { pattern: /\bRAIN\b/i, name: 'Rain', kind: 'utilities' },
+  { pattern: /\bRAIN\b/i, name: 'Rain', kind: 'utilities', headOnly: true }, // ordinary English word
 ]
 
 /**
