@@ -35,6 +35,23 @@ ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 RUN pnpm build
 
+# Stage the ONNX WASM runtime for the runner.
+#
+# Nitro externalises `onnxruntime-web` and its file trace copies only the
+# statically resolvable entry (`ort.node.min.mjs`). The actual backend is
+# reached by DYNAMIC import, so the .mjs/.wasm pair is silently left behind and
+# `initialize()` fails at runtime with "no available backend found" ->
+# ERR_MODULE_NOT_FOUND on ort-wasm-simd-threaded.mjs. There is no CDN fallback:
+# `applyDefaultWasmPaths()` only sets `wasmPaths` when `window` exists.
+#
+# `cp -L` dereferences the pnpm symlink. Only the base simd-threaded pair is
+# taken (~13.5 MB); the jsep/jspi/asyncify variants are GPU/WebGPU builds this
+# CPU-only path never loads, and together they would add ~66 MB.
+RUN mkdir -p /ortdist && \
+    cp -L /app/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs \
+          /app/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm \
+          /ortdist/
+
 # Production stage — slim runtime only
 FROM node:22-alpine AS runner
 
@@ -43,6 +60,8 @@ WORKDIR /app
 # Copy built output (Nitro bundles everything, no node_modules needed)
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/models ./models
+# See the staging step in the builder — Nitro's trace misses these.
+COPY --from=builder /ortdist/. ./.output/server/node_modules/onnxruntime-web/dist/
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0

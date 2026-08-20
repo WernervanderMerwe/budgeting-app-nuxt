@@ -1,7 +1,7 @@
 # Receipt & Invoice Scanning — Design
 
 **Date:** 2026-08-19
-**Status:** Implemented end to end — parser, brand table, scan endpoint, OCR service, and the full-width scan modal. Verified on dev and on the production QA image.
+**Status:** Working on dev and on the production QA image — parser, brand table, scan endpoint, OCR service and the full-width scan modal. Not yet deployed. One gap against this document: a partial scan reports what it could not read but does NOT focus the offending field.
 **Scope:** Transaction Tracker mode only. Yearly mode is explicitly out of scope.
 
 ## Goal
@@ -147,6 +147,43 @@ The library only reads a local file through its `source instanceof ArrayBuffer` 
 **This failed *only* on the built image.** Dev leaves `receiptModelDir` empty and falls back to
 the library's own download-and-cache, so it never touched the broken path — `pnpm qa:up` is what
 caught it. Treat that as the rule, not the exception: the baked-model path has no dev equivalent.
+
+## The production image needs TWO things Nitro will not give you
+
+Both of these failed **only** on the built image, and both were found by `pnpm qa:up` after
+dev, `pnpm test` and `pnpm typecheck` were all green.
+
+**1. The ONNX WASM runtime is not traced.** Nitro externalises `onnxruntime-web` and copies only
+the statically resolvable entry, `ort.node.min.mjs`. The actual backend is reached by *dynamic*
+import, so `ort-wasm-simd-threaded.{mjs,wasm}` is silently left behind and `initialize()` dies
+with `no available backend found` → `ERR_MODULE_NOT_FOUND`. There is no CDN fallback —
+`applyDefaultWasmPaths()` only sets `wasmPaths` when `window` exists, so under Node it is fatal.
+The Dockerfile stages the pair explicitly (`cp -L`, because pnpm's `node_modules` entry is a
+symlink) and copies it into `.output/server/node_modules/onnxruntime-web/dist/`. Only the base
+simd-threaded pair is taken: the jsep/jspi/asyncify variants are GPU builds this CPU-only path
+never loads and would add ~66 MB.
+
+**2. Baked models must be passed as buffers, never paths.** See the section above.
+
+### The acceptance test
+
+**"The container boots" and "the endpoint returns 401 not 500" prove nothing about OCR.** Both
+were true while every scan was guaranteed to fail. The real check is to run a recognition inside
+the running image:
+
+```bash
+docker exec budgeting-qa node -e '...'   # initialize() + recognize() on a real slip
+```
+
+Expect roughly `39 lines, confidence 0.948, ~800ms` for `spar-slip.jpeg` — the same numbers dev
+produces. Anything that only exercises HTTP status codes is not evidence.
+
+### Memory
+
+Measured in the container after one scan: **RSS ~523 MB**. Higher than the ~300 MB the downscale
+sweep predicted, because ORT's WASM linear memory is not returned to the OS when a session is
+released — `destroy()` frees inside the heap, so RSS plateaus rather than drops. Fine for 1–2
+users on the VPS, but it is the number to watch if anything else moves onto that box.
 
 ## Upload endpoint
 

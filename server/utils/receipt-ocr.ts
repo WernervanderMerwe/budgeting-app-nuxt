@@ -117,7 +117,16 @@ async function getService(modelDir: string): Promise<PaddleService> {
     : MODEL_PRESETS['v6-tiny']
 
   const created = new PaddleOcrService({ model }) as unknown as PaddleService
-  await created.initialize()
+  try {
+    await created.initialize()
+  } catch (error) {
+    // initialize() builds the detection session before the recognition one, so
+    // a throw on the second leaks the first. Nothing is assigned to `service`
+    // until this succeeds, so a repeated failure would otherwise accumulate
+    // ORT sessions with no reference left to release them.
+    await created.destroy().catch(() => {})
+    throw error
+  }
   service = created
   return created
 }
