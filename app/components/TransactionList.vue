@@ -201,7 +201,7 @@
 
 <script setup lang="ts">
 import type { Transaction } from '~/types/budget'
-import { formatCurrency } from '~/utils/currency'
+import { formatCurrency, centsToRands } from '~/utils/currency'
 import { formatDate, getCurrentTimestamp, parseDate } from '~/utils/date'
 import { isTempId } from '~/composables/useOptimisticUpdates'
 

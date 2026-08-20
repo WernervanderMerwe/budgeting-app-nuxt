@@ -16,7 +16,6 @@
           <button
             type="button"
             class="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            :disabled="isScanning"
             aria-label="Close"
             @click="requestClose">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,9 +47,6 @@
                 Photo or PDF &mdash; or click to choose
               </p>
             </div>
-            <p v-if="error" class="mt-3 text-sm text-red-600 dark:text-red-400">
-              {{ error }}
-            </p>
           </div>
 
           <!-- Step 2: slip on the left, fields on the right -->
@@ -179,9 +175,9 @@
                 <button
                   type="button"
                   class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  :disabled="isScanning || isSaving"
+                  :disabled="isSaving"
                   @click="requestClose">
-                  Cancel
+                  {{ isScanning ? 'Stop' : 'Cancel' }}
                 </button>
                 <button
                   type="submit"
@@ -201,7 +197,6 @@
             ref="fileInput"
             type="file"
             accept="image/*,application/pdf"
-            capture="environment"
             class="hidden"
             @change="onFileSelect">
         </div>
@@ -244,6 +239,9 @@ const emit = defineEmits<{
   close: []
   save: [payload: { categoryId: number, description: string, amount: number, date: string }]
 }>()
+
+/** Upload + server-side scan ceiling; the server's own lock timeout is 30s. */
+const SCAN_TIMEOUT_MS = 60_000
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const dragging = ref(false)
@@ -321,15 +319,33 @@ function reset() {
   }
 }
 
+/**
+ * Closing mid-scan must work.
+ *
+ * The overlay covers the whole page, so refusing to close while `isScanning`
+ * left the user trapped whenever a scan did not settle — a dropped mobile
+ * connection never rejects on its own. Aborting is safe: `scan()`'s catch
+ * returns silently on abort and its `finally` is guarded by
+ * `controller.value === mine`, so a superseded scan is a no-op.
+ *
+ * Saving is different — that request is already in flight against the DB, so
+ * it is still allowed to finish.
+ */
 function requestClose() {
-  if (isScanning.value || isSaving.value) return
+  if (isSaving.value) return
+  controller.value?.abort()
   emit('close')
 }
 
 function onDrop(e: DragEvent) {
   dragging.value = false
   const file = Array.from(e.dataTransfer?.files ?? [])[0]
-  if (file) void scan(file)
+  if (!file) {
+    // Dragging selected text, a URL or a folder yields no file.
+    error.value = 'That was not a file. Drop a photo or a PDF.'
+    return
+  }
+  void scan(file)
 }
 
 function onFileSelect(e: Event) {
@@ -361,7 +377,12 @@ async function scan(file: File) {
       method: 'POST',
       body,
       signal: mine.signal,
+      // The server's own scan-lock timeout is 30s; allow for the upload on top
+      // so a stalled connection surfaces as an error instead of hanging.
+      timeout: SCAN_TIMEOUT_MS,
     })
+    // The modal may have been closed and reopened while this was in flight.
+    if (controller.value !== mine) return
     applyResult(parsed)
   } catch (err) {
     // A cancelled scan must stay silent: the modal was already dismissed.
@@ -424,7 +445,14 @@ watch(() => props.open, (open) => {
   }
 })
 
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.open) requestClose()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
   controller.value?.abort()
   releasePreview()
 })
