@@ -34,8 +34,13 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-      Budget Tracker &copy; {{ currentYear }}
+    <footer class="py-4 text-center space-y-1">
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        Version: <span class="text-[10px] align-baseline">{{ appVersion }}</span>
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Budget Tracker &copy; {{ currentYear }}
+      </p>
     </footer>
   </div>
 </template>
@@ -45,4 +50,7 @@ import { getCurrentYear } from '~/utils/date'
 
 const { isDark, toggleTheme } = useTheme()
 const currentYear = getCurrentYear()
+// Baked from package.json at build time, so this reports the version the
+// running container was actually built from — the point of showing it at all.
+const { appVersion } = useRuntimeConfig().public
 </script>

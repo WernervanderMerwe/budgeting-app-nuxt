@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import pkg from './package.json'
+
 export default defineNuxtConfig({
   srcDir: 'app/',
   serverDir: 'server/',
@@ -52,6 +54,9 @@ export default defineNuxtConfig({
       // Client-side config
       appName: 'Basic Budget App',
       nodeEnv: process.env.NODE_ENV || 'development',
+      // Baked at build time, so the running container reports the version it
+      // was actually built from — matches ecommerce-template / online-tutoring-app.
+      appVersion: pkg.version,
     },
   },
 

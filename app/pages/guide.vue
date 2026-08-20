@@ -37,8 +37,13 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-6 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
-      Budget Tracker &copy; {{ currentYear }}
+    <footer class="py-6 text-center space-y-1 border-t border-gray-200 dark:border-gray-700">
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        Version: <span class="text-[10px] align-baseline">{{ appVersion }}</span>
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Budget Tracker &copy; {{ currentYear }}
+      </p>
     </footer>
 
     <!-- Image Lightbox Modal -->
@@ -84,6 +89,7 @@ definePageMeta({
 
 const { isDark, toggleTheme } = useTheme()
 const currentYear = getCurrentYear()
+const { appVersion } = useRuntimeConfig().public
 
 // Render markdown to HTML
 const renderedContent = computed(() => {
