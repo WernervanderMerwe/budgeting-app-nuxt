@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Add / Scan buttons -->
-    <div v-if="!showAddForm && !showScanPanel" class="flex gap-2">
+    <div v-if="!showAddForm" class="flex gap-2">
       <button
         class="flex-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex items-center justify-center space-x-1"
         @click="showAddForm = true">
@@ -13,7 +13,7 @@
       <button
         class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-2 px-3 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex items-center justify-center space-x-1"
         title="Scan a till slip or invoice"
-        @click="showScanPanel = true">
+        @click="showScanModal = true">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -22,35 +22,17 @@
       </button>
     </div>
 
-    <!-- Scan dropzone -->
-    <ReceiptScanPanel
-      v-if="showScanPanel"
-      ref="scanPanelRef"
-      @scanned="handleScanned"
-      @failed="handleScanFailed"/>
-    <button
-      v-if="showScanPanel"
-      class="w-full text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
-      :disabled="scanPanelRef?.isScanning"
-      @click="showScanPanel = false">
-      Cancel
-    </button>
+    <!-- Scan flow lives in its own full-width modal: the category card is far
+         too narrow to show a slip at a readable size. -->
+    <ReceiptScanModal
+      :open="showScanModal"
+      :category-id="categoryId"
+      :categories="monthCategories"
+      @close="showScanModal = false"
+      @save="handleScanSave"/>
 
     <!-- Add Transaction Form -->
     <form v-if="showAddForm" class="mb-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg" @submit.prevent="handleAdd">
-      <!-- Scanned slip preview: check the total against the real thing -->
-      <div v-if="previewUrl" class="mb-2">
-        <a :href="previewUrl" target="_blank" rel="noopener" title="Open full size">
-          <img
-            :src="previewUrl"
-            alt="Scanned slip"
-            class="max-h-40 rounded border border-gray-300 dark:border-gray-600 mx-auto">
-        </a>
-      </div>
-      <p v-if="scanNotice" class="mb-2 text-xs text-amber-700 dark:text-amber-400">
-        {{ scanNotice }}
-      </p>
-
       <div class="flex gap-2 mb-2">
         <input
           v-model="newTransaction.description"
@@ -79,21 +61,6 @@
           :disabled="isAdding"/>
       </div>
 
-      <!-- Category override: only relevant after a scan -->
-      <div v-if="previewUrl || wasScanned" class="mb-2">
-        <select
-          v-model.number="selectedCategoryId"
-          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-          :disabled="isAdding">
-          <option v-for="cat in monthCategories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
-        </select>
-        <p v-if="categoryWarning" class="mt-1 text-xs text-amber-700 dark:text-amber-400 flex items-start gap-1">
-          <span aria-hidden="true">&#9888;</span>
-          <span>{{ categoryWarning }}</span>
-        </p>
-      </div>
       <div class="flex justify-end space-x-2 mt-2">
         <button
           type="button"
@@ -234,11 +201,9 @@
 
 <script setup lang="ts">
 import type { Transaction } from '~/types/budget'
-import { formatCurrency, centsToRands } from '~/utils/currency'
+import { formatCurrency } from '~/utils/currency'
 import { formatDate, getCurrentTimestamp, parseDate } from '~/utils/date'
 import { isTempId } from '~/composables/useOptimisticUpdates'
-import { isCategoryMismatch } from '~~/shared/utils/receipt-merchants'
-import type { ScanPayload } from '~/components/ReceiptScanPanel.vue'
 
 interface Props {
   categoryId: number
@@ -251,14 +216,7 @@ const { createTransaction, updateTransaction, deleteTransaction } = useBudget()
 const { openDialog } = useConfirmDialog()
 
 const showAddForm = ref(false)
-const showScanPanel = ref(false)
-/** Only what the panel exposes via `defineExpose` — used to disable Cancel while a scan runs. */
-const scanPanelRef = ref<{ isScanning: boolean } | null>(null)
-const previewUrl = ref<string | null>(null)
-const scanNotice = ref<string | null>(null)
-const wasScanned = ref(false)
-const scannedKind = ref<string | null>(null)
-const selectedCategoryId = ref<number>(props.categoryId)
+const showScanModal = ref(false)
 const editingId = ref<number | null>(null)
 const isAdding = ref(false)
 const isUpdating = ref(false)
@@ -289,20 +247,6 @@ const { currentMonth } = useMonths()
 /** Categories in the current month, for reassigning a scanned slip. */
 const monthCategories = computed(() => currentMonth.value?.categories ?? [])
 
-const selectedCategoryName = computed(() =>
-  monthCategories.value.find(c => c.id === selectedCategoryId.value)?.name ?? '',
-)
-
-/**
- * Only warns when the merchant kind AND the category name are both known and
- * disagree — an unrecognised shop or an unclassifiable category stays silent.
- */
-const categoryWarning = computed(() => {
-  if (!scannedKind.value || !selectedCategoryName.value) return null
-  if (!isCategoryMismatch(scannedKind.value as never, selectedCategoryName.value)) return null
-  return `This looks like a ${scannedKind.value.replace('-', ' ')} slip.`
-})
-
 const sortedTransactions = computed(() => {
   return [...props.transactions].sort((a, b) => {
     // Sort by transactionDate descending, then by createdAt descending
@@ -316,52 +260,29 @@ const sortedTransactions = computed(() => {
   })
 })
 
-function releasePreview() {
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = null
+/**
+ * Save a scanned slip. The modal owns the category dropdown, so the transaction
+ * may well belong to a DIFFERENT card than the one the scan was launched from;
+ * `createTransaction` already maps its optimistic update across every category
+ * in the month, so both cards update themselves.
+ */
+async function handleScanSave(payload: {
+  categoryId: number
+  description: string
+  amount: number
+  date: string
+}) {
+  showScanModal.value = false
+  try {
+    await createTransaction({
+      categoryId: payload.categoryId,
+      description: payload.description,
+      amount: payload.amount,
+      transactionDate: parseDate(payload.date) ?? getCurrentTimestamp(),
+    })
+  } catch (error) {
+    console.error('Failed to add scanned transaction:', error)
   }
-}
-
-function handleScanned({ parsed, previewUrl: url }: ScanPayload) {
-  releasePreview()
-  previewUrl.value = url
-  wasScanned.value = true
-  scannedKind.value = parsed.merchantKind
-  selectedCategoryId.value = props.categoryId
-
-  newTransaction.value = {
-    description: parsed.merchant ?? '',
-    // A partial scan still saves typing: leave what we could not read blank
-    // rather than guessing a number.
-    amount: parsed.amountCents !== null ? centsToRands(parsed.amountCents) : 0,
-    date: parsed.transactionDate
-      ? formatDate(parsed.transactionDate, 'iso')
-      : formatDate(getCurrentTimestamp(), 'iso'),
-  }
-
-  const missing: string[] = []
-  if (!parsed.merchant) missing.push('shop name')
-  if (parsed.amountCents === null) missing.push('total')
-  scanNotice.value = missing.length
-    ? `Could not read the ${missing.join(' or ')} — please fill it in.`
-    : parsed.confidence < 0.9
-      ? 'Low confidence on the total — double-check it against the slip.'
-      : null
-
-  showScanPanel.value = false
-  showAddForm.value = true
-}
-
-/** A failed scan must never dead-end: open a blank form so it can be typed in. */
-function handleScanFailed(message: string) {
-  releasePreview()
-  wasScanned.value = true
-  scannedKind.value = null
-  selectedCategoryId.value = props.categoryId
-  scanNotice.value = message
-  showScanPanel.value = false
-  showAddForm.value = true
 }
 
 const handleAdd = async () => {
@@ -370,7 +291,7 @@ const handleAdd = async () => {
 
   // Capture values before clearing form
   const data = {
-    categoryId: selectedCategoryId.value,
+    categoryId: props.categoryId,
     description: newTransaction.value.description,
     amount: newTransaction.value.amount,
     transactionDate: parseDate(newTransaction.value.date) ?? getCurrentTimestamp(),
@@ -388,20 +309,12 @@ const handleAdd = async () => {
 
 const cancelAdd = () => {
   showAddForm.value = false
-  releasePreview()
-  wasScanned.value = false
-  scannedKind.value = null
-  scanNotice.value = null
-  selectedCategoryId.value = props.categoryId
   newTransaction.value = {
     description: '',
     amount: 0,
     date: formatDate(getCurrentTimestamp(), 'iso'),
   }
 }
-
-// The object URL would otherwise leak if the card is collapsed mid-scan.
-onUnmounted(releasePreview)
 
 const startEditing = (transaction: Transaction) => {
   editingId.value = transaction.id

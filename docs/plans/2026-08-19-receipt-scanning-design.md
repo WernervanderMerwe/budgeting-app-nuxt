@@ -1,7 +1,7 @@
 # Receipt & Invoice Scanning — Design
 
 **Date:** 2026-08-19
-**Status:** Parser + brand table implemented and committed; server utils and UI next
+**Status:** Implemented end to end — parser, brand table, scan endpoint, OCR service, and the full-width scan modal. Verified on dev and on the production QA image.
 **Scope:** Transaction Tracker mode only. Yearly mode is explicitly out of scope.
 
 ## Goal
@@ -90,10 +90,17 @@ That geometry is what makes the parser tractable:
   VAT table's `incl.` column all read 303.93. Agreement across lines raises confidence; a lone
   reading is scored lower and the confirm dialog highlights the amount field.
 - **Merchant.** Brand alias table matched against the top third, plus a nearby all-caps line as
-  the branch (`SPAR` + `VREDEKLOOF` → "Spar Vredekloof"). Unknown brands fall back to the first
-  non-noise line, which the user can correct.
-- **Date.** `DD.MM.YY` / `DD/MM/YYYY` / `DD-MM-YY`, preferring a `DATE`-labelled line.
-  Parsed with **dayjs** and stored as a **unix timestamp in seconds**, per project convention.
+  the branch (`SPAR` + `VREDEKLOOF` → "Spar Vredekloof"). If the top third finds no brand, the
+  search widens to the **whole document minus priced line items** — emailed invoices put the
+  logo in the footer, and `SPAR LONG LIFE MILK 21.99` is stock on a shelf, not the store. A
+  footer match contributes no branch, because the header lines above it are unrelated to it.
+  Unknown brands still fall back to the first non-noise line, which the user can correct.
+- **Date.** `DD.MM.YY` / `DD/MM/YYYY` / `DD-MM-YY`, `YYYY-MM-DD` (read year-first, the one
+  unambiguous form), and spelled-out months in either order — `17 Aug, 2026`, `3 May 2026`,
+  `21st Jul 26`, `Aug 17, 2026` — in English and Afrikaans. The text forms are what delivery
+  invoices (Sixty60, Mr D, Takealot) use; they never print `dd/mm/yy`. A `DATE`-labelled line is
+  preferred. Parsed with **dayjs** (strict, so `31 Jun` is rejected rather than rolled over) and
+  stored as a **unix timestamp in seconds**, per project convention.
 - **Money** is converted to **cents** via the existing `randsToCents` convention.
 
 ## Decoupleability
@@ -127,6 +134,19 @@ scripts/receipt-fixture.mjs         # capture a slip as a test fixture
 test/fixtures/receipts/*.json       # captured slips
                                     # (no prisma change — see "No schema change" below)
 ```
+
+## Loading the baked models — buffers, never paths
+
+`ppu-paddle-ocr/web` resolves a **string** model source by handing it to `fetch()`. That is fine
+for an `https://` preset URL and fatal for a local path: `/app/models/PP-OCRv6_tiny_det.ort`
+throws `TypeError: Failed to parse URL`, and the scan endpoint 500s on every request.
+
+The library only reads a local file through its `source instanceof ArrayBuffer` branch, so
+`server/utils/receipt-ocr.ts` reads the three files itself and passes buffers.
+
+**This failed *only* on the built image.** Dev leaves `receiptModelDir` empty and falls back to
+the library's own download-and-cache, so it never touched the broken path — `pnpm qa:up` is what
+caught it. Treat that as the rule, not the exception: the baked-model path has no dev equivalent.
 
 ## Upload endpoint
 
