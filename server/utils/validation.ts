@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { EXPENSE_CATEGORIES } from '~~/shared/utils/expense-categories'
 
 export const monthSchema = z.object({
   name: z.string().min(1),
@@ -20,6 +21,31 @@ export const categorySchema = z.object({
   name: z.string().min(1),
   allocatedAmount: z.number().nonnegative(),
   orderIndex: z.number().int().nonnegative().optional(),
+  expenseCategory: z.enum(EXPENSE_CATEGORIES).nullable().optional(),
+})
+
+export const categoryPatchSchema = z.object({
+  name: z.string().min(1).optional(),
+  allocatedAmount: z.number().nonnegative().optional(),
+  orderIndex: z.number().int().nonnegative().optional(),
+  expenseCategory: z.enum(EXPENSE_CATEGORIES).nullable().optional(),
+})
+
+export const learnVendorMappingSchema = z.object({
+  vendor: z.string().min(1),
+  // Nullable: the client calls this endpoint even when the chosen budget
+  // category has no expense-category tag, because it is the ONLY writer of
+  // ReceiptTextCorrection — see learnVendorMapping in server/utils/vendor-mapping.ts.
+  expenseCategory: z.enum(EXPENSE_CATEGORIES).nullable(),
+  rawMerchant: z.string().nullable().optional(),
+})
+
+export const vendorMappingPatchSchema = z.object({
+  expenseCategory: z.enum(EXPENSE_CATEGORIES),
+})
+
+export const receiptCorrectionPatchSchema = z.object({
+  resolved: z.literal(true),
 })
 
 export const transactionSchema = z.object({

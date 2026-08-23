@@ -17,12 +17,14 @@ import dayjs from 'dayjs'
 // so only `pnpm qa:up` catches this.
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import type { OcrLine, OcrSegment, ParsedReceipt } from './receipt-types'
-import { BRANDS, type MerchantKind } from './receipt-merchants'
+import { BRANDS } from './receipt-merchants'
 
 dayjs.extend(customParseFormat)
 
 /** Lines that are never part of a store name (registration numbers, contact details). */
-const NAME_NOISE = /^(VAT|TEL|FAX|REG|CO|TAX|NPWP|R)\b|^[\d\s.,:/*=-]+$/i
+// NEDBANK: a card machine's own branding line ("2 NEDBANK") sits above the
+// actual merchant name on some fuel-station slips — never the merchant itself.
+const NAME_NOISE = /^(VAT|TEL|FAX|REG|CO|TAX|NPWP|R)\b|^[\d\s.,:/*=-]+$|\bNEDBANK\b/i
 
 /**
  * An amount, SA formatting: `303.93`, `1 234.56`, `1,234.56`, `R 51.99`, `-13.00`.
@@ -33,8 +35,8 @@ const AMOUNT = /^-?R?\s?\d{1,3}(?:[ ,]\d{3})*[.,]\d{2}$/
 /** `19.08.26`, `19/08/2026`, `19-08-2026`. SA order is always day-first. */
 const NUMERIC_DATE = /\b(\d{1,2})[./-](\d{1,2})[./-](\d{2}(?:\d{2})?)\b/
 
-/** `2026-08-17`. Unambiguous, so it is read year-first rather than day-first. */
-const ISO_DATE = /\b(\d{4})-(\d{2})-(\d{2})\b/
+/** `2026-08-17` or `2026/08/17`. Unambiguous, so it is read year-first rather than day-first. */
+const ISO_DATE = /\b(\d{4})[-/](\d{2})[-/](\d{2})\b/
 
 /**
  * Month names as they appear on SA receipts, English and Afrikaans.
@@ -92,7 +94,18 @@ const TEXT_DATE_MDY = new RegExp(
 const DECOY = /SAVED|SAVING|CHANGE|KEMBALIAN|ROUNDING|DISCOUNT|PROMO|POINTS|BALANCE(?! DUE)|SUB-?TOTAL|TOTAL ITEMS|TOTAL ?ITEM\b|VAT RATE/i
 
 /** Rows that corroborate or substitute for the total when TOTAL is unreadable. */
-const FALLBACK_TOTAL = /TENDER|AMOUNT DUE|BALANCE DUE|CARD|CASH|PAID/i
+const FALLBACK_TOTAL = /TENDER|AMOUNT DUE|BALANCE DUE|CARD|CASH|PAID|\bAMNT\b|\bAMOUNT\b/i
+
+/**
+ * An amount at the end of a row, not anchored to the whole segment.
+ *
+ * Some OCR engines merge a label and its figure into one text box
+ * ("Amount : 49.00" as a single segment) rather than splitting them the way
+ * a printed column normally would — `row.amounts` (built from whole-segment
+ * matches only) misses those. Used strictly as a fallback in `findAmount`,
+ * only once a row has already qualified as a TOTAL/fallback candidate.
+ */
+const TRAILING_AMOUNT = /(-?R?\s?\d{1,3}(?:[ ,]\d{3})*[.,]\d{2})\s*$/
 
 function parseAmountToCents(raw: string): number {
   const cleaned = raw
@@ -133,9 +146,9 @@ function toRow(segments: OcrLine): Row {
   }
 }
 
-interface MerchantResult { name: string | null, kind: MerchantKind | null }
+interface MerchantResult { name: string | null, brand: string | null }
 
-interface BrandHit { name: string, kind: MerchantKind, row: Row }
+interface BrandHit { name: string, row: Row }
 
 /**
  * A quantity marker: `2 x Clover Fresh Milk`, `Not available: ... x2`. Only ever
@@ -161,9 +174,9 @@ function identityRows(rows: Row[]): Row[] {
 
 /** First brand in table order. Used for the head, where the top line wins. */
 function matchBrandInOrder(rows: Row[]): BrandHit | null {
-  for (const { pattern, name, kind } of BRANDS) {
+  for (const { pattern, name } of BRANDS) {
     for (const row of rows) {
-      if (pattern.test(row.text)) return { name, kind, row }
+      if (pattern.test(row.text)) return { name, row }
     }
   }
   return null
@@ -180,11 +193,11 @@ function matchBrandInOrder(rows: Row[]): BrandHit | null {
 function matchBrandLowest(rows: Row[]): BrandHit | null {
   let best: BrandHit | null = null
   let bestIndex = -1
-  for (const { pattern, name, kind, headOnly } of BRANDS) {
+  for (const { pattern, name, headOnly } of BRANDS) {
     if (headOnly) continue
     for (const [index, row] of rows.entries()) {
       if (index > bestIndex && pattern.test(row.text)) {
-        best = { name, kind, row }
+        best = { name, row }
         bestIndex = index
       }
     }
@@ -215,11 +228,9 @@ function findMerchant(rows: Row[], evidence: string[]): MerchantResult {
   // Store identity is normally at the top.
   const inHead = matchBrandInOrder(identityRows(head))
   if (inHead) {
-    evidence.push(
-      `merchant: brand "${inHead.name}" (${inHead.kind}) matched in "${inHead.row.text}"`,
-    )
+    evidence.push(`merchant: brand "${inHead.name}" matched in "${inHead.row.text}"`)
     const branch = findBranch(head, inHead.row, evidence)
-    return { name: branch ? `${inHead.name} ${branch}` : inHead.name, kind: inHead.kind }
+    return { name: branch ? `${inHead.name} ${branch}` : inHead.name, brand: inHead.name }
   }
 
   // Emailed invoices (Sixty60, Mr D, Takealot) carry an order header at the top
@@ -230,34 +241,41 @@ function findMerchant(rows: Row[], evidence: string[]): MerchantResult {
   const inTail = matchBrandLowest(identityRows(tail))
   if (inTail) {
     evidence.push(
-      `merchant: no brand in the top third; "${inTail.name}" (${inTail.kind}) matched `
+      `merchant: no brand in the top third; "${inTail.name}" matched `
       + `near the foot in "${inTail.row.text}"`,
     )
     // No branch: an all-caps line in the head ("TAX INVOICE", "ORDER
     // CONFIRMATION") has nothing to do with a brand found in the footer.
-    return { name: inTail.name, kind: inTail.kind }
+    return { name: inTail.name, brand: inTail.name }
   }
 
   const first = head.find(r => !NAME_NOISE.test(r.text) && r.text.length > 2)
-  if (!first) return { name: null, kind: null }
+  if (!first) return { name: null, brand: null }
   evidence.push(`merchant: no known brand, fell back to "${first.text}"`)
-  return { name: first.text.trim(), kind: null }
+  return { name: first.text.trim(), brand: null }
 }
 
 function findAmount(rows: Row[], evidence: string[]): { cents: number | null, confidence: number } {
   const candidates: Array<{ cents: number, kind: string, confidence: number, text: string }> = []
 
   for (const row of rows) {
-    if (!row.amounts.length) continue
     if (DECOY.test(row.text)) continue
 
     const hasTotal = row.segments.some(s => /^\**\s*TOTAA?L\b/i.test(s.text.trim()))
     const isFallback = FALLBACK_TOTAL.test(row.text)
     if (!hasTotal && !isFallback) continue
 
-    // Last amount on the row: `TOTAL | FOR 7 ITEMS | 303.93`.
+    // Last amount on the row: `TOTAL | FOR 7 ITEMS | 303.93`. Falls back to a
+    // trailing-amount match against the merged row text when the OCR never
+    // split the label from the figure into its own segment.
+    const trailing = row.text.match(TRAILING_AMOUNT)
+    const cents = row.amounts.length
+      ? row.amounts[row.amounts.length - 1]!
+      : trailing ? parseAmountToCents(trailing[1]!) : undefined
+    if (cents === undefined) continue
+
     candidates.push({
-      cents: row.amounts[row.amounts.length - 1]!,
+      cents,
       kind: hasTotal ? 'TOTAL' : 'TENDERED',
       confidence: row.confidence,
       text: row.text,
@@ -408,7 +426,7 @@ export function parseReceipt(lines: OcrLine[] | OcrSegment[]): ParsedReceipt {
   if (!rows.length) {
     return {
       merchant: null,
-      merchantKind: null,
+      brand: null,
       amountCents: null,
       transactionDate: null,
       dateText: null,
@@ -423,7 +441,7 @@ export function parseReceipt(lines: OcrLine[] | OcrSegment[]): ParsedReceipt {
 
   return {
     merchant: merchant.name,
-    merchantKind: merchant.kind,
+    brand: merchant.brand,
     amountCents: cents,
     transactionDate: unix,
     dateText: text,

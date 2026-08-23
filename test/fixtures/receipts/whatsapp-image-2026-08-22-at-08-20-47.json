@@ -1,0 +1,295 @@
+{
+  "source": "WhatsApp Image 2026-08-22 at 08.20.47.jpeg",
+  "capturedAt": "2026-08-23",
+  "engine": "ppu-paddle-ocr v6-tiny @1200px",
+  "overallConfidence": 0.9051,
+  "expected": {
+    "merchant": "The Barn",
+    "amountCents": 4900,
+    "dateText": "21/08/2026"
+  },
+  "lines": [
+    [
+      {
+        "text": "thebarn",
+        "box": {
+          "x": 313,
+          "y": 276,
+          "width": 208,
+          "height": 55
+        },
+        "confidence": 0.9999
+      }
+    ],
+    [
+      {
+        "text": "The Barn Montagu Village",
+        "box": {
+          "x": 300,
+          "y": 390,
+          "width": 214,
+          "height": 28
+        },
+        "confidence": 0.9812
+      }
+    ],
+    [
+      {
+        "text": "14 Montagu Street",
+        "box": {
+          "x": 343,
+          "y": 421,
+          "width": 126,
+          "height": 23
+        },
+        "confidence": 0.9978
+      }
+    ],
+    [
+      {
+        "text": "Blanco",
+        "box": {
+          "x": 376,
+          "y": 449,
+          "width": 58,
+          "height": 22
+        },
+        "confidence": 0.9941
+      }
+    ],
+    [
+      {
+        "text": "George 6529",
+        "box": {
+          "x": 358,
+          "y": 474,
+          "width": 93,
+          "height": 22
+        },
+        "confidence": 0.9797
+      }
+    ],
+    [
+      {
+        "text": "Customer Slip",
+        "box": {
+          "x": 341,
+          "y": 501,
+          "width": 125,
+          "height": 29
+        },
+        "confidence": 0.9485
+      }
+    ],
+    [
+      {
+        "text": "Clerk Name :Leandre",
+        "box": {
+          "x": 315,
+          "y": 530,
+          "width": 176,
+          "height": 28
+        },
+        "confidence": 0.9905
+      }
+    ],
+    [
+      {
+        "text": "2026/08/21 14:49:50",
+        "box": {
+          "x": 320,
+          "y": 560,
+          "width": 164,
+          "height": 28
+        },
+        "confidence": 0.9498
+      }
+    ],
+    [
+      {
+        "text": "Card Type :MasterCard",
+        "box": {
+          "x": 240,
+          "y": 590,
+          "width": 195,
+          "height": 28
+        },
+        "confidence": 0.9535
+      }
+    ],
+    [
+      {
+        "text": "Card Number : 522126** 3837",
+        "box": {
+          "x": 236,
+          "y": 611,
+          "width": 257,
+          "height": 34
+        },
+        "confidence": 0.9191
+      }
+    ],
+    [
+      {
+        "text": "Batch :10",
+        "box": {
+          "x": 236,
+          "y": 636,
+          "width": 114,
+          "height": 28
+        },
+        "confidence": 0.9635
+      }
+    ],
+    [
+      {
+        "text": "Merchant ld :ODYssEYo 00280",
+        "box": {
+          "x": 233,
+          "y": 660,
+          "width": 267,
+          "height": 34
+        },
+        "confidence": 0.8753
+      }
+    ],
+    [
+      {
+        "text": "Status :Approved",
+        "box": {
+          "x": 231,
+          "y": 686,
+          "width": 167,
+          "height": 29
+        },
+        "confidence": 0.9813
+      }
+    ],
+    [
+      {
+        "text": "Amount : 49.00",
+        "box": {
+          "x": 229,
+          "y": 713,
+          "width": 175,
+          "height": 28
+        },
+        "confidence": 0.9367
+      }
+    ],
+    [
+      {
+        "text": "Terminal ID:60443002",
+        "box": {
+          "x": 230,
+          "y": 748,
+          "width": 183,
+          "height": 27
+        },
+        "confidence": 0.9595
+      }
+    ],
+    [
+      {
+        "text": "Auth.Code :694643",
+        "box": {
+          "x": 225,
+          "y": 781,
+          "width": 171,
+          "height": 29
+        },
+        "confidence": 0.9748
+      }
+    ],
+    [
+      {
+        "text": "Relnva edebfa-465-45-73-373b4b892",
+        "box": {
+          "x": 221,
+          "y": 806,
+          "width": 313,
+          "height": 35
+        },
+        "confidence": 0.5584
+      }
+    ],
+    [
+      {
+        "text": "AID",
+        "box": {
+          "x": 226,
+          "y": 834,
+          "width": 43,
+          "height": 24
+        },
+        "confidence": 0.9547
+      },
+      {
+        "text": ":A0000000041010",
+        "box": {
+          "x": 289,
+          "y": 838,
+          "width": 160,
+          "height": 28
+        },
+        "confidence": 0.9547
+      }
+    ],
+    [
+      {
+        "text": "TVR",
+        "box": {
+          "x": 229,
+          "y": 860,
+          "width": 34,
+          "height": 21
+        },
+        "confidence": 0.6895
+      },
+      {
+        "text": "0000B000",
+        "box": {
+          "x": 276,
+          "y": 864,
+          "width": 73,
+          "height": 22
+        },
+        "confidence": 0.6895
+      }
+    ],
+    [
+      {
+        "text": "TSi",
+        "box": {
+          "x": 228,
+          "y": 881,
+          "width": 35,
+          "height": 28
+        },
+        "confidence": 0.7662
+      },
+      {
+        "text": "Ee00",
+        "box": {
+          "x": 271,
+          "y": 889,
+          "width": 39,
+          "height": 21
+        },
+        "confidence": 0.7662
+      }
+    ],
+    [
+      {
+        "text": "Entry Mode : 10",
+        "box": {
+          "x": 225,
+          "y": 909,
+          "width": 136,
+          "height": 34
+        },
+        "confidence": 0.9366
+      }
+    ]
+  ]
+}

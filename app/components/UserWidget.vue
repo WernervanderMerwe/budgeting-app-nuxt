@@ -151,6 +151,15 @@ const menuItems = computed(() => {
     }
   ])
 
+  // Vendor mappings management
+  items.push([
+    {
+      label: 'Vendor Mappings',
+      icon: 'i-heroicons-tag',
+      to: '/vendor-mappings'
+    }
+  ])
+
   // Always add sign out
   items.push([
     {

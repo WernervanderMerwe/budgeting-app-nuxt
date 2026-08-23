@@ -31,17 +31,27 @@
               <input
                 v-model="editedCategory.name"
                 type="text"
+                placeholder="Category name"
                 class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 required
                 @keydown.enter.prevent="handleUpdateCategory"
                 @keydown.escape.prevent="cancelEditCategory">
               <CurrencyInput
                 v-model="editedCategory.allocatedAmount"
-                placeholder="e.g., 5000.00"
+                placeholder="Amount"
                 class="w-28 text-sm"
                 required
                 @enter="handleUpdateCategory"
                 @escape="cancelEditCategory"/>
+              <select
+                v-model="editedCategory.expenseCategory"
+                class="w-44 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                title="Expense category tag — used to auto-file scanned receipts">
+                <option value="">Untagged</option>
+                <option v-for="ec in EXPENSE_CATEGORIES" :key="ec" :value="ec" :title="EXPENSE_CATEGORY_HINTS[ec]">
+                  {{ EXPENSE_CATEGORY_LABELS[ec] }}
+                </option>
+              </select>
               <button
                 type="submit"
                 class="text-green-600 dark:text-green-400 hover:text-green-700 p-1"
@@ -131,6 +141,8 @@
 import type { BudgetCategoryWithTransactions } from '~/types/budget'
 import { formatCurrency, centsToRands } from '~/utils/currency'
 import { isTempId } from '~/composables/useOptimisticUpdates'
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_HINTS, EXPENSE_CATEGORY_LABELS } from '~~/shared/utils/expense-categories'
+import type { ExpenseCategory } from '~~/shared/utils/expense-categories'
 
 interface Props {
   category: BudgetCategoryWithTransactions
@@ -147,6 +159,7 @@ const editFormRef = ref<HTMLFormElement | null>(null)
 const editedCategory = ref({
   name: '',
   allocatedAmount: 0,
+  expenseCategory: '' as ExpenseCategory | '',
 })
 
 const toggleExpanded = () => {
@@ -175,12 +188,13 @@ const startEditCategory = () => {
   editedCategory.value = {
     name: props.category.name,
     allocatedAmount: centsToRands(props.category.allocatedAmount),
+    expenseCategory: props.category.expenseCategory ?? '',
   }
 }
 
 const cancelEditCategory = () => {
   editingCategory.value = false
-  editedCategory.value = { name: '', allocatedAmount: 0 }
+  editedCategory.value = { name: '', allocatedAmount: 0, expenseCategory: '' }
 }
 
 const handleEditFormFocusOut = (event: FocusEvent) => {
@@ -198,6 +212,7 @@ const handleUpdateCategory = async () => {
   const data = {
     name: editedCategory.value.name,
     allocatedAmount: editedCategory.value.allocatedAmount,
+    expenseCategory: editedCategory.value.expenseCategory || null,
   }
   const categoryId = props.category.id
   // Close edit mode immediately (optimistic)

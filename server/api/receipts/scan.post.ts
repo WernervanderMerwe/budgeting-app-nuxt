@@ -1,7 +1,11 @@
+import type { H3Event } from 'h3'
 import sharp from 'sharp'
+import type { ExpenseCategory } from '@prisma/client'
 import { recogniseImage } from '~~/server/utils/receipt-ocr'
 import { extractPdf, type PdfExtraction } from '~~/server/utils/receipt-pdf'
 import { errors } from '~~/server/utils/errors'
+import { getPrisma } from '~~/server/utils/db'
+import { resolveVendorTags } from '~~/server/utils/vendor-mapping'
 import { parseReceipt } from '~~/shared/utils/receipt-parser'
 import type { ParsedReceipt } from '~~/shared/utils/receipt-types'
 
@@ -31,14 +35,47 @@ function isPdf(data: Buffer): boolean {
 export interface ScanResponse extends ParsedReceipt {
   /** 'pdf' when read from a text layer, 'ocr' when recognised from pixels. */
   source: 'pdf' | 'ocr'
+  /** Top-ranked expense-category tag for this vendor, or null if unknown. */
+  expenseCategory: ExpenseCategory | null
+  /** All tags known for this vendor, ranked timesSeen desc then lastSeenAt desc. */
+  vendorTags: ExpenseCategory[]
+}
+
+async function withVendorTags(
+  event: H3Event,
+  parsed: ParsedReceipt,
+  source: 'pdf' | 'ocr',
+): Promise<ScanResponse> {
+  const prisma = getPrisma(event)
+  const { profileToken } = event.context
+  // `brand`, not `merchant`: `merchant` carries a branch/suburb suffix
+  // ("Spar Vredekloof") but VendorMapping is keyed on the bare brand name
+  // ("Spar") — see the doc comment on ParsedReceipt.brand. Fall back to
+  // `merchant` only when no brand matched, so a fallback-path merchant string
+  // still gets a lookup attempt (it may exactly match a user's own learned
+  // vendor spelling even though it matched no known brand regex).
+  //
+  // This is a best-effort enrichment, not a required step: a Prisma failure
+  // here (connection blip, pool exhaustion, migration drift) must not turn a
+  // successful OCR into a 500 and discard the parsed receipt. Degrade to the
+  // "vendor unknown" shape instead, which the client already handles.
+  let expenseCategory: ExpenseCategory | null = null
+  let vendorTags: ExpenseCategory[] = []
+  try {
+    ({ expenseCategory, vendorTags } = await resolveVendorTags(prisma, profileToken, parsed.brand ?? parsed.merchant))
+  } catch (error) {
+    console.error('Failed to resolve vendor tags for scanned receipt:', error)
+  }
+  return { ...parsed, source, expenseCategory, vendorTags }
 }
 
 /**
  * Scan an uploaded till slip or invoice and return prefilled transaction fields.
  *
- * Reads nothing from and writes nothing to the database — the client submits the
- * confirmed values through the existing POST /api/transactions. The uploaded
- * bytes are held in memory for the duration of the request only, never stored.
+ * Performs one best-effort read to resolve vendor tags for the parsed merchant;
+ * writes nothing to the database — the client submits the confirmed values
+ * through the existing POST /api/transactions. The uploaded bytes are held in
+ * memory for the duration of the request only, never stored.
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -82,13 +119,13 @@ export default defineEventHandler(async (event) => {
 
       if (extracted.lines) {
         const parsed = parseReceipt(extracted.lines)
-        return { ...parsed, source: 'pdf' }
+        return await withVendorTags(event, parsed, 'pdf')
       }
 
       const recognised = await recogniseImage(extracted.imageToOcr!, ocrOptions)
       const parsed = parseReceipt(recognised.lines)
       parsed.evidence.unshift('pdf: no text layer, fell back to OCR of page 1')
-      return { ...parsed, source: 'ocr' }
+      return await withVendorTags(event, parsed, 'ocr')
     }
 
     // ── Image: validate by decoding, not by trusting the MIME type ──────────
@@ -121,7 +158,7 @@ export default defineEventHandler(async (event) => {
 
     const recognised = await recogniseImage(file.data, ocrOptions)
     const parsed = parseReceipt(recognised.lines)
-    return { ...parsed, source: 'ocr' }
+    return await withVendorTags(event, parsed, 'ocr')
   } catch (error) {
     const message = (error as Error).message
     // The scan mutex timed out — something is wedged rather than merely busy.

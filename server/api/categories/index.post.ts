@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
         name: validatedData.name,
         allocatedAmount: randsToCents(validatedData.allocatedAmount),
         orderIndex: validatedData.orderIndex || 0,
+        expenseCategory: validatedData.expenseCategory,
         createdAt: now,
         updatedAt: now,
       },

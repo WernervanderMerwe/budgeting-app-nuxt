@@ -1,7 +1,9 @@
+import { z } from 'zod'
 import { getPrisma } from '~~/server/utils/db'
 import { randsToCents } from '~~/server/utils/currency'
 import { getCurrentTimestamp } from '~~/server/utils/date'
 import { errors } from '~~/server/utils/errors'
+import { categoryPatchSchema } from '~~/server/utils/validation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -9,6 +11,7 @@ export default defineEventHandler(async (event) => {
     const prisma = getPrisma(event)
     const id = parseInt(getRouterParam(event, 'id')!)
     const body = await readBody(event)
+    const validated = categoryPatchSchema.parse(body)
 
     // Verify ownership through parent month
     const existing = await prisma.transactionCategory.findFirst({
@@ -26,11 +29,12 @@ export default defineEventHandler(async (event) => {
     const updateData: any = {
       updatedAt: getCurrentTimestamp(),
     }
-    if (body.name !== undefined) updateData.name = body.name
-    if (body.allocatedAmount !== undefined) {
-      updateData.allocatedAmount = randsToCents(body.allocatedAmount)
+    if (validated.name !== undefined) updateData.name = validated.name
+    if (validated.allocatedAmount !== undefined) {
+      updateData.allocatedAmount = randsToCents(validated.allocatedAmount)
     }
-    if (body.orderIndex !== undefined) updateData.orderIndex = body.orderIndex
+    if (validated.orderIndex !== undefined) updateData.orderIndex = validated.orderIndex
+    if (validated.expenseCategory !== undefined) updateData.expenseCategory = validated.expenseCategory
 
     const category = await prisma.transactionCategory.update({
       where: { id },
@@ -40,6 +44,9 @@ export default defineEventHandler(async (event) => {
     // Return as-is (values in cents) to match GET endpoint
     return category
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return errors.validationError(event, error)
+    }
     return errors.serverError(event, 'Failed to update category', error as Error)
   }
 })

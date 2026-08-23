@@ -5,8 +5,6 @@
  * (current) and potentially the browser (if OCR ever moves client-side).
  * Nothing in this directory may import `fs`, `Buffer`, `sharp`, or a file path.
  */
-import type { MerchantKind } from './receipt-merchants'
-
 /** Bounding box of a recognised text segment, in pixels of the scanned image. */
 export interface OcrBox {
   x: number
@@ -35,8 +33,26 @@ export type OcrLine = OcrSegment[]
 export interface ParsedReceipt {
   /** e.g. "Spar Vredekloof". Null when nothing usable was found. */
   merchant: string | null
-  /** What the merchant normally sells; drives the category mismatch warning. */
-  merchantKind: MerchantKind | null
+  /**
+   * The canonical brand name with NO branch/suburb suffix, e.g. "Spar" (never
+   * "Spar Vredekloof"). Null when no known brand matched and the parser fell
+   * back to raw OCR text, or when nothing was found at all — a fallback
+   * string is one OCR'd store's own words, not a brand identity, so there is
+   * nothing canonical to carry.
+   *
+   * `merchant` is a DISPLAY string: it is deliberately branch-qualified because
+   * that reads better in the description box and users like seeing which Spar
+   * they were at. `brand` exists because a display string must never double as
+   * a mapping key — every shipped VendorMapping default is seeded with the
+   * bare brand name ("Shell", "Spar"), so keying a lookup on `merchant` instead
+   * misses on every slip that carries a branch/suburb line, which is most real
+   * South African till slips. Use `brand` (falling back to `merchant` only
+   * when `brand` is null) anywhere a vendor is being matched against
+   * VendorMapping — resolving tags on scan, and as the learn key on save. Do
+   * NOT re-merge these two fields into one; that is exactly the bug this field
+   * exists to prevent.
+   */
+  brand: string | null
   /** Total in cents, per the project-wide money convention. */
   amountCents: number | null
   /** Unix timestamp in seconds, per the project-wide date convention. */

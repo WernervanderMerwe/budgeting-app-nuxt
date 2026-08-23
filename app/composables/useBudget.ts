@@ -271,6 +271,7 @@ export const useBudget = () => {
       name: data.name,
       allocatedAmount: allocatedInCents,
       monthId: data.monthId,
+      expenseCategory: data.expenseCategory ?? null,
       createdAt: now,
       updatedAt: now,
       transactions: []

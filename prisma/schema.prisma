@@ -25,6 +25,10 @@ model Profile {
   // Yearly Overview mode
   yearlyBudgets YearlyBudget[]
 
+  // Vendor -> expense category learning (receipt scanning)
+  vendorMappings          VendorMapping[]
+  receiptTextCorrections  ReceiptTextCorrection[]
+
   @@map("profiles")
   @@schema("budgeting")
 }
@@ -64,14 +68,39 @@ model TransactionFixedPayment {
   @@schema("budgeting")
 }
 
+// What a budget category is normally used for. Drives vendor-mapping
+// auto-select and the category mismatch warning on receipt scans.
+// Nullable on TransactionCategory: tagging is incremental, not backfilled.
+//
+// Follows the COICOP 2018 division structure (UN Classification of
+// Individual Consumption According to Purpose). See
+// `shared/utils/expense-categories.ts` for the full reasoning behind the
+// value list, order, and what got folded into OTHER.
+enum ExpenseCategory {
+  FOOD_AND_GROCERIES
+  CLOTHING_AND_FOOTWEAR
+  HOUSING_AND_UTILITIES
+  HOUSEHOLD_AND_MAINTENANCE
+  HEALTH
+  TRANSPORT
+  COMMUNICATION
+  RECREATION_AND_SPORT
+  RESTAURANTS_AND_TAKEAWAYS
+  PERSONAL_CARE
+  OTHER
+
+  @@schema("budgeting")
+}
+
 model TransactionCategory {
-  id              Int    @id @default(autoincrement())
-  monthId         Int    @map("month_id")
+  id              Int              @id @default(autoincrement())
+  monthId         Int              @map("month_id")
   name            String
-  allocatedAmount Int    @default(0) @map("allocated_amount") // Stored in cents
-  orderIndex      Int    @default(0) @map("order_index")
-  createdAt       Int    @map("created_at") // Unix timestamp in seconds
-  updatedAt       Int    @map("updated_at") // Unix timestamp in seconds
+  allocatedAmount Int              @default(0) @map("allocated_amount") // Stored in cents
+  orderIndex      Int              @default(0) @map("order_index")
+  expenseCategory ExpenseCategory? @map("expense_category") // Nullable: incremental tagging, no backfill
+  createdAt       Int              @map("created_at") // Unix timestamp in seconds
+  updatedAt       Int              @map("updated_at") // Unix timestamp in seconds
 
   month        TransactionMonth   @relation(fields: [monthId], references: [id], onDelete: Cascade)
   transactions TransactionEntry[]
@@ -235,6 +264,58 @@ model YearlyCategoryEntry {
   @@index([categoryId])
   @@unique([categoryId, month])
   @@map("yearly_category_entries")
+  @@schema("budgeting")
+}
+
+// ============================================
+// VENDOR -> EXPENSE CATEGORY LEARNING (receipt scanning)
+// ============================================
+
+// Learned (and shipped-default) vendor -> expense category tags.
+// One-to-many: a vendor can carry several tags, disambiguated by usage.
+// profileToken NULL = shipped default (see migration seed + partial unique
+// index vendor_mappings_default_key, which Prisma cannot express).
+model VendorMapping {
+  id              Int             @id @default(autoincrement())
+  profileToken    String?         @map("profile_token") // NULL = shipped default
+  vendor          String // canonical brand, display label only, "Shell"
+  vendorKey       String          @map("vendor_key") // normalised match/uniqueness key, see normaliseVendorKey
+  expenseCategory ExpenseCategory @map("expense_category")
+  timesSeen       Int             @default(1) @map("times_seen")
+  lastSeenAt      Int             @map("last_seen_at")
+  createdAt       Int             @map("created_at")
+  updatedAt       Int             @map("updated_at")
+
+  profile Profile? @relation(fields: [profileToken], references: [profileToken], onDelete: Cascade)
+
+  // vendor_mappings_default_key: a partial unique index on (vendor_key,
+  // expense_category) WHERE profile_token IS NULL also exists in the
+  // migration. Prisma cannot express partial indexes, so it is hand-added
+  // there (see 20260822100639_vendor_expense_category for precedent).
+  @@unique([profileToken, vendorKey, expenseCategory])
+  @@index([profileToken, vendorKey])
+  @@map("vendor_mappings")
+  @@schema("budgeting")
+}
+
+// Review queue for OCR/regex gaps: raw text the parser could not match to a
+// brand, and what the user corrected it to. rawText is normalised
+// (uppercased, whitespace collapsed, trailing punctuation stripped).
+model ReceiptTextCorrection {
+  id           Int     @id @default(autoincrement())
+  profileToken String  @map("profile_token")
+  rawText      String  @map("raw_text") // "SHEL1 VREDEKLOOF"
+  correctedTo  String  @map("corrected_to") // "Shell"
+  timesSeen    Int     @default(1) @map("times_seen")
+  lastSeenAt   Int     @map("last_seen_at")
+  resolvedAt   Int?    @map("resolved_at") // set once the regex is fixed
+  createdAt    Int     @map("created_at")
+  updatedAt    Int     @map("updated_at")
+
+  profile Profile @relation(fields: [profileToken], references: [profileToken], onDelete: Cascade)
+
+  @@unique([profileToken, rawText])
+  @@map("receipt_text_corrections")
   @@schema("budgeting")
 }
 

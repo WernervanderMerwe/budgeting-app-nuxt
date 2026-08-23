@@ -35,6 +35,12 @@ export const errors = {
   notFound: (event: H3Event, message: string) =>
     errorResponse(event, 404, message),
 
+  forbidden: (event: H3Event, message = 'You do not have permission to do that') =>
+    errorResponse(event, 403, message),
+
+  conflict: (event: H3Event, message: string) =>
+    errorResponse(event, 409, message),
+
   validationError: (event: H3Event, zodError: ZodError) => {
     const fields = zodError.errors.map((err) => ({
       field: err.path.join('.'),

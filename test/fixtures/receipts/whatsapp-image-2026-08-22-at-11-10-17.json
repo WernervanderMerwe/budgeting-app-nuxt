@@ -1,0 +1,473 @@
+{
+  "source": "WhatsApp Image 2026-08-22 at 11.10.17.jpeg",
+  "capturedAt": "2026-08-23",
+  "engine": "ppu-paddle-ocr v6-tiny @1200px",
+  "overallConfidence": 0.9797,
+  "expected": {
+    "merchant": "Palm Tyres",
+    "amountCents": 25000,
+    "dateText": "22/08/2026"
+  },
+  "lines": [
+    [
+      {
+        "text": "TAX INVOICE",
+        "box": {
+          "x": 348,
+          "y": 104,
+          "width": 131,
+          "height": 24
+        },
+        "confidence": 0.9694
+      }
+    ],
+    [
+      {
+        "text": "Palm Tyres",
+        "box": {
+          "x": 355,
+          "y": 128,
+          "width": 114,
+          "height": 22
+        },
+        "confidence": 0.9928
+      }
+    ],
+    [
+      {
+        "text": "68 Courtenay Stroet",
+        "box": {
+          "x": 326,
+          "y": 158,
+          "width": 152,
+          "height": 22
+        },
+        "confidence": 0.9479
+      }
+    ],
+    [
+      {
+        "text": "George",
+        "box": {
+          "x": 370,
+          "y": 176,
+          "width": 64,
+          "height": 22
+        },
+        "confidence": 0.9484
+      }
+    ],
+    [
+      {
+        "text": "Tel: 0448744734",
+        "box": {
+          "x": 341,
+          "y": 234,
+          "width": 128,
+          "height": 24
+        },
+        "confidence": 0.9814
+      }
+    ],
+    [
+      {
+        "text": "Fax:",
+        "box": {
+          "x": 380,
+          "y": 258,
+          "width": 45,
+          "height": 22
+        },
+        "confidence": 0.9926
+      }
+    ],
+    [
+      {
+        "text": "Email:info@ palmtyre.co.za",
+        "box": {
+          "x": 303,
+          "y": 283,
+          "width": 205,
+          "height": 21
+        },
+        "confidence": 0.9723
+      }
+    ],
+    [
+      {
+        "text": "VAT:4880186244",
+        "box": {
+          "x": 340,
+          "y": 308,
+          "width": 131,
+          "height": 21
+        },
+        "confidence": 0.9831
+      }
+    ],
+    [
+      {
+        "text": "Reg: 1999/021407/07",
+        "box": {
+          "x": 325,
+          "y": 328,
+          "width": 159,
+          "height": 23
+        },
+        "confidence": 0.9627
+      }
+    ],
+    [
+      {
+        "text": "ACCOUNT NO:CASH01",
+        "box": {
+          "x": 296,
+          "y": 355,
+          "width": 223,
+          "height": 24
+        },
+        "confidence": 0.9707
+      }
+    ],
+    [
+      {
+        "text": "CASH SALES 1",
+        "box": {
+          "x": 331,
+          "y": 388,
+          "width": 118,
+          "height": 21
+        },
+        "confidence": 0.9555
+      }
+    ],
+    [
+      {
+        "text": "VAT Nr",
+        "box": {
+          "x": 365,
+          "y": 546,
+          "width": 66,
+          "height": 23
+        },
+        "confidence": 0.969
+      }
+    ],
+    [
+      {
+        "text": "Order Number",
+        "box": {
+          "x": 236,
+          "y": 598,
+          "width": 113,
+          "height": 21
+        },
+        "confidence": 0.9986
+      }
+    ],
+    [
+      {
+        "text": "Invoice Date",
+        "box": {
+          "x": 235,
+          "y": 624,
+          "width": 103,
+          "height": 21
+        },
+        "confidence": 0.9895
+      },
+      {
+        "text": "Invoice Number",
+        "box": {
+          "x": 408,
+          "y": 624,
+          "width": 125,
+          "height": 17
+        },
+        "confidence": 0.9895
+      }
+    ],
+    [
+      {
+        "text": "22/08/2026 11:08:30",
+        "box": {
+          "x": 234,
+          "y": 649,
+          "width": 154,
+          "height": 22
+        },
+        "confidence": 0.9836
+      },
+      {
+        "text": "INV1015844",
+        "box": {
+          "x": 446,
+          "y": 648,
+          "width": 97,
+          "height": 21
+        },
+        "confidence": 0.9836
+      }
+    ],
+    [
+      {
+        "text": "Total",
+        "box": {
+          "x": 523,
+          "y": 675,
+          "width": 62,
+          "height": 24
+        },
+        "confidence": 0.9998
+      }
+    ],
+    [
+      {
+        "text": "Desc",
+        "box": {
+          "x": 228,
+          "y": 700,
+          "width": 58,
+          "height": 23
+        },
+        "confidence": 0.9934
+      },
+      {
+        "text": "Qty",
+        "box": {
+          "x": 458,
+          "y": 696,
+          "width": 47,
+          "height": 28
+        },
+        "confidence": 0.9934
+      },
+      {
+        "text": "Incl",
+        "box": {
+          "x": 523,
+          "y": 696,
+          "width": 50,
+          "height": 28
+        },
+        "confidence": 0.9934
+      }
+    ],
+    [
+      {
+        "text": "ALIGNMENTSUSPENSIO",
+        "box": {
+          "x": 226,
+          "y": 724,
+          "width": 194,
+          "height": 22
+        },
+        "confidence": 0.9968
+      },
+      {
+        "text": "1",
+        "box": {
+          "x": 479,
+          "y": 720,
+          "width": 29,
+          "height": 28
+        },
+        "confidence": 0.9968
+      },
+      {
+        "text": "250.00",
+        "box": {
+          "x": 538,
+          "y": 723,
+          "width": 60,
+          "height": 22
+        },
+        "confidence": 0.9968
+      }
+    ],
+    [
+      {
+        "text": "N",
+        "box": {
+          "x": 224,
+          "y": 744,
+          "width": 29,
+          "height": 22
+        },
+        "confidence": 0.9966
+      }
+    ],
+    [
+      {
+        "text": "VAT",
+        "box": {
+          "x": 223,
+          "y": 764,
+          "width": 55,
+          "height": 27
+        },
+        "confidence": 0.9269
+      },
+      {
+        "text": "3261",
+        "box": {
+          "x": 536,
+          "y": 764,
+          "width": 64,
+          "height": 24
+        },
+        "confidence": 0.9269
+      }
+    ],
+    [
+      {
+        "text": "Total (Incl)",
+        "box": {
+          "x": 224,
+          "y": 791,
+          "width": 105,
+          "height": 28
+        },
+        "confidence": 0.9832
+      },
+      {
+        "text": "250.00",
+        "box": {
+          "x": 528,
+          "y": 793,
+          "width": 70,
+          "height": 22
+        },
+        "confidence": 0.9832
+      }
+    ],
+    [
+      {
+        "text": "Change",
+        "box": {
+          "x": 224,
+          "y": 823,
+          "width": 81,
+          "height": 27
+        },
+        "confidence": 0.9753
+      },
+      {
+        "text": "R 0.00",
+        "box": {
+          "x": 523,
+          "y": 820,
+          "width": 72,
+          "height": 24
+        },
+        "confidence": 0.9753
+      }
+    ],
+    [
+      {
+        "text": "Rep",
+        "box": {
+          "x": 219,
+          "y": 866,
+          "width": 55,
+          "height": 29
+        },
+        "confidence": 0.9995
+      },
+      {
+        "text": "Rep1",
+        "box": {
+          "x": 310,
+          "y": 866,
+          "width": 68,
+          "height": 28
+        },
+        "confidence": 0.9995
+      }
+    ],
+    [
+      {
+        "text": "Cashier",
+        "box": {
+          "x": 220,
+          "y": 896,
+          "width": 83,
+          "height": 24
+        },
+        "confidence": 0.9996
+      }
+    ],
+    [
+      {
+        "text": "Banking Details",
+        "box": {
+          "x": 306,
+          "y": 974,
+          "width": 188,
+          "height": 24
+        },
+        "confidence": 0.9771
+      }
+    ],
+    [
+      {
+        "text": "Name: Palm Tyres",
+        "box": {
+          "x": 308,
+          "y": 1011,
+          "width": 183,
+          "height": 23
+        },
+        "confidence": 0.9815
+      }
+    ],
+    [
+      {
+        "text": "Bank:NEDBANK",
+        "box": {
+          "x": 315,
+          "y": 1041,
+          "width": 171,
+          "height": 22
+        },
+        "confidence": 0.9989
+      }
+    ],
+    [
+      {
+        "text": "Acc Type: CHEQUE",
+        "box": {
+          "x": 274,
+          "y": 1070,
+          "width": 202,
+          "height": 23
+        },
+        "confidence": 0.9454
+      }
+    ],
+    [
+      {
+        "text": "Acc Nr:109110 2988",
+        "box": {
+          "x": 298,
+          "y": 1099,
+          "width": 215,
+          "height": 22
+        },
+        "confidence": 0.958
+      }
+    ],
+    [
+      {
+        "text": "Branch:109114",
+        "box": {
+          "x": 295,
+          "y": 1126,
+          "width": 170,
+          "height": 22
+        },
+        "confidence": 0.9983
+      }
+    ]
+  ]
+}

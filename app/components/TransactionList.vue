@@ -271,6 +271,7 @@ async function handleScanSave(payload: {
   description: string
   amount: number
   date: string
+  rawMerchant: string | null
 }) {
   showScanModal.value = false
   try {
@@ -282,6 +283,32 @@ async function handleScanSave(payload: {
     })
   } catch (error) {
     console.error('Failed to add scanned transaction:', error)
+    return
+  }
+
+  // Learning is silent — no prompts, no checkbox. An untagged category has no
+  // budgeting decision to record, but the parser gap is still worth logging —
+  // /api/receipts/learn is the only writer of ReceiptTextCorrection, the
+  // regex-gap review queue, so we always call it. A failed learn call must
+  // never surface an error or block the save; the transaction itself already
+  // succeeded and is what matters.
+  const category = monthCategories.value.find(c => c.id === payload.categoryId)
+  try {
+    await $fetch('/api/receipts/learn', {
+      method: 'POST',
+      body: {
+        // The text the user actually saved wins over the parser's guess — an
+        // edited description must never be overridden by a mis-OCR'd brand.
+        // The server derives both the display label and the lookup key from
+        // this, falling back to rawMerchant when nothing matches.
+        // See docs/plans/2026-08-22-vendor-expense-category-design.md.
+        vendor: payload.description,
+        expenseCategory: category?.expenseCategory ?? null,
+        rawMerchant: payload.rawMerchant ?? undefined,
+      },
+    })
+  } catch (error) {
+    console.error('Failed to record vendor mapping:', error)
   }
 }
 

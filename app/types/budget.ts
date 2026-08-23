@@ -1,6 +1,8 @@
 // TypeScript types for the budgeting application
 // All timestamps are Unix timestamps in seconds (numbers)
 
+import type { ExpenseCategory } from '~~/shared/utils/expense-categories'
+
 // ============================================================================
 // Database Models (matching Prisma schema)
 // ============================================================================
@@ -38,6 +40,7 @@ export interface TransactionCategory {
   name: string
   allocatedAmount: number // stored in cents
   monthId: number
+  expenseCategory: ExpenseCategory | null
   createdAt: number // Unix timestamp in seconds
   updatedAt: number // Unix timestamp in seconds
 }
@@ -110,11 +113,13 @@ export interface CreateBudgetCategoryDTO {
   name: string
   allocatedAmount: number // in cents
   monthId: number
+  expenseCategory?: ExpenseCategory | null
 }
 
 export interface UpdateBudgetCategoryDTO {
   name?: string
   allocatedAmount?: number // in cents
+  expenseCategory?: ExpenseCategory | null
 }
 
 export interface CreateTransactionDTO {

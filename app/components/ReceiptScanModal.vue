@@ -165,6 +165,10 @@
                     {{ cat.name }}
                   </option>
                 </select>
+                <p v-if="categoryHint" class="mt-1.5 text-sm text-blue-700 dark:text-blue-300 flex items-start gap-1.5">
+                  <span aria-hidden="true">&#8505;</span>
+                  <span>{{ categoryHint }}</span>
+                </p>
                 <p v-if="categoryWarning" class="mt-1.5 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
                   <span aria-hidden="true">&#9888;</span>
                   <span>{{ categoryWarning }}</span>
@@ -217,16 +221,21 @@
  * zoom toggle for faded thermal print.
  */
 import type { ParsedReceipt } from '~~/shared/utils/receipt-types'
-import { isCategoryMismatch } from '~~/shared/utils/receipt-merchants'
+import type { ExpenseCategory } from '~~/shared/utils/expense-categories'
+import { expenseCategoryLabel } from '~~/shared/utils/expense-categories'
 import { centsToRands } from '~/utils/currency'
 import { formatDate, getCurrentTimestamp } from '~/utils/date'
 
 interface ScanResponse extends ParsedReceipt {
   /** Whether the text came from a PDF text layer or from OCR. */
   source: 'pdf' | 'ocr'
+  /** The vendor's highest-ranked expense-category tag, resolved server-side from VendorMapping. Null when the vendor is unknown or has no tags. */
+  expenseCategory: ExpenseCategory | null
+  /** Every tag known for this vendor, not just the top one — a vendor may legitimately carry several (Woolworths: groceries AND clothing). */
+  vendorTags: ExpenseCategory[]
 }
 
-interface CategoryOption { id: number, name: string }
+interface CategoryOption { id: number, name: string, expenseCategory: ExpenseCategory | null }
 
 const props = defineProps<{
   open: boolean
@@ -237,7 +246,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  save: [payload: { categoryId: number, description: string, amount: number, date: string }]
+  save: [payload: {
+    categoryId: number
+    description: string
+    amount: number
+    date: string
+    /** The parser's original merchant text, before any edits to the description field — the learn endpoint's key must not drift with user relabelling. */
+    rawMerchant: string | null
+  }]
 }>()
 
 /** Upload + server-side scan ceiling; the server's own lock timeout is 30s. */
@@ -253,7 +269,9 @@ const previewUrl = ref<string | null>(null)
 const fileName = ref<string | null>(null)
 const hasFile = ref(false)
 const zoomed = ref(false)
-const scannedKind = ref<string | null>(null)
+const resolvedExpenseCategory = ref<ExpenseCategory | null>(null)
+const vendorTags = ref<ExpenseCategory[]>([])
+const scannedMerchant = ref<string | null>(null)
 const selectedCategoryId = ref<number>(props.categoryId)
 
 const form = ref({
@@ -265,19 +283,47 @@ const form = ref({
 /** Per-scan controller so a stale request is cut off if the modal closes mid-scan. */
 const controller = ref<AbortController | null>(null)
 
-const selectedCategoryName = computed(() =>
-  props.categories.find(c => c.id === selectedCategoryId.value)?.name ?? '',
+const selectedCategory = computed(() =>
+  props.categories.find(c => c.id === selectedCategoryId.value),
+)
+
+/** Categories in this month tagged with the scan's resolved expense category. */
+const taggedCategories = computed(() =>
+  resolvedExpenseCategory.value === null
+    ? []
+    : props.categories.filter(c => c.expenseCategory === resolvedExpenseCategory.value),
 )
 
 /**
- * Only warns when the merchant kind AND the category name are both known and
- * disagree — an unrecognised shop or an unclassifiable category stays silent.
- * Never blocks saving: buying milk at a Shell garage is legitimate.
+ * Auto-selection only fires when exactly one category in this month carries
+ * the resolved tag. Two categories may legitimately share a tag ("Date
+ * nights" and "Takeaways" are both RESTAURANTS_AND_TAKEAWAYS), so with zero or several
+ * matches this stays silent rather than guessing — the launch category stays
+ * selected and this hint explains why.
+ */
+const categoryHint = computed(() => {
+  if (resolvedExpenseCategory.value === null) return null
+  if (taggedCategories.value.length === 1) return null
+  const label = expenseCategoryLabel(resolvedExpenseCategory.value)
+  return taggedCategories.value.length === 0
+    ? `Nothing here is tagged ${label}.`
+    : `Several categories are tagged ${label} — pick the right one.`
+})
+
+/**
+ * Fires only when the selected category's tag matches NONE of the vendor's
+ * known tags — not merely when it isn't the top-ranked one. A vendor may
+ * carry several legitimate tags (Woolworths: groceries AND clothing), so
+ * agreeing with any of them is enough to stay silent. Never blocks saving:
+ * buying milk at a Shell garage is legitimate.
  */
 const categoryWarning = computed(() => {
-  if (!scannedKind.value || !selectedCategoryName.value) return null
-  if (!isCategoryMismatch(scannedKind.value as never, selectedCategoryName.value)) return null
-  return `This looks like a ${scannedKind.value.replace('-', ' ')} slip.`
+  const tag = selectedCategory.value?.expenseCategory
+  if (!tag || vendorTags.value.length === 0) return null
+  if (vendorTags.value.includes(tag)) return null
+  const merchant = scannedMerchant.value || form.value.description || 'this vendor'
+  const labels = vendorTags.value.map(t => expenseCategoryLabel(t)).join(', ')
+  return `You usually file ${merchant} under ${labels}.`
 })
 
 /**
@@ -310,7 +356,9 @@ function reset() {
   fileName.value = null
   hasFile.value = false
   zoomed.value = false
-  scannedKind.value = null
+  resolvedExpenseCategory.value = null
+  vendorTags.value = []
+  scannedMerchant.value = null
   selectedCategoryId.value = props.categoryId
   form.value = {
     description: '',
@@ -390,7 +438,9 @@ async function scan(file: File) {
     const message = (err as { data?: { message?: string } })?.data?.message
     // A failed scan must never dead-end — the fields stay open to be typed in.
     error.value = message || 'Failed to scan the receipt. Enter the details by hand.'
-    scannedKind.value = null
+    resolvedExpenseCategory.value = null
+    vendorTags.value = []
+      scannedMerchant.value = null
     selectedCategoryId.value = props.categoryId
   } finally {
     if (controller.value === mine) {
@@ -401,8 +451,17 @@ async function scan(file: File) {
 }
 
 function applyResult(parsed: ScanResponse) {
-  scannedKind.value = parsed.merchantKind
-  selectedCategoryId.value = props.categoryId
+  resolvedExpenseCategory.value = parsed.expenseCategory
+  vendorTags.value = parsed.vendorTags
+  scannedMerchant.value = parsed.merchant
+
+  // Preselect only when the tag identifies exactly one category this month;
+  // otherwise keep the card the scan was launched from — `categoryHint`
+  // (computed above) explains why. See "Runtime flow" in
+  // docs/plans/2026-08-22-vendor-expense-category-design.md.
+  selectedCategoryId.value = taggedCategories.value.length === 1
+    ? taggedCategories.value[0]!.id
+    : props.categoryId
 
   form.value = {
     description: parsed.merchant ?? '',
@@ -432,6 +491,7 @@ function submit() {
     description: form.value.description,
     amount: form.value.amount,
     date: form.value.date,
+    rawMerchant: scannedMerchant.value,
   })
 }
 

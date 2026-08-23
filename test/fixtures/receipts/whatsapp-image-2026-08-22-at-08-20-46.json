@@ -1,0 +1,429 @@
+{
+  "source": "WhatsApp Image 2026-08-22 at 08.20.46.jpeg",
+  "capturedAt": "2026-08-23",
+  "engine": "ppu-paddle-ocr v6-tiny @1200px",
+  "overallConfidence": 0.9274,
+  "expected": {
+    "merchant": "Shel1 Kraaibosch S/S",
+    "amountCents": 95870,
+    "dateText": "21/08/2026"
+  },
+  "lines": [
+    [
+      {
+        "text": "Shel1 Kraaibosch S/S",
+        "box": {
+          "x": 305,
+          "y": 179,
+          "width": 223,
+          "height": 24
+        },
+        "confidence": 0.9612
+      }
+    ],
+    [
+      {
+        "text": "CUSTOMER RECEIPT",
+        "box": {
+          "x": 323,
+          "y": 233,
+          "width": 183,
+          "height": 27
+        },
+        "confidence": 0.9876
+      }
+    ],
+    [
+      {
+        "text": "2026-08-21 13:59 Ver4.16U S/N: 3286",
+        "box": {
+          "x": 298,
+          "y": 255,
+          "width": 230,
+          "height": 28
+        },
+        "confidence": 0.8801
+      }
+    ],
+    [
+      {
+        "text": "Merch No.:001756:921583 ECHO: 06803M",
+        "box": {
+          "x": 298,
+          "y": 276,
+          "width": 228,
+          "height": 24
+        },
+        "confidence": 0.89
+      }
+    ],
+    [
+      {
+        "text": "ShipToMo. :1244668 Receipt: 521554",
+        "box": {
+          "x": 294,
+          "y": 293,
+          "width": 234,
+          "height": 28
+        },
+        "confidence": 0.8692
+      }
+    ],
+    [
+      {
+        "text": "UTI:92158323024-0152-1554-260821135900",
+        "box": {
+          "x": 296,
+          "y": 313,
+          "width": 230,
+          "height": 27
+        },
+        "confidence": 0.8681
+      }
+    ],
+    [
+      {
+        "text": "Batch-Rec:024-299",
+        "box": {
+          "x": 296,
+          "y": 334,
+          "width": 120,
+          "height": 22
+        },
+        "confidence": 0.9694
+      },
+      {
+        "text": "SPOH: 1521554",
+        "box": {
+          "x": 440,
+          "y": 336,
+          "width": 84,
+          "height": 23
+        },
+        "confidence": 0.9694
+      }
+    ],
+    [
+      {
+        "text": "Dperator :Lunga",
+        "box": {
+          "x": 294,
+          "y": 350,
+          "width": 115,
+          "height": 29
+        },
+        "confidence": 0.9038
+      },
+      {
+        "text": "PED/Shift: 23/0000",
+        "box": {
+          "x": 414,
+          "y": 356,
+          "width": 110,
+          "height": 23
+        },
+        "confidence": 0.9038
+      }
+    ],
+    [
+      {
+        "text": "Supervisor:No",
+        "box": {
+          "x": 293,
+          "y": 370,
+          "width": 95,
+          "height": 28
+        },
+        "confidence": 0.9507
+      },
+      {
+        "text": "Status: 226IH",
+        "box": {
+          "x": 429,
+          "y": 376,
+          "width": 95,
+          "height": 23
+        },
+        "confidence": 0.9507
+      }
+    ],
+    [
+      {
+        "text": "Entry Mode: Inserted",
+        "box": {
+          "x": 293,
+          "y": 390,
+          "width": 125,
+          "height": 28
+        },
+        "confidence": 0.9533
+      },
+      {
+        "text": "Mode: Host",
+        "box": {
+          "x": 436,
+          "y": 396,
+          "width": 89,
+          "height": 23
+        },
+        "confidence": 0.9533
+      }
+    ],
+    [
+      {
+        "text": "Qdometer :51647 km",
+        "box": {
+          "x": 291,
+          "y": 410,
+          "width": 137,
+          "height": 28
+        },
+        "confidence": 0.8978
+      }
+    ],
+    [
+      {
+        "text": "PAN:40694704xXXx3112",
+        "box": {
+          "x": 288,
+          "y": 430,
+          "width": 238,
+          "height": 35
+        },
+        "confidence": 0.9652
+      },
+      {
+        "text": "Private",
+        "box": {
+          "x": 470,
+          "y": 416,
+          "width": 54,
+          "height": 23
+        },
+        "confidence": 0.8978
+      }
+    ],
+    [
+      {
+        "text": "APL:VISA FLEET",
+        "box": {
+          "x": 290,
+          "y": 455,
+          "width": 98,
+          "height": 28
+        },
+        "confidence": 0.9469
+      }
+    ],
+    [
+      {
+        "text": "TVR:0080048000 AIO:",
+        "box": {
+          "x": 288,
+          "y": 475,
+          "width": 143,
+          "height": 28
+        },
+        "confidence": 0.8148
+      },
+      {
+        "text": "A 01010",
+        "box": {
+          "x": 431,
+          "y": 481,
+          "width": 90,
+          "height": 22
+        },
+        "confidence": 0.8148
+      }
+    ],
+    [
+      {
+        "text": "TC: 47360BE806fFF046F",
+        "box": {
+          "x": 289,
+          "y": 499,
+          "width": 130,
+          "height": 22
+        },
+        "confidence": 0.8976
+      },
+      {
+        "text": "TSI: E800",
+        "box": {
+          "x": 459,
+          "y": 501,
+          "width": 62,
+          "height": 23
+        },
+        "confidence": 0.8976
+      }
+    ],
+    [
+      {
+        "text": "V-Pover95 Uunlead PI3 38.61 R 958.70",
+        "box": {
+          "x": 286,
+          "y": 536,
+          "width": 237,
+          "height": 29
+        },
+        "confidence": 0.8787
+      }
+    ],
+    [
+      {
+        "text": "TOTAL:",
+        "box": {
+          "x": 288,
+          "y": 579,
+          "width": 80,
+          "height": 27
+        },
+        "confidence": 0.964
+      },
+      {
+        "text": "R 958.70",
+        "box": {
+          "x": 394,
+          "y": 584,
+          "width": 125,
+          "height": 24
+        },
+        "confidence": 0.964
+      }
+    ],
+    [
+      {
+        "text": "Approved no balances Auth Code: 837141",
+        "box": {
+          "x": 283,
+          "y": 604,
+          "width": 236,
+          "height": 27
+        },
+        "confidence": 0.9157
+      }
+    ],
+    [
+      {
+        "text": "V+ Rewards",
+        "box": {
+          "x": 338,
+          "y": 648,
+          "width": 125,
+          "height": 27
+        },
+        "confidence": 0.9787
+      }
+    ],
+    [
+      {
+        "text": "9710 4953 3534 2972",
+        "box": {
+          "x": 294,
+          "y": 671,
+          "width": 225,
+          "height": 33
+        },
+        "confidence": 0.9643
+      }
+    ],
+    [
+      {
+        "text": "Balance = R 64.35.",
+        "box": {
+          "x": 295,
+          "y": 703,
+          "width": 213,
+          "height": 27
+        },
+        "confidence": 0.968
+      }
+    ],
+    [
+      {
+        "text": "You earned R5.70.",
+        "box": {
+          "x": 301,
+          "y": 729,
+          "width": 204,
+          "height": 29
+        },
+        "confidence": 0.9689
+      }
+    ],
+    [
+      {
+        "text": "T&Cs aply ww.v-plus.co.za",
+        "box": {
+          "x": 303,
+          "y": 755,
+          "width": 190,
+          "height": 28
+        },
+        "confidence": 0.8618
+      }
+    ],
+    [
+      {
+        "text": "Please retain as proof of payment.",
+        "box": {
+          "x": 293,
+          "y": 811,
+          "width": 207,
+          "height": 29
+        },
+        "confidence": 0.9552
+      }
+    ],
+    [
+      {
+        "text": "Download the nev V+ Revards App!",
+        "box": {
+          "x": 298,
+          "y": 869,
+          "width": 197,
+          "height": 27
+        },
+        "confidence": 0.9473
+      }
+    ],
+    [
+      {
+        "text": "Enjoy a card free experience",
+        "box": {
+          "x": 309,
+          "y": 893,
+          "width": 176,
+          "height": 27
+        },
+        "confidence": 0.9537
+      }
+    ],
+    [
+      {
+        "text": "vith a virtual card,",
+        "box": {
+          "x": 330,
+          "y": 916,
+          "width": 130,
+          "height": 24
+        },
+        "confidence": 0.9773
+      }
+    ],
+    [
+      {
+        "text": "payment in App, other added benefits.",
+        "box": {
+          "x": 276,
+          "y": 938,
+          "width": 228,
+          "height": 27
+        },
+        "confidence": 0.9444
+      }
+    ]
+  ]
+}

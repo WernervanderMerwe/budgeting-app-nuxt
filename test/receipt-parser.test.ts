@@ -199,6 +199,7 @@ describe('merchant extraction', () => {
   test('combines brand and branch', () => {
     const r = parseReceipt(rows('SPAR', 'VREDEKLOOF', 'VAT: 4910175696', 'TOTAL | 10.00'))
     assert.equal(r.merchant, 'Spar Vredekloof')
+    assert.equal(r.brand, 'Spar', 'brand must be the bare brand name, with no branch suffix, so it can key VendorMapping lookups')
   })
 
   test('skips registration and contact noise', () => {
@@ -209,6 +210,7 @@ describe('merchant extraction', () => {
   test('unknown brand falls back to the first clean line', () => {
     const r = parseReceipt(rows('JOE BLOGGS BUTCHERY', 'VAT: 999', 'TOTAL | 10.00'))
     assert.equal(r.merchant, 'JOE BLOGGS BUTCHERY')
+    assert.equal(r.brand, null, 'no canonical brand on the fallback path')
   })
 
   test('does not pick up marketing footers', () => {
@@ -229,7 +231,7 @@ describe('merchant extraction', () => {
       'Thank you for shopping with Checkers Sixty60',
     ))
     assert.equal(r.merchant, 'Checkers')
-    assert.equal(r.merchantKind, 'groceries')
+    assert.equal(r.brand, 'Checkers')
   })
 
   test('the whole-document fallback does not glue on an unrelated header line', () => {
@@ -245,7 +247,7 @@ describe('merchant extraction', () => {
       'SHELL', 'BELLVILLE', 'TOTAL | 10.00', 'NOW ON UBER EATS',
     ))
     assert.equal(r.merchant, 'Shell Bellville')
-    assert.equal(r.merchantKind, 'fuel')
+    assert.equal(r.brand, 'Shell')
   })
 
   test('a priceless line item naming another brand is not the store', () => {
@@ -259,7 +261,6 @@ describe('merchant extraction', () => {
       'Delivered by Checkers SIXTY6O',
     ))
     assert.equal(r.merchant, 'Checkers')
-    assert.equal(r.merchantKind, 'groceries')
   })
 
   test('a brand glued to its price in one segment is not the store', () => {
@@ -279,7 +280,7 @@ describe('merchant extraction', () => {
       'TOTAL | 249.99', 'Takealot Online (Pty) Ltd',
     ))
     assert.equal(r.merchant, 'Takealot')
-    assert.notEqual(r.merchantKind, 'fuel', 'would fire a false fuel mismatch warning')
+    assert.notEqual(r.merchant, 'Shell', 'the SHELL HELIX line item must not be read as the fuel brand Shell')
   })
 
   test('the lowest brand near the foot wins, not the first in the table', () => {
@@ -309,7 +310,6 @@ describe('merchant extraction', () => {
       'TOTAL | 21.99',
     ))
     assert.equal(r.merchant, 'JOE BLOGGS CAFE')
-    assert.equal(r.merchantKind, null)
   })
 })
 
@@ -333,7 +333,6 @@ describe('Sixty60-style delivery invoice', () => {
   test('merchant, total and date all come out', () => {
     const r = parseReceipt(invoice)
     assert.equal(r.merchant, 'Checkers')
-    assert.equal(r.merchantKind, 'groceries')
     assert.equal(r.amountCents, 43785)
     assert.equal(r.dateText, '17/08/2026')
   })
@@ -422,6 +421,7 @@ describe('robustness', () => {
     assert.equal(r.merchant, null)
     assert.equal(r.amountCents, null)
     assert.equal(r.confidence, 0)
+    assert.equal(r.brand, null)
   })
 
   test('garbage input does not throw', () => {

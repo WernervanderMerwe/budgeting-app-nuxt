@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { getMonthName } from '~/utils/date'
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_HINTS, EXPENSE_CATEGORY_LABELS } from '~~/shared/utils/expense-categories'
+import type { ExpenseCategory } from '~~/shared/utils/expense-categories'
 
 useHead({
   title: 'Transaction Tracker'
@@ -25,6 +27,7 @@ const isAddingCategory = ref(false)
 const newCategory = ref({
   name: '',
   allocatedAmount: 0,
+  expenseCategory: '' as ExpenseCategory | '',
 })
 
 // Get year/month from route params
@@ -91,6 +94,7 @@ const handleAddCategory = async () => {
     monthId: currentMonth.value.id,
     name: newCategory.value.name,
     allocatedAmount: newCategory.value.allocatedAmount,
+    expenseCategory: newCategory.value.expenseCategory || null,
   }
   // Close form immediately (optimistic)
   cancelAddCategory()
@@ -103,7 +107,7 @@ const handleAddCategory = async () => {
 
 const cancelAddCategory = () => {
   showAddCategoryForm.value = false
-  newCategory.value = { name: '', allocatedAmount: 0 }
+  newCategory.value = { name: '', allocatedAmount: 0, expenseCategory: '' }
 }
 </script>
 
@@ -181,6 +185,24 @@ const cancelAddCategory = () => {
                     required
                     @enter="handleAddCategory"
                     @escape="cancelAddCategory"/>
+                </div>
+                <div class="w-44">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Category Tag
+                  </label>
+                  <select
+                    v-model="newCategory.expenseCategory"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Untagged</option>
+                    <option v-for="ec in EXPENSE_CATEGORIES" :key="ec" :value="ec" :title="EXPENSE_CATEGORY_HINTS[ec]">
+                      {{ EXPENSE_CATEGORY_LABELS[ec] }}
+                    </option>
+                  </select>
+                  <p
+                    v-if="newCategory.expenseCategory"
+                    class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {{ EXPENSE_CATEGORY_HINTS[newCategory.expenseCategory] }}
+                  </p>
                 </div>
               </div>
               <div class="flex justify-end space-x-3">
