@@ -8,6 +8,13 @@
 # version bumps must happen on a clean, up-to-date branch so downstream
 # deploys see them on origin.
 #
+# Run from `dev`, it then fast-forwards `main` to the bumped commit, pushes it,
+# and LEAVES YOU ON MAIN — which is exactly where `pnpm vps:deploy` needs you.
+# A version bump is only ever done in order to deploy, so making the caller
+# hand-run switch/merge/push/switch afterwards was pure ceremony.
+#
+# Pass --no-merge to bump without touching main.
+#
 
 set -e
 
@@ -21,15 +28,23 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 PACKAGE_JSON="$PROJECT_ROOT/package.json"
 cd "$PROJECT_ROOT"
 
+# --- Parse args (--no-merge may appear anywhere) ---
+SKIP_MERGE=0
+ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--no-merge" ]; then SKIP_MERGE=1; else ARGS+=("$arg"); fi
+done
+set -- "${ARGS[@]}"
+
+VERSION_TYPE="${1:-}"
+CUSTOM_MESSAGE="${2:-}"
+
 # --- Validate arguments ---
-if [ -z "$1" ]; then
+if [ -z "$VERSION_TYPE" ]; then
     echo -e "${RED}Error: Version type required${NC}"
-    echo "Usage: $0 [major|minor|patch] [\"optional message\"]"
+    echo "Usage: $0 [major|minor|patch] [\"optional message\"] [--no-merge]"
     exit 1
 fi
-
-VERSION_TYPE="$1"
-CUSTOM_MESSAGE="$2"
 
 if [[ ! "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; then
     echo -e "${RED}Error: Invalid version type '$VERSION_TYPE'${NC}"
@@ -132,5 +147,71 @@ echo ""
 echo -e "${GREEN}✓ Version bumped to v$NEW_VERSION${NC}"
 echo -e "${GREEN}✓ Tag v$NEW_VERSION pushed${NC}"
 echo -e "${GREEN}✓ origin/$CURRENT_BRANCH at $(git rev-parse --short HEAD)${NC}"
+
+# --- Fast-forward main to the bumped commit, ready to deploy ---
+#
+# Only from dev, and only as a fast-forward. A merge COMMIT would leave main's
+# tip reading "Merge branch 'dev'" instead of the bump, which vps-deploy.sh
+# checks for — so a non-ff situation is a genuine stop, not something to paper
+# over by creating a merge commit automatically.
+if [ "$CURRENT_BRANCH" != "dev" ] || [ "$SKIP_MERGE" = "1" ]; then
+    echo ""
+    if [ "$SKIP_MERGE" = "1" ]; then
+        echo "Skipped the merge to main (--no-merge)."
+    else
+        echo "On '$CURRENT_BRANCH', not 'dev' — leaving main alone."
+    fi
+    echo "Next: merge into main, push, then: pnpm vps:deploy"
+    exit 0
+fi
+
 echo ""
-echo "Next: merge dev -> main, push, then: pnpm vps:deploy"
+echo -e "${YELLOW}About to fast-forward main to v$NEW_VERSION and push it.${NC}"
+echo "The qa gate is mandatory before dev -> main (docs/devops/lifecycle.md)."
+if [ -t 0 ]; then
+    read -r -p "Has 'pnpm qa:up' passed for this build? [y/N] " QA_OK || QA_OK=""
+else
+    echo -e "${YELLOW}stdin is not a terminal — cannot ask for qa-gate confirmation, so treating it as not confirmed.${NC}"
+    QA_OK=""
+fi
+if [[ ! "$QA_OK" =~ ^[Yy]$ ]]; then
+    echo -e "${RED}Stopped. dev is bumped, tagged and pushed — main is untouched.${NC}"
+    echo "dev already has this version, so do NOT re-run this script for it — a re-run"
+    echo "would bump the version again (e.g. v$NEW_VERSION -> a new patch) instead of"
+    echo "merging the one you already have."
+    echo "Once 'pnpm qa:up' has passed, finish the merge by hand instead:"
+    echo -e "  ${YELLOW}git switch main${NC}"
+    echo -e "  ${YELLOW}git merge --ff-only dev${NC}"
+    echo -e "  ${YELLOW}git push origin main${NC}"
+    exit 1
+fi
+
+# Everything below is verified BEFORE switching branches, so a failure can
+# never strand the caller on a half-merged main.
+if ! git rev-parse --verify main >/dev/null 2>&1; then
+    echo -e "${RED}Error: no local 'main' branch. Merge manually.${NC}"
+    exit 1
+fi
+if [ "$(git rev-parse main)" != "$(git rev-parse origin/main)" ]; then
+    echo -e "${RED}Error: local main and origin/main differ. Reconcile them first.${NC}"
+    echo "   local:  $(git log -1 --format='%h %s' main)"
+    echo "   origin: $(git log -1 --format='%h %s' origin/main)"
+    exit 1
+fi
+if ! git merge-base --is-ancestor main dev; then
+    echo -e "${RED}Error: main has commits dev does not, so this cannot fast-forward.${NC}"
+    echo "   Bring them into dev first, re-run qa, then bump again:"
+    echo -e "   ${YELLOW}git switch dev && git merge main${NC}"
+    exit 1
+fi
+
+echo "Fast-forwarding main..."
+git switch --quiet main
+git merge --ff-only dev
+git push origin main
+
+echo ""
+echo -e "${GREEN}✓ main fast-forwarded to v$NEW_VERSION and pushed${NC}"
+echo -e "${GREEN}✓ You are now on main${NC}"
+echo ""
+echo "Next: pnpm vps:deploy      (afterwards: git switch dev)"
