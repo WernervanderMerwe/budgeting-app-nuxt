@@ -48,9 +48,9 @@ DIRECT_URL="postgresql://budgeting:budgeting_dev@localhost:5434/budgeting"
 BETTER_AUTH_SECRET=""
 BETTER_AUTH_URL="http://localhost:3000"
 
-# Mail — dev goes to local Mailpit (read at http://localhost:8422)
+# Mail — dev goes to the shared local Mailpit (read at http://localhost:8025)
 NUXT_SMTP_HOST="localhost"
-NUXT_SMTP_PORT="1422"
+NUXT_SMTP_PORT="1025"
 NUXT_SMTP_USER=""
 NUXT_SMTP_PASS=""
 NUXT_SMTP_FROM="Budget App <noreply@send.wernerbuildsapps.co.za>"
@@ -59,7 +59,7 @@ NUXT_SMTP_FROM="Budget App <noreply@send.wernerbuildsapps.co.za>"
 ### 3. Start the Database
 
 ```bash
-pnpm db:up    # Postgres + Mailpit containers
+pnpm db:up    # Postgres container (Mailpit is a separate shared instance, see `pnpm dev:up`)
 ```
 
 ### 4. Run Migrations
@@ -74,8 +74,8 @@ pnpm db:migrate
 pnpm dev:up   # Postgres + Mailpit containers, then Nuxt dev server (foreground)
 ```
 
-Visit `http://localhost:3000`. Magic-link sign-in emails land at `http://localhost:8422`
-(Mailpit), not a real inbox.
+Visit `http://localhost:3000`. Magic-link sign-in emails land at `http://localhost:8025`
+(shared Mailpit), not a real inbox.
 
 ## Production Deployment
 

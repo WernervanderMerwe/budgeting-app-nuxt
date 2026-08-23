@@ -19,14 +19,6 @@ services:
       retries: 5
     profiles: ["dev"]
 
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: budgeting-mailpit
-    profiles: ["dev"]
-    ports:
-      - "8422:8025"   # web UI  (host port mirrors qa 3422)
-      - "1422:1025"   # SMTP    (host port mirrors qa 3422)
-
   # ── QA (local prod-image gate) ──────────────────────────
   budgeting-qa:
     build:

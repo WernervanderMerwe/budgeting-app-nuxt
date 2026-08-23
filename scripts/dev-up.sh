@@ -39,12 +39,12 @@ fi
 # session and magic-link login then fails with ECONNREFUSED on the SMTP port.
 echo ""
 echo "Checking Mailpit..."
-if [ -n "$(docker ps -q -f name=budgeting-mailpit)" ]; then
+if [ -n "$(docker ps -q -f name=shared-mailpit)" ]; then
     echo "  Mailpit is running"
 else
     echo "  Mailpit not running — starting..."
-    docker compose --profile dev up -d mailpit
-    echo "  Mailpit started (web UI: http://localhost:8422)"
+    docker compose -f "$HOME/projects/tools/mailpit/docker-compose.yml" up -d
+    echo "  Mailpit started (web UI: http://localhost:8025)"
 fi
 
 # --- 4. Start Nuxt dev server (foreground) ---

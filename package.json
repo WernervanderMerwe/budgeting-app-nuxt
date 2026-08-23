@@ -33,7 +33,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
-    "qa:up": "docker compose --profile qa up -d --build",
+    "qa:up": "docker compose -f $HOME/projects/tools/mailpit/docker-compose.yml up -d && docker compose --profile qa up -d --build",
     "qa:down": "docker compose --profile qa down",
     "qa:logs": "docker compose --profile qa logs -f",
     "docker:push": "bash scripts/build-push.sh",

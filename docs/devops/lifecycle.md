@@ -25,14 +25,15 @@ Magic-link sign-in only — no passwords.
 
 ## Tier 1: dev
 
-**What runs:** `budgeting-postgres-dev` + `budgeting-mailpit` containers, plus the Nuxt dev
-server as a host process (hot reload, source maps).
+**What runs:** the `budgeting-postgres-dev` container, plus the shared `shared-mailpit`
+container (`~/projects/tools/mailpit`, one instance used by all three local repos), plus the
+Nuxt dev server as a host process (hot reload, source maps).
 
-**Ports:** Nuxt `3000`, Postgres `5434`, Mailpit SMTP `1422` / web UI `8422`.
+**Ports:** Nuxt `3000`, Postgres `5434`, Mailpit SMTP `1025` / web UI `8025`.
 
-> **Mailpit port scheme:** the last three digits always match this app's qa port (`3422`) —
-> qa `3422`, Mailpit web UI `8422`, Mailpit SMTP `1422`. Same rule in all three repos,
-> so there is nothing per-app to memorise.
+> **Mailpit is shared, not per-app.** All three repos point at the same `shared-mailpit`
+> container on the standard Mailpit ports (`1025` SMTP / `8025` web UI) — there is nothing
+> per-app to memorise. `pnpm dev:up` starts it automatically if it isn't already running.
 
 **Start (one-shot):**
 ```bash
@@ -49,12 +50,12 @@ Kills port 3000 and stops the `dev` profile containers.
 
 **Manual steps (if needed):**
 ```bash
-pnpm db:up     # start Postgres + Mailpit only
+pnpm db:up     # start Postgres only (Mailpit is the separate shared instance)
 pnpm dev       # start Nuxt only (kills port 3000 first)
 pnpm dev:kill  # free port 3000
 ```
 
-**Emails in dev go to Mailpit, not the internet.** Open http://localhost:8422 to read
+**Emails in dev go to Mailpit, not the internet.** Open http://localhost:8025 to read
 anything the app sends — magic-link sign-in emails will NOT arrive in a real inbox while
 `NUXT_SMTP_HOST` points at Mailpit. Check the web UI, not your email client.
 
@@ -69,7 +70,7 @@ anything the app sends — magic-link sign-in emails will NOT arrive in a real i
 
 **Port:** Nuxt `3422` (set via `PORT` in `.env.qa`; avoids clashing with dev on `3000`). Uses
 `network_mode: host` so the container can reach Postgres on `localhost:5434` and Mailpit on
-`localhost:1422`.
+`localhost:1025`.
 
 ```bash
 pnpm qa:up     # build + start detached
@@ -164,7 +165,7 @@ BETTER_AUTH_URL="..."        # MUST match the origin the browser uses for that t
 
 # Mail (nodemailer, see server/utils/mail.ts)
 NUXT_SMTP_HOST=""            # dev/qa: localhost (Mailpit) | prod: smtp.resend.com
-NUXT_SMTP_PORT=""            # dev/qa: 1422 | prod: 587
+NUXT_SMTP_PORT=""            # dev/qa: 1025 (shared Mailpit) | prod: 587
 NUXT_SMTP_USER=""            # prod: "resend" (literally); unset in dev/qa — Mailpit needs no auth
 NUXT_SMTP_PASS=""            # prod: Resend API key; unset in dev/qa
 NUXT_SMTP_FROM=""            # e.g. "Budget App <noreply@send.wernerbuildsapps.co.za>"
@@ -218,10 +219,10 @@ After any schema change, regenerate the Prisma client (done automatically by `pn
 | Prisma can't connect locally | Postgres not up, or `DATABASE_URL` on the wrong port | `pnpm db:up`; dev Postgres is `5434`, not 5432 |
 | `pnpm db:up` fails: "container name already in use" | Your container predates the `postgres` → `postgres-dev` service rename (2026-08-18), so compose can't adopt it | `docker rm -f budgeting-postgres-dev`, then `pnpm db:up`. Data lives in the `pgdata-dev` volume and survives the recreate |
 | Auth works in dev, breaks in qa/prod | `BETTER_AUTH_URL` doesn't match the browser origin | Set it per tier |
-| No magic-link emails, but no error either | `NUXT_SMTP_HOST` unset — `sendMail()` fails soft, warning-only | Set the SMTP block; check Mailpit (dev/qa, `http://localhost:8422`) or Resend logs (prod) |
+| No magic-link emails, but no error either | `NUXT_SMTP_HOST` unset — `sendMail()` fails soft, warning-only | Set the SMTP block; check Mailpit (dev/qa, `http://localhost:8025`) or Resend logs (prod) |
 | Magic-link request returns a 500 | SMTP host set but send actually failed | `sendMagicLinkEmail()` throws loudly on `{ sent: false }` — check the SMTP creds/network |
 | Port 3000 already in use | Previous Nuxt process alive | `pnpm dev:kill` |
-| qa container can't reach Postgres/Mailpit | `network_mode: host` missing from the `budgeting-qa` service | Required to reach `localhost:5434` / `localhost:1422` |
+| qa container can't reach Postgres/Mailpit | `network_mode: host` missing from the `budgeting-qa` service | Required to reach `localhost:5434` / `localhost:1025` |
 | Builds in dev, fails in qa | Vite dev vs bundled Nitro output differ | Always run the qa gate before deploying |
 | `vps:deploy` refuses to run | Not on `main`, dirty tree, or `main` behind `origin/main` | The script prints which gate failed |
 | Deploy succeeds, app won't start | VPS `.env.production` out of sync with `.env.production.example` | Update the VPS env, then redeploy |
