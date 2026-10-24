@@ -5,12 +5,12 @@
 # pushes it to GHCR, then the VPS pulls the image + latest code and restarts.
 #
 # Flow (no TAG arg):
-#   1. Verify we're on main (does NOT auto-switch — error out if not)
+#   1. Fetch origin, verify current HEAD == origin/main (any local branch name is fine,
+#      as long as its tip is the same commit as origin/main — e.g. a fast-forwarded dev)
 #   2. Verify working tree clean
-#   3. Fetch origin, verify local main == origin/main
-#   4. Verify last commit on main is a version bump (warn + confirm if not)
-#   5. Build & push image to GHCR (scripts/build-push.sh)
-#   6. SSH to VPS: git pull, docker compose pull, restart, prune
+#   3. Verify last commit is a version bump (warn + confirm if not)
+#   4. Build & push image to GHCR (scripts/build-push.sh)
+#   5. SSH to VPS: git pull, docker compose pull, restart, prune
 #
 # Flow (TAG arg given — rollback/pin):
 #   1-4 same checks as above
@@ -38,14 +38,19 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# --- 1. Must be on main (no auto-switch) ---
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "main" ]; then
-    echo -e "${RED}❌ Not on main (currently on '$CURRENT_BRANCH').${NC}"
-    echo "   Deploys run from main. Merge your changes into main first, then:"
-    echo -e "     ${YELLOW}git switch main${NC}"
+# --- 1. Fetch origin, verify current HEAD matches origin/main ---
+echo -e "${YELLOW}🔄 Fetching origin...${NC}"
+git fetch origin --quiet
+
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    echo -e "${RED}❌ HEAD (on '$CURRENT_BRANCH') does not match origin/main.${NC}"
+    echo "   HEAD:        $(git log -1 --format='%h %s' HEAD)"
+    echo "   origin/main: $(git log -1 --format='%h %s' origin/main)"
+    echo "   Merge/push your changes to origin's main ref before deploying."
     exit 1
 fi
+echo -e "  ${GREEN}✅ HEAD matches origin/main${NC}"
 
 # --- 2. Working tree must be clean ---
 if [ -n "$(git status --porcelain)" ]; then
@@ -54,23 +59,10 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-# --- 3. Fetch origin and verify main is in sync ---
-echo -e "${YELLOW}🔄 Fetching origin...${NC}"
-git fetch origin --quiet
-
-if [ "$(git rev-parse main)" != "$(git rev-parse origin/main)" ]; then
-    echo -e "${RED}❌ Local main out of sync with origin/main.${NC}"
-    echo "   local:  $(git log -1 --format='%h %s' main)"
-    echo "   origin: $(git log -1 --format='%h %s' origin/main)"
-    echo "   Reconcile (push or pull) before deploying."
-    exit 1
-fi
-echo -e "  ${GREEN}✅ main in sync with origin${NC}"
-
-# --- 4. Verify last commit on main is a version bump ---
-LAST_MSG=$(git log -1 --format=%s main)
+# --- 3. Verify last commit is a version bump ---
+LAST_MSG=$(git log -1 --format=%s HEAD)
 if [[ ! "$LAST_MSG" =~ ^chore:\ bump\ version ]]; then
-    echo -e "${YELLOW}⚠️  Last commit on main is not a version bump:${NC}"
+    echo -e "${YELLOW}⚠️  Last commit is not a version bump:${NC}"
     echo "   $LAST_MSG"
     echo ""
     read -p "   Continue anyway? [y/N] " -r

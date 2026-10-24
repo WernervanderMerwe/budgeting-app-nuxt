@@ -9,9 +9,11 @@
 # deploys see them on origin.
 #
 # Run from `dev`, it then fast-forwards `main` to the bumped commit, pushes it,
-# and LEAVES YOU ON MAIN — which is exactly where `pnpm vps:deploy` needs you.
-# A version bump is only ever done in order to deploy, so making the caller
-# hand-run switch/merge/push/switch afterwards was pure ceremony.
+# and switches back to dev — vps-deploy.sh checks HEAD against origin/main, not
+# your current branch name, so dev (now equal to origin/main) is fine to deploy
+# from. Staying on dev keeps you from ever landing an accidental direct commit
+# on main. A version bump is only ever done in order to deploy, so making the
+# caller hand-run switch/merge/push afterwards was pure ceremony.
 #
 # Pass --no-merge to bump without touching main.
 #
@@ -209,9 +211,10 @@ echo "Fast-forwarding main..."
 git switch --quiet main
 git merge --ff-only dev
 git push origin main
+git switch --quiet dev
 
 echo ""
 echo -e "${GREEN}✓ main fast-forwarded to v$NEW_VERSION and pushed${NC}"
-echo -e "${GREEN}✓ You are now on main${NC}"
+echo -e "${GREEN}✓ Back on dev${NC}"
 echo ""
-echo "Next: pnpm vps:deploy      (afterwards: git switch dev)"
+echo "Next: pnpm vps:deploy"
